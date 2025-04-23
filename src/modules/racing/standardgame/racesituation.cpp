@@ -385,10 +385,12 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
         if(car->_driverType == RM_DRV_HUMAN){
             //if:
             //- at least a lap has been done
+            //- the last lap has not been invalidated
             //- a lap is passed
             //- we have not done the final lap
             // then log it to the webServer
             if(car->_laps > 1
+                && car->_commitBestLapTime
                 && car->_laps > webServer().previousLaps
                 && webServer().raceEndSent==false){
 
