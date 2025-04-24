@@ -235,7 +235,7 @@ void SimCarCollideXYScene(tCar *car)
             car->collpos.y = corner->pos.ay;
             car->DynGCg.vel.x -= nx * dotProd;
             car->DynGCg.vel.y -= ny * dotProd;
-    
+
             //detect collision
             sgVec3 force = { 0, 0, 0 };
 
@@ -258,7 +258,7 @@ void SimCarCollideXYScene(tCar *car)
             }
         }
 
-		
+
     }
 }
 
