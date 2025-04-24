@@ -228,6 +228,7 @@ void SimCarCollideXYScene(tCar *car)
         if (dotProd < 0.0f)
         {
             car->collision |= SEM_COLLISION_XYSCENE;
+            car->carElt->priv.simcollision = car->collision;
             car->normal.x = nx * dmg;
             car->normal.y = ny * dmg;
             car->collpos.x = corner->pos.ax;

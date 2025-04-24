@@ -512,6 +512,7 @@ typedef struct
 #define _dammage        priv.dammage
 #define _driveSkill     priv.driveSkill
 #define _collision      priv.collision
+#define _simcollision      priv.simcollision
 
 #define _smoke          priv.smoke
 #define _normal         priv.normal

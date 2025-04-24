@@ -215,16 +215,17 @@ reCarsApplyRaceRules(tCarElt *car)
     {
         // If a car hits the track wall the lap time is invalidated, because of tracks where this behaviour allows much faster laps (e.g. alpine-2)
         // Invalidation and message is just shown on the first hit
-        if (car->_commitBestLapTime && (car->priv.simcollision & SEM_COLLISION_XYSCENE))
+        if (car->_commitBestLapTime
+            && car->_simcollision & SEM_COLLISION_XYSCENE
+            && ReInfo->raceRules.enabled & RmRaceRules::WALL_HIT_TIME_INVALIDATE)
         {
-            if (ReInfo->s->_raceType != RM_TYPE_RACE)
-            {
-                car->_commitBestLapTime = false;
-                snprintf(msg, sizeof(msg), "%s Hit Wall, laptime invalidate", car->_name);
-                msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
-                ReSituation::self().setRaceMessage(msg, 5);
-            }
+            car->_commitBestLapTime = false;
+            snprintf(msg, sizeof(msg), "%s Hit Wall, laptime invalidate", car->_name);
+            msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
+            ReSituation::self().setRaceMessage(msg, 5);
         }
+
+        car->_simcollision &= ~SEM_COLLISION_XYSCENE;
     }
 
     if (car->_skillLevel < AMATEUR)
