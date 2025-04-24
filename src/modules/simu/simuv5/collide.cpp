@@ -56,7 +56,6 @@ void SimCarCollideZ(tCar *car)
                     static tdble SUSP_DAMAGE_CONST = 1.0f;
                     static tdble SUSP_DAMAGE = 0.1f;
 
-                    car->collision |= 16;
                     wheel->rotational_damage_x -= dotProd*WHEEL_ROT_DAMAGE * urandom();
                     wheel->rotational_damage_z -= dotProd*WHEEL_ROT_DAMAGE * urandom();
                     wheel->bent_damage_x += (float)(WHEEL_BENT_DAMAGE * (urandom() - 0.5));
