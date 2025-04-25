@@ -34,6 +34,8 @@
 #include <robottools.h>
 #include <teammanager.h>
 #include <replay.h>
+#include <webserver.h>
+#include <track.h>
 
 #include "standardgame.h"
 
@@ -484,6 +486,25 @@ reCarsApplyRaceRules(tCarElt *car)
     }
 }
 
+static void
+ReCarsSendLap(const tCarElt *car)
+{
+#ifdef WEBSERVER
+    WebServer &w = webServer();
+
+    if (car->_driverType != RM_DRV_HUMAN)
+        return;
+
+    bool valid = car->_commitBestLapTime;
+    int water = ReSituation::self().data()->track->local.water;
+
+    w.sendLap(w.raceId, valid, car->_lastLapTime, car->_fuel, car->_pos, water);
+
+    if (car->_remainingLaps < 0)
+        w.sendRaceEnd(w.raceId, car->_pos);
+#endif
+}
+
 void
 ReCarsManageCar(tCarElt *car, bool& bestLapChanged)
 {
@@ -758,6 +779,8 @@ ReCarsManageCar(tCarElt *car, bool& bestLapChanged)
                             }
 
                         }
+
+                        ReCarsSendLap(car);
                         car->_commitBestLapTime = true;
                     }
                     if (car->_laps > 0)

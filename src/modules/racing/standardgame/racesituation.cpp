@@ -375,57 +375,6 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
         replaySituation(pCurrReInfo);
     }
 
-    //Find human cars
-    for (int i = 0; i < pCurrReInfo->s->_ncars; i++) {
-        const tCarElt *car = pCurrReInfo->s->cars[i];
-
-        if(car->_driverType == RM_DRV_HUMAN){
-            //if:
-            //- at least a lap has been done
-            //- the last lap has not been invalidated
-            //- a lap is passed
-            //- we have not done the final lap
-            // then log it to the webServer
-            if(car->_laps > 1
-                && car->_commitBestLapTime
-                && car->_laps > webServer().previousLaps
-                && webServer().raceEndSent==false){
-
-                //remember the current number of laps for next cicle
-                webServer().previousLaps = car->_laps;
-
-                //GfLogInfo("############rain: %i, ",trackLocal->rain); //0=no 1=little 2=medium 3=heawy
-                //GfLogInfo("############WATER: %i, ",trackLocal->water); //0=no 1=little  2=medium  3=heawy
-
-
-                //send the lap info to the server
-                webServer().sendLap(
-                    webServer().raceId,						//race_id
-                    car->_lastLapTime,	//laptime
-                    car->_fuel,			//car remaining fuel at the end of the lap
-                    car->_pos,			//car position
-                    trackLocal->water						//level of water on track
-                    //VERSION_LONG, 						//speed dreams version
-                    //car->_name, 		//player name
-                    //car->_skillLevel,	//player skill level: 0 rokie/ 1 amateour/ 2 semi-pro/ 3 pro
-                    //pCurrReInfo->track->name,				//track name
-                    //strName,								//os info
-                    //pCurrReInfo->s->_raceType,			//type of race: 0 practice/ 1 qualify/ 2 race
-                    //car->_carName,	//car name
-                    //car->_category,	//car category
-                );
-            }
-
-            //if we have already done the last lap but we have not yet sent the raceEnd comunication to the webserver: do it!
-            if(car->_remainingLaps < 0 && webServer().raceEndSent == false){
-                //send race data
-                webServer().sendRaceEnd (
-                    webServer().raceId,
-                    ReInfo->s->cars[i]->_pos				//car end position,
-                );
-            }
-        }
-    }
     webServer().updateAsyncStatus();
 }
 

@@ -92,15 +92,13 @@ class TGFCLIENT_API WebServer {
 
 	public:
 		//local data
-		bool raceEndSent;
-		int previousLaps;
 		int raceId;
 
 	private:
 		const char* username;
 		const char* password;
 		const char* url;
-		bool isWebServerEnabled;
+		bool isWebServerEnabled, raceEndSent;
 
 		NotificationManager notifications;
 
@@ -133,7 +131,7 @@ class TGFCLIENT_API WebServer {
 		int sendLogin (const char* username, const char* password);
 		int sendRaceStart (tSkillLevel user_skill, const char *track_id, char *car_id, int type, void *setup, int startposition, const char *sdversion);
 		int sendRaceEnd (int race_id, int endposition);
-		int sendLap (int race_id, double laptime, double fuel, int position, int wettness);
+		int sendLap (int race_id, bool valid, double laptime, double fuel, int position, int wettness);
 
 		//constructor
 		WebServer();
