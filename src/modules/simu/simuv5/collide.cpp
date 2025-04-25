@@ -56,7 +56,6 @@ void SimCarCollideZ(tCar *car)
                     static tdble SUSP_DAMAGE_CONST = 1.0f;
                     static tdble SUSP_DAMAGE = 0.1f;
 
-                    car->collision |= 16;
                     wheel->rotational_damage_x -= dotProd*WHEEL_ROT_DAMAGE * urandom();
                     wheel->rotational_damage_z -= dotProd*WHEEL_ROT_DAMAGE * urandom();
                     wheel->bent_damage_x += (float)(WHEEL_BENT_DAMAGE * (urandom() - 0.5));
@@ -229,13 +228,14 @@ void SimCarCollideXYScene(tCar *car)
         if (dotProd < 0.0f)
         {
             car->collision |= SEM_COLLISION_XYSCENE;
+            car->carElt->priv.simcollision = car->collision;
             car->normal.x = nx * dmg;
             car->normal.y = ny * dmg;
             car->collpos.x = corner->pos.ax;
             car->collpos.y = corner->pos.ay;
             car->DynGCg.vel.x -= nx * dotProd;
             car->DynGCg.vel.y -= ny * dotProd;
-    
+
             //detect collision
             sgVec3 force = { 0, 0, 0 };
 
@@ -258,7 +258,7 @@ void SimCarCollideXYScene(tCar *car)
             }
         }
 
-		
+
     }
 }
 
