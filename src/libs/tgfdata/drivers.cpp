@@ -1609,18 +1609,18 @@ int GfDrivers::genparams(const std::string &driver, const std::string &category,
         return -1;
     }
 
-    GfParmSetStr(h, "driver", "name", ident.name.c_str());
-    GfParmSetStr(h, "driver", "short name", ident.short_name.c_str());
-    GfParmSetStr(h, "driver", "code name", ident.code_name.c_str());
-    GfParmSetStr(h, "driver", "desc", "Bot generated");
-    GfParmSetStr(h, "driver", "team", ident.team.c_str());
-    GfParmSetStr(h, "driver", "author", "Automatically generated");
-    GfParmSetStr(h, "driver", "car name", selcar.c_str());
-    GfParmSetStr(h, "driver", "race number", "1");
-    GfParmSetStr(h, "driver", "red", "1.0");
-    GfParmSetStr(h, "driver", "green", "1.0");
-    GfParmSetStr(h, "driver", "blue", "1.0");
-    GfParmSetStr(h, "driver", "nation", ident.nationality.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_NAME, ident.name.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_SNAME, ident.short_name.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_CODE, ident.code_name.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_DESC, "Bot generated");
+    GfParmSetStr(h, "driver", ROB_ATTR_TEAM, ident.team.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_AUTHOR, "Automatically generated");
+    GfParmSetStr(h, "driver", ROB_ATTR_CAR, selcar.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_RACENUM, "1");
+    GfParmSetStr(h, "driver", ROB_ATTR_RED, "1.0");
+    GfParmSetStr(h, "driver", ROB_ATTR_GREEN, "1.0");
+    GfParmSetStr(h, "driver", ROB_ATTR_BLUE, "1.0");
+    GfParmSetStr(h, "driver", ROB_ATTR_NATION, ident.nationality.c_str());
 
     if (GfParmWriteFile(nullptr, h, driver.c_str()))
     {
