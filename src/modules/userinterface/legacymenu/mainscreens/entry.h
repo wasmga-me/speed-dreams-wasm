@@ -16,11 +16,12 @@
 
 struct entry
 {
-    entry(const Asset &a, const std::string &path);
+    entry(const Asset &a);
     ~entry();
     const Asset a;
-    const std::string thumbnail;
+    std::string thumbnail;
     enum {init, download, update, fetching, done} state;
+    bool thumbnail_fetched;
     float progress;
     std::string data;
 };

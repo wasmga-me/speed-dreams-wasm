@@ -74,7 +74,7 @@ private:
 
     int add(const char *url, transfer::done f, sink *s, long max);
     int fetch_assets();
-    int fetch_thumbnails(const std::vector<Asset> &assets);
+    int fetch_thumbnail(entry *e);
     int check(CURLcode result, CURL *h, std::string &e) const;
     int assets_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
     int asset_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
@@ -83,7 +83,7 @@ private:
     void update_ui();
     bool visible(const Asset &a) const;
     void append(thumbnail *t, entry *e);
-    void process(thumbnail *t, entry *e, bool &appended, unsigned &offset);
+    void process(thumbnail *t, entry *e);
     int check_hash(const entry *e, const std::string &path, std::string &err) const;
     int extract(const entry *e, const std::string &src, std::string &err) const;
     int save(entry *e, const std::string &path, std::string &err) const;

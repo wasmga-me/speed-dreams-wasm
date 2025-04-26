@@ -16,10 +16,10 @@
 #include <cstring>
 #include <string>
 
-entry::entry(const Asset &a, const std::string &path) :
+entry::entry(const Asset &a) :
     a(a),
-    thumbnail(path),
     state(init),
+    thumbnail_fetched(false),
     progress(0.0f)
 {
 }

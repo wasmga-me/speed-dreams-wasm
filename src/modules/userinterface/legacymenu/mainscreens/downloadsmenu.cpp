@@ -180,7 +180,7 @@ unsigned DownloadsMenu::visible_entries() const
     unsigned ret = 0;
 
     for (const auto e : entries)
-        if (visible(e->a) && e->state != entry::init)
+        if (visible(e->a))
             ret++;
 
     return ret;
@@ -536,12 +536,14 @@ void DownloadsMenu::append(thumbnail *t, entry *e)
         return;
     }
 
+    std::string thumbnail = e->thumbnail_fetched ?
+        e->thumbnail : "data/img/nocarpreview.png";
+
     bargs.push_back(barg(t, e));
-    t->set(e->thumbnail, a.name, size);
+    t->set(thumbnail, a.name, size);
 }
 
-void DownloadsMenu::process(thumbnail *t, entry *e, bool &appended,
-    unsigned &offset)
+void DownloadsMenu::process(thumbnail *t, entry *e)
 {
     bool enable = false, show_progress = false, show_delete = false;
     float progress = 0.0f;
@@ -549,9 +551,11 @@ void DownloadsMenu::process(thumbnail *t, entry *e, bool &appended,
     switch (e->state)
     {
         case entry::init:
-            appended = false;
-            return;
+            if (fetch_thumbnail(e))
+                throw std::runtime_error("Failed to start thumbnail fetch");
 
+            e->state = entry::download;
+            /* Fall through. */
         case entry::download:
             enable = true;
             break;
@@ -571,22 +575,12 @@ void DownloadsMenu::process(thumbnail *t, entry *e, bool &appended,
             break;
     }
 
-    if (offset++ < this->offset)
-    {
-        appended = false;
-        return;
-    }
-
     t->set(enable, show_progress, progress, show_delete);
     append(t, e);
-    appended = true;
 }
 
 void DownloadsMenu::update_ui()
 {
-    for (auto t : thumbnails)
-        t->clear();
-
     bargs.clear();
 
     auto t = thumbnails.begin();
@@ -596,24 +590,23 @@ void DownloadsMenu::update_ui()
     {
         const Asset &a = e->a;
 
-        if (t == thumbnails.end())
-            break;
-        else if (visible(a))
+        if (visible(a) && offset++ >= this->offset)
         {
-            bool appended;
+            process(*t, e);
 
-            process(*t, e, appended, offset);
-
-            if (appended)
-                t++;
+            if (++t == thumbnails.end())
+                break;
         }
     }
+
+    while (t != thumbnails.end())
+        (*t++)->clear();
 
     char s[sizeof "18446744073709551615"];
 
     snprintf(s, sizeof s, "%d", (this->offset / THUMBNAILS) + 1);
     GfuiLabelSetText(hscr, cur_page, s);
-    snprintf(s, sizeof s, "%d", (visible_entries() / THUMBNAILS) + 1);
+    snprintf(s, sizeof s, "%d", (visible_entries() / (THUMBNAILS + 1)) + 1);
     GfuiLabelSetText(hscr, npages, s);
 }
 
@@ -808,6 +801,7 @@ int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
             else
                 e->state = entry::done;
 
+            e->thumbnail_fetched = true;
             break;
         }
 
@@ -826,51 +820,36 @@ static int get_extension(const std::string &name, std::string &ext)
     return 0;
 }
 
-int DownloadsMenu::fetch_thumbnails(const std::vector<Asset> &assets)
+int DownloadsMenu::fetch_thumbnail(entry *e)
 {
-    for (const auto &a : assets)
+    const Asset &a = e->a;
+    std::string path, ext;
+
+    if (tmppath(path))
     {
-        bool dup = false;
-
-        for (auto e : entries)
-            if (a == e->a)
-            {
-                dup = true;
-                break;
-            }
-
-        if (dup)
-            continue;
-
-        std::string path, ext;
-
-        if (tmppath(path))
-        {
-            GfLogError("Failed to create a temporary file name\n");
-            return -1;
-        }
-        else if (get_extension(a.thumbnail, ext))
-        {
-            GfLogError("Failed to get file name extension from %s\n",
-                path.c_str());
-            return -1;
-        }
-
-        path += ext;
-
-        static const size_t max = 1 * MB;
-        writefile *w = new writefile(path.c_str(), max);
-
-        if (add(a.thumbnail.c_str(), &DownloadsMenu::thumbnail_fetched, w, max))
-        {
-            GfLogError("add failed\n");
-            delete w;
-            return -1;
-        }
-
-        entries.push_back(new entry(a, path));
+        GfLogError("Failed to create a temporary file name\n");
+        return -1;
+    }
+    else if (get_extension(a.thumbnail, ext))
+    {
+        GfLogError("Failed to get file name extension from %s\n",
+            path.c_str());
+        return -1;
     }
 
+    path += ext;
+
+    static const size_t max = 1 * MB;
+    writefile *w = new writefile(path.c_str(), max);
+
+    if (add(a.thumbnail.c_str(), &DownloadsMenu::thumbnail_fetched, w, max))
+    {
+        GfLogError("add failed\n");
+        delete w;
+        return -1;
+    }
+
+    e->thumbnail = path;
     return 0;
 }
 
@@ -920,17 +899,13 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
         delete a;
         return -1;
     }
-    else if (fetch_thumbnails(a->get()))
-    {
-        static const char e[] = "Failed to fetch thumbnails";
-
-        GfLogError("%s\n", e);
-        error = e;
-        delete a;
-        return -1;
-    }
 
     assets.push_back(a);
+
+    for (const auto &asset : a->get())
+        entries.push_back(new entry(asset));
+
+    update_ui();
     return 0;
 }
 
@@ -956,6 +931,7 @@ int DownloadsMenu::fetch_assets()
         }
     }
 
+    update_ui();
     return 0;
 }
 

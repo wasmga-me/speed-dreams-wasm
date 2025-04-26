@@ -92,10 +92,17 @@ thumbnail::thumbnail(void *hscr, void *param, const std::string &id,
     clear();
 }
 
-void thumbnail::set(const std::string &path, const std::string &name,
-    const std::string &size) const
+void thumbnail::set(std::string path, const std::string &name,
+    const std::string &size)
 {
-    GfuiStaticImageSet(hscr, img, path.c_str());
+    GfuiVisibilitySet(hscr, img, GFUI_VISIBLE);
+
+    if (path != this->path)
+    {
+        GfuiStaticImageSet(hscr, img, path.c_str());
+        this->path = path;
+    }
+
     GfuiLabelSetText(hscr, this->name, name.c_str());
     GfuiLabelSetText(hscr, this->size, size.c_str());
     GfuiEnable(hscr, info, GFUI_ENABLE);
@@ -112,7 +119,7 @@ void thumbnail::set(bool enable, bool show_progress,
 
 void thumbnail::clear() const
 {
-    GfuiStaticImageSet(hscr, img, "data/img/notready.png");
+    GfuiVisibilitySet(hscr, img, GFUI_INVISIBLE);
     GfuiLabelSetText(hscr, name, "");
     GfuiLabelSetText(hscr, size, "");
     GfuiEnable(hscr, info, GFUI_DISABLE);

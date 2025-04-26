@@ -18,8 +18,8 @@ public:
     thumbnail(void *hscr, void *param, const std::string &id, callback cb,
         callback delete_cb, callback info_cb, void *args);
     void pressed() const;
-    void set(const std::string &path, const std::string &name,
-        const std::string &size) const;
+    void set(std::string path, const std::string &name,
+        const std::string &size);
     void set(bool enable = false, bool show_progress = false,
         float progress = 0.0f, bool show_delete = false) const;
     void clear() const;
@@ -36,6 +36,7 @@ private:
     const int img, name, size, btn, progress_bar, deletebtn, info;
     const callback cb, delete_cb, info_cb;
     void *const hscr;
+    std::string path;
 
     static void on_delete(void *args);
     static void on_info(void *args);
