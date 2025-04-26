@@ -56,14 +56,10 @@ static void
 gfuiEditboxRecalcCursor(tGfuiObject *obj)
 {
     tGfuiEditbox* editbox = &(obj->u.editbox);
-    tGfuiLabel* label = &(editbox->label);
+    const tGfuiLabel* label = &(editbox->label);
+    std::string text = gfuiLabelGetText(label).substr(0, editbox->cursorIdx);
 
-    char buf[256];
-    size_t maxlen = editbox->cursorIdx < 256 ? editbox->cursorIdx : 255;
-    strncpy(buf, label->text, maxlen);
-    buf[maxlen] = '\0';
-
-    editbox->cursorx = gfuiLabelGetTextX(label) + label->font->getWidth(buf);
+    editbox->cursorx = gfuiLabelGetTextX(label) + label->font->getWidth(text.c_str());
 }
 
 /** Add a editbox to a screen.
@@ -286,17 +282,19 @@ gfuiEditboxAction(int mouse)
     else if (mouse == 0)
     {
         tGfuiEditbox* editbox = &(object->u.editbox);
-        tGfuiLabel* label = &(editbox->label);
+        const tGfuiLabel* label = &(editbox->label);
+        std::string text = gfuiLabelGetText(label);
 
         /* Set the cursor position */
         const int relX = GfuiMouse.X - gfuiLabelGetTextX(label);
-        char buf[256];
         unsigned i;
-        for (i = 0; i < strlen(label->text); i++)
+        int width = 0;
+        for (i = 0; i < text.size(); i++)
         {
-            buf[i] = label->text[i];
-            buf[i+1] = '\0';
-            if (relX < label->font->getWidth((const char *)buf))
+            char buf[] = {text[i], '\0'};
+            int w = label->font->getWidth(buf);
+
+            if (relX < (width += w))
                 break;
         }
         editbox->cursorIdx = i;

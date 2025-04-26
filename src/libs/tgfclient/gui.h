@@ -399,7 +399,8 @@ extern void gfuiDrawProgressbar(tGfuiObject *obj);
 
 extern void gfuiLabelSetText(tGfuiLabel *label, const char *text);
 extern void gfuiLabelSetColor(tGfuiLabel *label, const float *color);
-extern int gfuiLabelGetTextX(tGfuiLabel *label);
+extern int gfuiLabelGetTextX(const tGfuiLabel *label);
+std::string gfuiLabelGetText(const tGfuiLabel *label);
 
 extern void gfuiLabelDraw(tGfuiLabel *label, const GfuiColor& color);
 extern void gfuiGrButtonDraw(tGfuiGrButton *button, int state, int focus);
