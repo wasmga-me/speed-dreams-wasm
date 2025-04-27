@@ -140,8 +140,11 @@ static void onAccept(void *)
     GfglFeatures::self().storeSelection();
 
     void *paramHandle = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
+    std::string prev_engine = GfParmGetStr(paramHandle, RM_SECT_MODULES,
+        RM_ATTR_MOD_GRAPHIC, GraphicSchemeList[0]);
+    const char *engine = GraphicSchemeList[CurGraphicScheme];
 
-    GfParmSetStr(paramHandle, RM_SECT_MODULES, RM_ATTR_MOD_GRAPHIC, GraphicSchemeList[CurGraphicScheme]);
+    GfParmSetStr(paramHandle, RM_SECT_MODULES, RM_ATTR_MOD_GRAPHIC, engine);
     GfParmWriteFile(NULL, paramHandle, "raceengine");
     GfParmReleaseHandle(paramHandle);
 
@@ -162,6 +165,9 @@ static void onAccept(void *)
             GfuiApp().restart();
         }
     }
+
+    if (engine != prev_engine)
+        GfuiApp().restart();
 }
 
 // Toggle texture compression state enabled/disabled.
