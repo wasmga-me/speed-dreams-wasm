@@ -911,7 +911,7 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
 
 int DownloadsMenu::fetch_assets()
 {
-    const size_t max = 2 * MB;
+    const size_t max = 10 * MB;
     std::vector<std::string> urls;
 
     if (downloadservers_get(urls))
