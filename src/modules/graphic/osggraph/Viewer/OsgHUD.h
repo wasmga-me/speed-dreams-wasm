@@ -112,6 +112,7 @@ class SDHUD
             float timeDiffFreezeTime;
             int oldSector;
             int oldLapNumber;
+            std::string name;
 
             CarData() : carLaps(0), remainingFuelForLaps(0), laptimeFreezeCountdown(3.0f),
             laptimeFreezeTime(0.0f), timeDiffFreezeCountdown(8.0f), timeDiffFreezeTime(0.0f),
@@ -168,6 +169,7 @@ class SDHUD
         void setWidgetsGroupsVisibilityForcedON();
         void setWidgetsGroupsVisibilityNormal();
         void saveWidgetGroupPosition(std::string widgetGroupName);
+        std::string &GetCarName(const tCarElt *currCar);
 
 public:
         SDHUD();
