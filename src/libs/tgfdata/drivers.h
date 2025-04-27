@@ -97,12 +97,13 @@ public:
 	static std::vector<GfDriverSkin>::iterator findSkin(std::vector<GfDriverSkin>& vecSkins,
 														const std::string& strName);
 
-protected:
-
 	//! Get the possible skins in a given folder.
-	void getPossibleSkinsInFolder(const std::string& strCarId,
+	static void getPossibleSkinsInFolder(const std::string& strCarId,
 								  const std::string& strFolderPath,
-								  std::vector<GfDriverSkin>& vecPossSkins) const;
+								  std::vector<GfDriverSkin>& vecPossSkins);
+
+	static void processSkins(std::vector<GfDriverSkin> &skins,
+		const std::string &car);
 
 protected:
 
@@ -212,7 +213,9 @@ protected:
 	int genident(struct identity &ident) const;
 	int genskill(const std::string &driver, const std::string &dir) const;
 	bool supports_aggression(const std::string &driver) const;
-	int pickcar(const std::string &category, std::string &car) const;
+	int pickcar(const std::string &category, std::string &car,
+		std::string &livery) const;
+	static std::vector<GfDriverSkin> getskins(const std::string &car);
 
 protected:
 

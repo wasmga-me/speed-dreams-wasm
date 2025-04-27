@@ -45,6 +45,7 @@ static const struct rattr
     {ROB_ATTR_TEAM, GfXMLDriver::attr::type::string},
     {ROB_ATTR_AUTHOR, GfXMLDriver::attr::type::string},
     {ROB_ATTR_CAR, GfXMLDriver::attr::type::string},
+    {ROB_ATTR_LIVERY, GfXMLDriver::attr::type::string},
     {ROB_ATTR_RACENUM, GfXMLDriver::attr::type::num},
     {ROB_ATTR_RED, GfXMLDriver::attr::type::num},
     {ROB_ATTR_GREEN, GfXMLDriver::attr::type::num},
@@ -296,8 +297,14 @@ int GfXMLDriver::read(void *h)
 
                 if (!val)
                 {
-                    GfLogError("Failed to extract parameter: %s\n", key);
-                    return -1;
+                    // Maintain backwards compatibility with == 2.4.0 robots.
+                    if (!strcmp(key, ROB_ATTR_LIVERY))
+                        val = "standard";
+                    else
+                    {
+                        GfLogError("Failed to extract parameter: %s\n", key);
+                        return -1;
+                    }
                 }
 
                 map[key] = attr(val);
@@ -1061,6 +1068,13 @@ void GfDriver::load(void* hparmRobot)
     // Driven car.
     const char* pszCarId = GfParmGetStr(hparmRobot, ossDrvSecPath.str().c_str(), ROB_ATTR_CAR, "");
     _pCar = GfCars::self()->getCar(pszCarId);
+
+    const char* skin = GfParmGetStr(hparmRobot, ossDrvSecPath.str().c_str(), ROB_ATTR_LIVERY, "standard");
+    std::vector<GfDriverSkin> skins = getPossibleSkins(pszCarId);
+    std::vector<GfDriverSkin>::iterator it = findSkin(skins, skin);
+
+    if (it != skins.end())
+        setSkin(*it);
 }
 
 const std::string& GfDriver::getName() const
@@ -1185,7 +1199,7 @@ std::vector<GfDriverSkin>::iterator GfDriver::findSkin(std::vector<GfDriverSkin>
 
 void GfDriver::getPossibleSkinsInFolder(const std::string& strCarId,
                                         const std::string& strFolderPath,
-                                        std::vector<GfDriverSkin>& vecPossSkins) const
+                                        std::vector<GfDriverSkin>& vecPossSkins)
 {
     //GfLogDebug("  getPossibleSkinsInFolder(%s, %s) ...\n",
     //		   strCarId.c_str(), strFolderPath.c_str());
@@ -1404,6 +1418,43 @@ void GfDriver::getPossibleSkinsInFolder(const std::string& strCarId,
     GfDirFreeList(pDriverFileList, NULL, true, true);
 }
 
+void GfDriver::processSkins(std::vector<GfDriverSkin> &skins,
+    const std::string &car)
+{
+    // If we have at least 1 skin, make sure that, if the standard one is inside,
+    // it is the first one.
+    if (!skins.empty())
+    {
+        std::vector<GfDriverSkin>::iterator itSkin;
+        for (itSkin = skins.begin(); itSkin != skins.end(); ++itSkin)
+        {
+            if (itSkin->getName().empty() && itSkin != skins.begin())
+            {
+                GfDriverSkin stdSkin = *itSkin;
+                skins.erase(itSkin);
+                skins.insert(skins.begin(), stdSkin);
+                break;
+            }
+        }
+    }
+
+    // If no skin was found, add the car's standard one
+    // (that way, the skin list will never be empty, and that's safer)
+    else
+    {
+        GfDriverSkin stdSkin;
+        std::ostringstream ossPreviewName;
+        ossPreviewName << "cars/models/" << car << '/' << car << pszPreviewTexSufx;
+        stdSkin.setCarPreviewFileName(ossPreviewName.str());
+
+        if (!GfFileExists(ossPreviewName.str().c_str()))
+            GfLogWarning("No preview file %s found for dummy '%s' skin\n",
+                         ossPreviewName.str().c_str(), "standard");
+
+        skins.push_back(stdSkin);
+    }
+}
+
 std::vector<GfDriverSkin> GfDriver::getPossibleSkins(const std::string& strAltCarId) const
 {
     const std::string strCarId = strAltCarId.empty() ? _pCar->getId() : strAltCarId;
@@ -1464,43 +1515,27 @@ std::vector<GfDriverSkin> GfDriver::getPossibleSkins(const std::string& strAltCa
     ossDirPath << "cars/models/" << strCarId;
     getPossibleSkinsInFolder(strCarId, ossDirPath.str(), vecPossSkins);
 
-    // If we have at least 1 skin, make sure that, if the standard one is inside,
-    // it is the first one.
-    if (!vecPossSkins.empty())
-    {
-        std::vector<GfDriverSkin>::iterator itSkin;
-        for (itSkin = vecPossSkins.begin(); itSkin != vecPossSkins.end(); ++itSkin)
-        {
-            if (itSkin->getName().empty() && itSkin != vecPossSkins.begin())
-            {
-                GfDriverSkin stdSkin = *itSkin;
-                vecPossSkins.erase(itSkin);
-                vecPossSkins.insert(vecPossSkins.begin(), stdSkin);
-                break;
-            }
-        }
-    }
+    if (vecPossSkins.empty())
+        GfLogError("No skin at all found for '%s/%d/%s' : "
+            "adding dummy '%s' one\n", _strModName.c_str(), _nItfIndex,
+            strCarId.c_str(), "standard");
 
-    // If no skin was found, add the car's standard one
-    // (that way, the skin list will never be empty, and that's safer)
-    else
-    {
-        GfLogError("No skin at all found for '%s/%d/%s' : adding dummy '%s' one\n",
-                   _strModName.c_str(), _nItfIndex, strCarId.c_str(), "standard");
-
-        GfDriverSkin stdSkin;
-        std::ostringstream ossPreviewName;
-        ossPreviewName << "cars/models/" << strCarId << '/' << strCarId << pszPreviewTexSufx;
-        stdSkin.setCarPreviewFileName(ossPreviewName.str());
-
-        if (!GfFileExists(ossPreviewName.str().c_str()))
-            GfLogWarning("No preview file %s found for dummy '%s' skin\n",
-                         ossPreviewName.str().c_str(), "standard");
-
-        vecPossSkins.push_back(stdSkin);
-    }
-
+    processSkins(vecPossSkins, strCarId);
     return vecPossSkins;
+}
+
+std::vector<GfDriverSkin> GfDrivers::getskins(const std::string &car)
+{
+    std::vector<GfDriverSkin> skins;
+    std::string local = GfLocalDir(), data = "cars/models/";
+
+    local += "cars/models/" + car;
+    data += car;
+
+    GfDriver::getPossibleSkinsInFolder(car, local, skins);
+    GfDriver::getPossibleSkinsInFolder(car, data, skins);
+    GfDriver::processSkins(skins, car);
+    return skins;
 }
 
 int GfDrivers::genident(struct GfDrivers::identity &ident) const
@@ -1560,7 +1595,8 @@ int GfDrivers::genident(struct GfDrivers::identity &ident) const
     return 0;
 }
 
-int GfDrivers::pickcar(const std::string &category, std::string &car) const
+int GfDrivers::pickcar(const std::string &category, std::string &car,
+    std::string &livery) const
 {
     std::vector<GfCar*> cars = GfCars::self()->getCarsInCategory(category);
     unsigned index;
@@ -1578,6 +1614,22 @@ int GfDrivers::pickcar(const std::string &category, std::string &car) const
 
     index %= cars.size();
     car = cars.at(index)->getId();
+
+    std::vector<GfDriverSkin> skins = getskins(car);
+
+    if (skins.empty())
+    {
+        GfLogError("No skins on car %s\n", car.c_str());
+        return -1;
+    }
+    else if (portability::rand(&index, sizeof index))
+    {
+        GfLogError("Failed to get random skin index\n");
+        return -1;
+    }
+
+    index %= skins.size();
+    livery = skins.at(index).getName();
     return 0;
 }
 
@@ -1586,7 +1638,7 @@ int GfDrivers::genparams(const std::string &driver, const std::string &category,
 {
     int ret = -1;
     const char *catId = category.c_str();
-    std::string params = dir + "driver" PARAMEXT, selcar = car;
+    std::string params = dir + "driver" PARAMEXT, selcar = car, livery;
     const char *p = params.c_str();
     void *h = GfParmReadFile(p, GFPARM_RMODE_NOREREAD | GFPARM_RMODE_CREAT);
     struct identity ident;
@@ -1597,9 +1649,10 @@ int GfDrivers::genparams(const std::string &driver, const std::string &category,
         goto end;
     }
 
-    if (car.empty() && pickcar(category, selcar))
+    if (car.empty() && pickcar(category, selcar, livery))
     {
-        GfLogError("Failed to pick random car from category: %s\n", catId);
+        GfLogError("Failed to pick random car/livery from category: %s\n",
+            catId);
         goto end;
     }
 
@@ -1609,18 +1662,19 @@ int GfDrivers::genparams(const std::string &driver, const std::string &category,
         return -1;
     }
 
-    GfParmSetStr(h, "driver", "name", ident.name.c_str());
-    GfParmSetStr(h, "driver", "short name", ident.short_name.c_str());
-    GfParmSetStr(h, "driver", "code name", ident.code_name.c_str());
-    GfParmSetStr(h, "driver", "desc", "Bot generated");
-    GfParmSetStr(h, "driver", "team", ident.team.c_str());
-    GfParmSetStr(h, "driver", "author", "Automatically generated");
-    GfParmSetStr(h, "driver", "car name", selcar.c_str());
-    GfParmSetStr(h, "driver", "race number", "1");
-    GfParmSetStr(h, "driver", "red", "1.0");
-    GfParmSetStr(h, "driver", "green", "1.0");
-    GfParmSetStr(h, "driver", "blue", "1.0");
-    GfParmSetStr(h, "driver", "nation", ident.nationality.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_NAME, ident.name.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_SNAME, ident.short_name.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_CODE, ident.code_name.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_DESC, "Bot generated");
+    GfParmSetStr(h, "driver", ROB_ATTR_TEAM, ident.team.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_AUTHOR, "Automatically generated");
+    GfParmSetStr(h, "driver", ROB_ATTR_CAR, selcar.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_LIVERY, livery.c_str());
+    GfParmSetStr(h, "driver", ROB_ATTR_RACENUM, "1");
+    GfParmSetStr(h, "driver", ROB_ATTR_RED, "1.0");
+    GfParmSetStr(h, "driver", ROB_ATTR_GREEN, "1.0");
+    GfParmSetStr(h, "driver", ROB_ATTR_BLUE, "1.0");
+    GfParmSetStr(h, "driver", ROB_ATTR_NATION, ident.nationality.c_str());
 
     if (GfParmWriteFile(nullptr, h, driver.c_str()))
     {
