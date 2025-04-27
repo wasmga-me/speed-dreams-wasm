@@ -394,20 +394,17 @@ reTrackInitWeather(void)
     // if feature supported (defaults to  "All sesions" one, or else "none").
     rain = TR_RAIN_NONE;
 
-    if (ReInfo->s->_features & RM_FEATURE_WETTRACK)
-    {
-        const char* pszRain =
-            GfParmGetStr(ReInfo->params, ReInfo->_reRaceName, RM_ATTR_RAIN, 0);
-        if (!pszRain)
-            pszRain =
-                GfParmGetStr(ReInfo->params, RM_VAL_ANYRACE, RM_ATTR_RAIN, RM_VAL_RAIN_NONE);
-        for (int i = 0; i < NRainValues; i++)
-            if (!strcmp(pszRain, RainValues[i]))
-            {
-                rain = i;
-                break;
-            }
-    }
+    const char* pszRain =
+        GfParmGetStr(ReInfo->params, ReInfo->_reRaceName, RM_ATTR_RAIN, 0);
+    if (!pszRain)
+        pszRain =
+            GfParmGetStr(ReInfo->params, RM_VAL_ANYRACE, RM_ATTR_RAIN, RM_VAL_RAIN_NONE);
+    for (int i = 0; i < NRainValues; i++)
+        if (!strcmp(pszRain, RainValues[i]))
+        {
+            rain = i;
+            break;
+        }
 
     // Take care of the random case for rain falls and ground water.
     const bool bRandomRain = (rain == TR_RAIN_RANDOM);
