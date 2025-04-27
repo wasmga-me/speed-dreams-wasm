@@ -274,6 +274,30 @@ GfuiLabelSetColor(void *scr, int id, const float* color)
         gfuiLabelSetColor(&object->u.label, color);
 }
 
+static std::string
+gfuiGetMaskedString(const char *text)
+{
+    std::string ret;
+    size_t n = strlen(text);
+
+    ret.reserve(n);
+
+    for (size_t i = 0; i < strlen(text); i++)
+        ret += '*';
+
+    return ret;
+}
+
+std::string
+gfuiLabelGetText(const tGfuiLabel *label)
+{
+    std::string maskedtext;
+
+    if (label->masked)
+        maskedtext = gfuiGetMaskedString(label->text);
+
+    return label->masked ? maskedtext : label->text;
+}
 
 /** Determine the actual text X coordinate.
     @ingroup	gui
@@ -281,28 +305,42 @@ GfuiLabelSetColor(void *scr, int id, const float* color)
     @return	X coordinate of the text
  */
 int
-gfuiLabelGetTextX(tGfuiLabel *label)
+gfuiLabelGetTextX(const tGfuiLabel *label)
 {
-    int xText = label->x;
-    switch(label->align & GFUI_ALIGN_HMASK)
+    std::string text = gfuiLabelGetText(label);
+    int offset = label->width - label->font->getWidth(text.c_str());
+
+    switch (label->align & GFUI_ALIGN_HMASK)
     {
+        default:
         case GFUI_ALIGN_HL:
-            // Nothing more to add / substract.
             break;
 
         case GFUI_ALIGN_HC:
-            xText += (label->width - label->font->getWidth(label->text)) / 2;
-            break;
+            return label->x + offset / 2;
 
         case GFUI_ALIGN_HR:
-            xText += label->width - label->font->getWidth(label->text);
-            break;
-
-        default:
-            break;
+            return label->x + offset;
     }
 
-    return xText;
+    return label->x;
+}
+
+static void
+gfuiGetTokens(const std::string &s, std::vector<std::string> &v)
+{
+    std::string::size_type pos = 0;
+
+    for (;;)
+    {
+        std::string::size_type del = s.find("\t", pos);
+
+        v.push_back(s.substr(pos, del - pos));
+        pos = del + 1;
+
+        if (del == std::string::npos)
+            break;
+    }
 }
 
 /** Actually draw the given label.
@@ -312,69 +350,19 @@ gfuiLabelGetTextX(tGfuiLabel *label)
 void
 gfuiLabelDraw(tGfuiLabel *label, const GfuiColor& color)
 {
-    int of = 0;
-    int fw = (int) label->font->getWidth("o");
-    size_t len = 0;
+    std::string text = gfuiLabelGetText(label);
+    std::vector<std::string> tokens;
+    int offset = 0;
 
-    // Prevent strtok weirdness
-    char *save;
-    char text[128];
-    char mask[128];
+    gfuiGetTokens(text, tokens);
 
-    mask[0] = '\0';
-
-    strncpy(text, (char *) label->text, 127);
-    text[127] = '\0';
-
-    char *p = strtok_r(text, "\t", &save);
-
-    while (p != NULL)
+    for (const auto &t : tokens)
     {
-    // Select the right color from the state/focus.
-    glColor4fv(color.toFloatRGBA());
-
-    // Determine the actual (bottom left corner) coordinates where to draw the text.
-    int x;
-    switch(label->align & GFUI_ALIGN_HMASK)
-    {
-        default:
-        case GFUI_ALIGN_HL:
-            x = label->x + (fw * of);
-            break;
-
-        case GFUI_ALIGN_HC:
-            x = label->x + (fw * of) + (label->width - label->font->getWidth(label->text)) / 2;
-            break;
-
-        case GFUI_ALIGN_HR:
-            x = label->x + (fw * of) + label->width - label->font->getWidth(label->text);
-            break;
-    }
-
-    if (label->masked)
-    {
-        len = strlen(p);
-        mask[0] = '\0';
-        if (len > 0)
-        {
-            if (len > sizeof(mask))
-            {
-                len = sizeof(mask) - 1;
-            }
-            while (len > strlen(mask))
-            {
-                strcat(mask, "*");
-            }
-        }
-        gfuiDrawString(x, label->y, label->font, mask);
-    }
-    else
-    {
-        gfuiDrawString(x, label->y, label->font, p);
-    }
-
-    of += strlen(p) + 1;
-    p = strtok_r(NULL, "\t", &save);
+        int x = gfuiLabelGetTextX(label) + offset;
+        // Select the right color from the state/focus.
+        glColor4fv(color.toFloatRGBA());
+        gfuiDrawString(x, label->y, label->font, t.c_str());
+        offset += label->font->getWidth("o") * t.size();
     }
 }
 
