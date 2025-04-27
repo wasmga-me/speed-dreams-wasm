@@ -1171,6 +1171,36 @@ void SDHUD::DispDebug(const tSituation *s, const SDFrameInfo* frame)
 {
 }  // grDispDebug
 
+std::string &SDHUD::GetCarName(const tCarElt *currCar)
+{
+    CarData &d = carData[currCar];
+    std::string &s = d.name;
+
+    if (s.empty())
+    {
+        std::string p = "cars/models/";
+
+        p += currCar->_carName;
+        p += "/";
+        p += currCar->_carName;
+        p += PARAMEXT;
+
+        const char *path = p.c_str();
+        void *h = GfParmReadFileBoth(path, GFPARM_RMODE_STD);
+
+        if (!h)
+        {
+            GfLogError("GfParmReadFileBoth %s failed\n", path);
+            return s;
+        }
+
+        s = GfParmGetName(h);
+        GfParmReleaseHandle(h);
+    }
+
+    return s;
+}
+
 void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
                         const tCarElt *currCar, int SimClouds, int SimRain, float SimTimeOfDay)
 {
@@ -2213,12 +2243,6 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         }
         //get the actual name of the car
         temp.str("");
-        void *carparam;
-        char *carName;
-        temp << "cars/models/" << currCar->_carName << "/" << currCar->_carName << ".xml";
-        carparam = GfParmReadFileBoth(temp.str().c_str(), GFPARM_RMODE_STD);
-        carName = GfParmGetName(carparam);
-        GfParmReleaseHandle(carparam);
 
         //update the hud strings
         temp.str("");
@@ -2228,7 +2252,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         hudTextElements["driverinfo-team"]->setText(currCar->_teamname);
 
         hudTextElements["driverinfo-carclass"]->setText(currCar->_category);
-        hudTextElements["driverinfo-carmodel"]->setText(carName);
+        hudTextElements["driverinfo-carmodel"]->setText(GetCarName(currCar));
 
         hudTextElements["driverinfo-bestlap"]->setText(formatLaptime(currCar->_bestLapTime,0));
         hudTextElements["driverinfo-lastlap"]->setText(formatLaptime(currCar->_lastLapTime,0));
