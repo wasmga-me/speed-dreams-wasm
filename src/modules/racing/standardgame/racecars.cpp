@@ -222,7 +222,7 @@ reCarsApplyRaceRules(tCarElt *car)
             && ReInfo->raceRules.enabled & RmRaceRules::WALL_HIT_TIME_INVALIDATE)
         {
             car->_commitBestLapTime = false;
-            snprintf(msg, sizeof(msg), "%s Hit Wall, laptime invalidate", car->_name);
+            snprintf(msg, sizeof(msg), "%s Hit Wall, laptime invalidated", car->_name);
             msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
             ReSituation::self().setRaceMessage(msg, 5);
         }
