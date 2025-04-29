@@ -19,7 +19,6 @@
         The Gaming Framework API (client part).
     @author     <a href=mailto:madbad82@gmail.com>MadBad</a>
 */
-#ifdef WEBSERVER
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -920,5 +919,3 @@ int WebServer::sendRaceEnd (int race_id, int endposition)
 
     return 0;
 }
-
-#endif //WEBSERVER

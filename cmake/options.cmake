@@ -59,8 +59,6 @@ MACRO(ADD_SD_COMPILE_OPTIONS)
 
     SET(OPTION_TINYGLTF false CACHE BOOL "Use tinygltf library")
 
-    SET(OPTION_WEBSERVER true CACHE BOOL "Build with WebServer functionality")
-
     SET(OPTION_CLIENT_SERVER true CACHE BOOL "Build with Client/Server network architecture")
 
     SET(OPTION_PARAM_OPTIMIZER false CACHE BOOL "Build with Parameter Optimizer for Robot development")
@@ -164,10 +162,6 @@ MACRO(ADD_SD_COMPILE_OPTIONS)
     IF(OPTION_TINYGLTF)
           ADD_DEFINITIONS(-DTINYGLTF)
     ENDIF(OPTION_TINYGLTF)
-
-    IF(OPTION_WEBSERVER)
-          ADD_DEFINITIONS(-DWEBSERVER)
-    ENDIF(OPTION_WEBSERVER)
 
     IF(OPTION_CLIENT_SERVER)
           ADD_DEFINITIONS(-DCLIENT_SERVER)

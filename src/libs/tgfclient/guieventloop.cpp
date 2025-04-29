@@ -20,9 +20,7 @@
 #include "tgfclient.h"
 #include "tgf.h"
 
-#ifdef WEBSERVER
 #include "webserver.h"
-#endif //WEBSERVER
 
 
 
@@ -314,9 +312,7 @@ void GfuiEventLoop::setMaxRefreshRate(double rate)
 
 void GfuiEventLoop::forceRedisplay()
 {
-#ifdef WEBSERVER
 	webServer().updateStatus();
-#endif //WEBSERVER
 
 	if (_pPrivate->cbDisplay)
 		_pPrivate->cbDisplay();
@@ -325,10 +321,8 @@ void GfuiEventLoop::forceRedisplay()
 
 void GfuiEventLoop::redisplay()
 {
-	#ifdef WEBSERVER
 	//temp
 	_pPrivate->bRedisplay=true;
-	#endif //WEBSERVER
 
 	// Refresh display if requested and if any redisplay CB.
 	if (_pPrivate->bRedisplay)

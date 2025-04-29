@@ -10,9 +10,7 @@ ADD_SDL2_MIXER_INCLUDEDIR()
 
 ADD_JPEG_INCLUDEDIR()
 ADD_PLIB_INCLUDEDIR()
-IF(OPTION_WEBSERVER)
-	ADD_CURL_INCLUDEDIR()
-ENDIF(OPTION_WEBSERVER)
+ADD_CURL_INCLUDEDIR()
 
 SET(_SOURCES control.cpp glfeatures.cpp guibutton.cpp guifont.cpp
             guiimage.cpp guimenu.cpp guiscrollbar.cpp guitexture.cpp
@@ -24,11 +22,8 @@ SET(_SOURCES control.cpp glfeatures.cpp guibutton.cpp guifont.cpp
             sdl2musicplayer.cpp sdl2musicplayer.h
             glfeatures.h gui.h guiscreen.h guimenu.h tgfclient.h guifont.h
             forcefeedback.cpp forcefeedback.h
-            guimenusfx.cpp guimenusfx.h)
-
-IF(OPTION_WEBSERVER)
-   SET(_SOURCES ${_SOURCES} webserver.cpp webserver.h)
-ENDIF(OPTION_WEBSERVER)
+            guimenusfx.cpp guimenusfx.h
+            webserver.cpp webserver.h)
 
 SET(_OTHER_SOURCES guimenutest.xml)
 
@@ -65,9 +60,7 @@ ADD_SDLIB_LIBRARY(tgfclient portability tgf)
 
 ADD_PNG_LIBRARY(tgfclient)
 ADD_JPEG_LIBRARY(tgfclient)
-IF(OPTION_WEBSERVER)
-    target_link_libraries(tgfclient CURL::libcurl)
-ENDIF(OPTION_WEBSERVER)
+target_link_libraries(tgfclient CURL::libcurl)
 
 IF(OPENGL_FOUND)
     TARGET_LINK_LIBRARIES(tgfclient ${OPENGL_LIBRARY})
