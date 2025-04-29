@@ -40,9 +40,7 @@
 #include <robot.h>
 #include <raceman.h>
 #include <replay.h>
-#ifdef WEBSERVER
 #include <webserver.h>
-#endif //WEBSERVER
 
 #include "standardgame.h"
 
@@ -377,7 +375,6 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
         replaySituation(pCurrReInfo);
     }
 
-    #ifdef WEBSERVER
     //Find human cars
     for (int i = 0; i < pCurrReInfo->s->_ncars; i++) {
         const tCarElt *car = pCurrReInfo->s->cars[i];
@@ -430,7 +427,6 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
         }
     }
     webServer().updateAsyncStatus();
-    #endif //WEBSERVER
 }
 
 int ReSituationUpdater::threadLoop(void* pUpdater)

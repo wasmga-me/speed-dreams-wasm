@@ -35,10 +35,8 @@
 #include <string>
 #include <sstream>
 #include <map>
-#ifdef WEBSERVER
 #include <ctime>
 #include <iostream>
-#endif //WEBSERVER
 
 #ifdef THIRD_PARTY_SQLITE3
 #include <sqlite3.h>
@@ -52,9 +50,7 @@
 
 
 #include <tgf.hpp>
-#ifdef WEBSERVER
 #include <webserver.h>
-#endif //WEBSERVER
 
 #include <portability.h>
 
@@ -997,7 +993,6 @@ ReInitCars(void)
         }
 #endif
     }
-#ifdef WEBSERVER
     // webServer lap logger.
     //Find human cars
     for (int i = 0; i < ReInfo->s->_ncars; i++)
@@ -1020,8 +1015,6 @@ ReInitCars(void)
 
         }
     }
-#endif //WEBSERVER
-
 
     ReInfo->_rePitRequester = 0;
 

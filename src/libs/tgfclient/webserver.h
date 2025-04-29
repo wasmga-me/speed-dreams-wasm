@@ -19,8 +19,6 @@
         The Gaming Framework API (client part).
     @author     <a href=mailto:madbad82@gmail.com>MadBad</a>
 */
-#ifdef WEBSERVER
-
 #ifndef __SD_WEBSERVER_H__
 #define __SD_WEBSERVER_H__
 #include "tgfclient.h"
@@ -145,4 +143,3 @@ class TGFCLIENT_API WebServer {
 };
 
 #endif //__SD_WEBSERVER_H__
-#endif //WEBSERVER

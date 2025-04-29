@@ -26,9 +26,7 @@
 #include <algorithm>
 #include <string>
 
-#ifdef WEBSERVER
 #include <webserver.h>
-#endif //WEBSERVER
 
 #include <portability.h>
 #include <robot.h>
