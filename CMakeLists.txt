@@ -40,6 +40,17 @@ include(GNUInstallDirs)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
+INCLUDE(cmake/macros.cmake)
+INCLUDE(cmake/checks.cmake)
+
+set(CMAKE_INSTALL_RPATH
+   ${CMAKE_INSTALL_RPATH}
+   ${CMAKE_INSTALL_FULL_LIBDIR}
+   ${CMAKE_INSTALL_PREFIX}/${SD_LIBDIR}/lib
+)
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 if(SD_ASSUME_DATADIR)
    set(SD_DATADIR ${CMAKE_INSTALL_DATADIR}/games/speed-dreams-2)
    set(SD_DATADIR_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/games/speed-dreams-2)
@@ -75,9 +86,15 @@ else()
    message(STATUS "Data directory: ${SD_DATADIR_ABS}")
 endif()
 
-find_package(SOLID 2.1.2)
+find_package(SOLID 2.1.2 QUIET)
 
-if(NOT SOLID_FOUND)
+if(SOLID_FOUND)
+   message(STATUS "Found SOLID: ${SOLID_LIBRARY} "
+      "(found version \"${SOLID_VERSION}\")")
+   add_library(solid UNKNOWN IMPORTED)
+   set_property(TARGET solid PROPERTY IMPORTED_LOCATION ${SOLID_LIBRARY})
+   target_include_directories(solid INTERFACE ${SOLID_INCLUDE_DIR})
+else()
    message(STATUS "SOLID not found. Using in-tree submodule.")
    add_subdirectory(freesolid)
 endif()
@@ -87,16 +104,6 @@ if(CMAKE_CXX_COMPILER_ID)
 else()
    set(SD_BUILD_INFO_COMPILER_NAME "Unknown")
 endif()
-
-INCLUDE(cmake/macros.cmake)
-INCLUDE(cmake/checks.cmake)
-
-set(CMAKE_INSTALL_RPATH
-   ${CMAKE_INSTALL_RPATH}
-   ${CMAKE_INSTALL_PREFIX}/${SD_LIBDIR}/lib
-)
-
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 CHECK_HEADERS_H()
 CHECK_FUNCTIONS()
