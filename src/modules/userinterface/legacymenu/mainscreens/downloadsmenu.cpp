@@ -603,10 +603,12 @@ void DownloadsMenu::update_ui()
         (*t++)->clear();
 
     char s[sizeof "18446744073709551615"];
+    unsigned n = visible_entries(), np = n / THUMBNAILS,
+        npp = !n || n % THUMBNAILS ? 1 + np : np;
 
     snprintf(s, sizeof s, "%d", (this->offset / THUMBNAILS) + 1);
     GfuiLabelSetText(hscr, cur_page, s);
-    snprintf(s, sizeof s, "%d", (visible_entries() / (THUMBNAILS + 1)) + 1);
+    snprintf(s, sizeof s, "%d", npp);
     GfuiLabelSetText(hscr, npages, s);
 }
 
