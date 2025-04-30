@@ -603,10 +603,12 @@ void DownloadsMenu::update_ui()
         (*t++)->clear();
 
     char s[sizeof "18446744073709551615"];
+    unsigned n = visible_entries(), np = n / THUMBNAILS,
+        npp = !n || n % THUMBNAILS ? 1 + np : np;
 
     snprintf(s, sizeof s, "%d", (this->offset / THUMBNAILS) + 1);
     GfuiLabelSetText(hscr, cur_page, s);
-    snprintf(s, sizeof s, "%d", (visible_entries() / (THUMBNAILS + 1)) + 1);
+    snprintf(s, sizeof s, "%d", npp);
     GfuiLabelSetText(hscr, npages, s);
 }
 
@@ -792,16 +794,9 @@ int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
     for (auto e : entries)
         if (e->thumbnail == w->path)
         {
-            bool update;
+            if (e->on_thumbnail())
+                return -1;
 
-            if (e->a.needs_update(update))
-                e->state = entry::download;
-            else if (update)
-                e->state = entry::update;
-            else
-                e->state = entry::done;
-
-            e->thumbnail_fetched = true;
             break;
         }
 
@@ -809,35 +804,16 @@ int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
     return 0;
 }
 
-static int get_extension(const std::string &name, std::string &ext)
-{
-    size_t i = name.find_last_of('.');
-
-    if (i == std::string::npos)
-        return -1;
-
-    ext = name.substr(i);
-    return 0;
-}
-
 int DownloadsMenu::fetch_thumbnail(entry *e)
 {
     const Asset &a = e->a;
-    std::string path, ext;
+    std::string path;
 
     if (tmppath(path))
     {
         GfLogError("Failed to create a temporary file name\n");
         return -1;
     }
-    else if (get_extension(a.thumbnail, ext))
-    {
-        GfLogError("Failed to get file name extension from %s\n",
-            path.c_str());
-        return -1;
-    }
-
-    path += ext;
 
     static const size_t max = 1 * MB;
     writefile *w = new writefile(path.c_str(), max);
@@ -1055,10 +1031,13 @@ static void on_info(thumbnail *t, void *arg)
 
 void DownloadsMenu::prev_page()
 {
-    if (!offset)
-        return;
+    unsigned d = visible_entries();
 
-    offset -= THUMBNAILS;
+    if (!offset)
+        offset = d - d % THUMBNAILS;
+    else
+        offset -= THUMBNAILS;
+
     update_ui();
 }
 
@@ -1067,9 +1046,10 @@ void DownloadsMenu::next_page()
     unsigned d = visible_entries();
 
     if (THUMBNAILS > d || offset >= d - THUMBNAILS)
-        return;
+        offset = 0;
+    else
+        offset += THUMBNAILS;
 
-    offset += THUMBNAILS;
     update_ui();
 }
 
