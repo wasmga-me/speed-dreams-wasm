@@ -123,6 +123,6 @@ entry::~entry()
     if (!data.empty() && remove(data.c_str()))
         GfLogError("remove(3) %s: %s\n", data.c_str(), strerror(errno));
 
-    if (remove(thumbnail.c_str()))
+    if (!thumbnail.empty() && remove(thumbnail.c_str()))
         GfLogError("remove(3) %s: %s\n", thumbnail.c_str(), strerror(errno));
 }
