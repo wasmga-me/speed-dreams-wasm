@@ -794,16 +794,9 @@ int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
     for (auto e : entries)
         if (e->thumbnail == w->path)
         {
-            bool update;
+            if (e->on_thumbnail())
+                return -1;
 
-            if (e->a.needs_update(update))
-                e->state = entry::download;
-            else if (update)
-                e->state = entry::update;
-            else
-                e->state = entry::done;
-
-            e->thumbnail_fetched = true;
             break;
         }
 
@@ -811,35 +804,16 @@ int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
     return 0;
 }
 
-static int get_extension(const std::string &name, std::string &ext)
-{
-    size_t i = name.find_last_of('.');
-
-    if (i == std::string::npos)
-        return -1;
-
-    ext = name.substr(i);
-    return 0;
-}
-
 int DownloadsMenu::fetch_thumbnail(entry *e)
 {
     const Asset &a = e->a;
-    std::string path, ext;
+    std::string path;
 
     if (tmppath(path))
     {
         GfLogError("Failed to create a temporary file name\n");
         return -1;
     }
-    else if (get_extension(a.thumbnail, ext))
-    {
-        GfLogError("Failed to get file name extension from %s\n",
-            path.c_str());
-        return -1;
-    }
-
-    path += ext;
 
     static const size_t max = 1 * MB;
     writefile *w = new writefile(path.c_str(), max);
