@@ -1057,10 +1057,13 @@ static void on_info(thumbnail *t, void *arg)
 
 void DownloadsMenu::prev_page()
 {
-    if (!offset)
-        return;
+    unsigned d = visible_entries();
 
-    offset -= THUMBNAILS;
+    if (!offset)
+        offset = d - d % THUMBNAILS;
+    else
+        offset -= THUMBNAILS;
+
     update_ui();
 }
 
@@ -1069,9 +1072,10 @@ void DownloadsMenu::next_page()
     unsigned d = visible_entries();
 
     if (THUMBNAILS > d || offset >= d - THUMBNAILS)
-        return;
+        offset = 0;
+    else
+        offset += THUMBNAILS;
 
-    offset += THUMBNAILS;
     update_ui();
 }
 
