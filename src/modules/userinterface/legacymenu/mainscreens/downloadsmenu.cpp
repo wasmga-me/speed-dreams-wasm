@@ -37,7 +37,7 @@
 #include <stdexcept>
 
 static const size_t KB = 1024, MB = KB * KB;
-enum {THUMBNAILS = 8};
+static const unsigned THUMBNAILS = 8;
 
 DownloadsMenu::transfer::transfer(CURL *h, done f, sink *s) :
     h(h),
@@ -1092,7 +1092,11 @@ void DownloadsMenu::prev_page()
     unsigned d = visible_entries();
 
     if (!offset)
-        offset = d - d % THUMBNAILS;
+    {
+        unsigned mod = d % THUMBNAILS, nd = mod || !d ? mod : THUMBNAILS;
+
+        offset = d - nd;
+    }
     else
         offset -= THUMBNAILS;
 
@@ -1219,7 +1223,7 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
 
     GfuiEnable(hscr, category, GFUI_DISABLE);
 
-    for (int i = 0; i < THUMBNAILS; i++)
+    for (unsigned i = 0; i < THUMBNAILS; i++)
     {
         std::string id = "thumbnail";
 
