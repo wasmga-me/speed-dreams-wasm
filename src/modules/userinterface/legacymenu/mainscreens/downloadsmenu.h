@@ -48,6 +48,7 @@ public:
     void recompute(unsigned ms);
     void config();
     void config_exit(const std::vector<std::string> &repos);
+    void restart(const std::vector<std::string> &repos);
     void on_filter();
     void on_category();
     void pressed(thumbnail *t);
