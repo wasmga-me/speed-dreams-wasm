@@ -399,7 +399,6 @@ WebServer::WebServer()
     //set some default
     this->raceId = -1;
     this->userId = -1;
-    this->previousLaps = -1;
     this->raceEndSent = false;
     this->pendingAsyncRequestId = 0;
     this->isWebServerEnabled = false;
@@ -765,7 +764,8 @@ int WebServer::sendLogin (const char* username, const char* password)
     return 0;
 }
 
-int WebServer::sendLap (int race_id, double laptime, double fuel, int position, int wettness)
+int WebServer::sendLap (int race_id, bool valid, double laptime, double fuel,
+    int position, int wettness)
 {
     //if the webserver is disabled exit immediately
     if(!this->isWebServerEnabled){
@@ -796,6 +796,7 @@ int WebServer::sendLap (int race_id, double laptime, double fuel, int position, 
                            "<fuel>{{fuel}}</fuel>"
                            "<position>{{position}}</position>"
                            "<wettness>{{wettness}}</wettness>"
+                           "<valid>{{valid}}</valid>"
                            "</laps>"
                            "</request>"
                            "</content>");
@@ -806,6 +807,7 @@ int WebServer::sendLap (int race_id, double laptime, double fuel, int position, 
     replaceAll(dataToSend, "{{fuel}}", to_string(fuel));
     replaceAll(dataToSend, "{{position}}", to_string(position));
     replaceAll(dataToSend, "{{wettness}}", to_string(wettness));
+    replaceAll(dataToSend, "{{valid}}", to_string(valid));
 
     this->addOrderedAsyncRequest(dataToSend);
 
@@ -823,7 +825,6 @@ int WebServer::sendRaceStart (tSkillLevel user_skill, const char *track_id, char
     std::string mysetup;
     std::string dataToSend;
     this->raceEndSent = false;
-    this->previousLaps = -1;
 
     //Do some sanity-checks befor proceding... If something is wrong do nothing
     //are we logged in?
@@ -876,6 +877,8 @@ int WebServer::sendRaceEnd (int race_id, int endposition)
     //if the webserver is disabled exit immediately
     if(!this->isWebServerEnabled){
         return 1;
+    } else if (this->raceEndSent) {
+        return 0;
     }
 
     std::string serverReply;
