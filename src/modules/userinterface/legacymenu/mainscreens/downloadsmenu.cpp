@@ -1100,6 +1100,7 @@ void DownloadsMenu::prev_page()
     else
         offset -= THUMBNAILS;
 
+    GfuiLabelSetText(hscr, error_label, "");
     update_ui();
 }
 
@@ -1112,6 +1113,7 @@ void DownloadsMenu::next_page()
     else
         offset += THUMBNAILS;
 
+    GfuiLabelSetText(hscr, error_label, "");
     update_ui();
 }
 
