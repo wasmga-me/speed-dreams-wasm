@@ -20,8 +20,10 @@
 class Assets
 {
 public:
+    Assets(const std::string &url);
     int parse(const char *s, size_t n);
     const std::vector<Asset> &get() const;
+    const std::string url;
 
 private:
     int parse(const cJSON *c, const char *key, enum Asset::type type);

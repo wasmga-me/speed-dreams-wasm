@@ -79,3 +79,8 @@ const std::vector<Asset> &Assets::get() const
 {
     return assets;
 }
+
+Assets::Assets(const std::string &url) :
+    url(url)
+{
+}

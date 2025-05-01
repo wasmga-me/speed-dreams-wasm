@@ -37,7 +37,7 @@
 #include <stdexcept>
 
 static const size_t KB = 1024, MB = KB * KB;
-enum {THUMBNAILS = 8};
+static const unsigned THUMBNAILS = 8;
 
 DownloadsMenu::transfer::transfer(CURL *h, done f, sink *s) :
     h(h),
@@ -162,17 +162,59 @@ void DownloadsMenu::config()
     new RepoMenu(hscr, ::recompute, ::config_exit, this);
 }
 
-void DownloadsMenu::config_exit(const std::vector<std::string> &repos)
+void DownloadsMenu::restart(const std::vector<std::string> &repos)
 {
     for (auto a : assets)
         delete a;
 
+    for (auto e : entries)
+        delete e;
+
+    for (const auto &t : transfers)
+    {
+        curl_multi_remove_handle(multi, t.h);
+        curl_easy_cleanup(t.h);
+        delete t.s;
+    }
+
     assets.clear();
+    entries.clear();
+    transfers.clear();
+    offset = 0;
 
     if (downloadservers_set(repos))
         GfLogError("downloadservers_set failed\n");
     else if (fetch_assets())
         GfLogError("fetch_assets failed\n");
+}
+
+void DownloadsMenu::config_exit(const std::vector<std::string> &repos)
+{
+    if (repos.size() != assets.size())
+    {
+        restart(repos);
+        return;
+    }
+
+    for (const auto &r : repos)
+    {
+        bool found = false;
+
+        for (const auto &a : assets)
+        {
+            if (a->url == r)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            restart(repos);
+            return;
+        }
+    }
 }
 
 unsigned DownloadsMenu::visible_entries() const
@@ -864,7 +906,23 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
         return -1;
     }
 
-    Assets *a = new Assets();
+    char *url;
+
+    if ((code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url)) != CURLE_OK)
+    {
+        const char *e = curl_easy_strerror(code);
+
+        GfLogError("curl_easy_getinfo: %s\n", e);
+        error = e;
+        return -1;
+    }
+    else if (!url)
+    {
+        GfLogError("curl_easy_getinfo returned a null URL\n");
+        return -1;
+    }
+
+    Assets *a = new Assets(url);
 
     if (a->parse(static_cast<char *>(w->data()), w->size()))
     {
@@ -1034,7 +1092,11 @@ void DownloadsMenu::prev_page()
     unsigned d = visible_entries();
 
     if (!offset)
-        offset = d - d % THUMBNAILS;
+    {
+        unsigned mod = d % THUMBNAILS, nd = mod || !d ? mod : THUMBNAILS;
+
+        offset = d - nd;
+    }
     else
         offset -= THUMBNAILS;
 
@@ -1161,7 +1223,7 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
 
     GfuiEnable(hscr, category, GFUI_DISABLE);
 
-    for (int i = 0; i < THUMBNAILS; i++)
+    for (unsigned i = 0; i < THUMBNAILS; i++)
     {
         std::string id = "thumbnail";
 
