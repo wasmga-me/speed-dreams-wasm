@@ -202,6 +202,8 @@ GfuiUnSelectCurrent(void)
     tGfuiButton		*button;
     tGfuiEditbox	*editbox;
     tGfuiGrButton	*grbutton;
+    tGfuiLabel		*label;
+    tGfuiCombobox	*combobox;
     tGfuiObject		*obj;
 
     obj = GfuiScreen->hasFocus;
@@ -230,6 +232,18 @@ GfuiUnSelectCurrent(void)
 	editbox->state = GFUI_BTN_RELEASED;
 	if (editbox->onFocusLost != NULL) {
 	    editbox->onFocusLost(editbox->userDataOnFocus);
+	}
+	break;
+	case GFUI_LABEL:
+	label = &(obj->u.label);
+	if (label->onFocusLost != NULL) {
+		label->onFocusLost(label->userDataOnFocus);
+	}
+	break;
+	case GFUI_COMBOBOX:
+	combobox = &(obj->u.combobox);
+	if (combobox->onFocusLost != NULL) {
+		combobox->onFocusLost(combobox->userDataOnFocus);
 	}
 	break;
     }
