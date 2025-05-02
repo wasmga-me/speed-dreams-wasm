@@ -24,9 +24,6 @@
 #include <sstream>
 #include <iomanip>
 
-#include <SDL.h>
-#include <SDL_thread.h>
-
 #ifdef THIRD_PARTY_SQLITE3
 #include <sqlite3.h>
 #endif
@@ -108,44 +105,6 @@ void ReSituation::terminate()
     delete _pSelf;
 }
 
-void ReSituation::setThreadSafe(bool bOn)
-{
-    if (bOn)
-    {
-        if (!_pMutex)
-            _pMutex = SDL_CreateMutex(); // Thread-safe On.
-    }
-    else if (_pMutex)
-    {
-        SDL_DestroyMutex(_pMutex);
-        _pMutex = 0; // Thread-safe Off.
-    }
-}
-
-bool ReSituation::lock(const char* pszCallerName)
-{
-    if (!_pMutex)
-        return true;
-
-    const bool bStatus = (SDL_mutexP(_pMutex) == 0);
-    if (!bStatus)
-        GfLogWarning("%s : Failed to lock situation mutex\n", pszCallerName);
-
-    return bStatus;
-}
-
-bool ReSituation::unlock(const char* pszCallerName)
-{
-    if (!_pMutex)
-        return true;
-
-    const bool bStatus = SDL_mutexV(_pMutex) == 0;
-    if (!bStatus)
-        GfLogWarning("%s : Failed to unlock situation mutex\n", pszCallerName);
-
-    return bStatus;
-}
-
 // TODO: Remove when safe accessors ready.
 tRmInfo* ReSituation::data()
 {
@@ -155,17 +114,11 @@ tRmInfo* ReSituation::data()
 // Safe accessors.
 void ReSituation::setDisplayMode(unsigned bfDispMode)
 {
-    lock("setDisplayMode");
-
     _pReInfo->_displayMode = bfDispMode;
-
-    unlock("setDisplayMode");
 }
 
 void ReSituation::accelerateTime(double fMultFactor)
 {
-    lock("accelerateTime");
-
     if (_pReInfo->_reTimeMult > 0.0)
         _pReInfo->_reTimeMult *= fMultFactor;
     else
@@ -193,26 +146,18 @@ void ReSituation::accelerateTime(double fMultFactor)
     std::ostringstream ossTimeMult;
     ossTimeMult << "Time x" << std::setprecision(2) << 1.0 / _pReInfo->_reTimeMult;
     ReRaceMsgSet(_pReInfo, ossTimeMult.str().c_str(), 5);
-
-    unlock("accelerateTime");
 }
 
 void ReSituation::setRaceMessage(const std::string& strMsg, double fLifeTime, bool bBig)
 {
-    lock("setRaceMessage");
-
     if (bBig)
         ReRaceMsgSetBig(_pReInfo, strMsg.c_str(), fLifeTime);
     else
         ReRaceMsgSet(_pReInfo, strMsg.c_str(), fLifeTime);
-
-    unlock("setRaceMessage");
 }
 
 void ReSituation::setPitCommand(int nCarIndex, const tCarPitCmd *pPitCmd)
 {
-    lock("updateCarPitCmd");
-
     // Retrieve the car in situation with 'nCarIndex' index.
     //GfLogDebug("ReSituation::updateCarPitCmd(i=%d)\n", nCarIndex);
     tCarElt* pCurrCar = 0;
@@ -234,8 +179,6 @@ void ReSituation::setPitCommand(int nCarIndex, const tCarPitCmd *pPitCmd)
         ReCarsUpdateCarPitTime(pCurrCar);
     else
         GfLogError("Failed to retrieve car with index %d when computing pit time\n", nCarIndex);
-
-    unlock("setRaceMessage");
 }
 
 // The race situation updater class ==================================================
@@ -378,181 +321,21 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
     webServer().updateAsyncStatus();
 }
 
-int ReSituationUpdater::threadLoop(void* pUpdater)
-{
-    return static_cast<ReSituationUpdater*>(pUpdater)->threadLoop();
-}
-
-int ReSituationUpdater::threadLoop()
-{
-    // Wait delay for each loop, from bRunning value (index 0 = false, 1 = true).
-    static const unsigned KWaitDelayMS[2] = { 1, (unsigned)(RCM_MAX_DT_SIMU * 1000 / 10) };
-
-    // Termination flag.
-    bool bEnd = false;
-
-    // Local state (false = paused, true = simulating).
-    bool bRunning = false;
-
-    double realTime, maxRealTime;
-    double realTimeGap = 0;
-
-    // Apply thread affinity to the current = situation updater thread if specified.
-    // Note: No need to reset the affinity, as the thread is just born.
-    if (_bThreadAffinity)
-        GfSetThreadAffinity(NSituationUpdaterCPUId);
-
-    tRmInfo* pCurrReInfo = ReSituation::self().data();
-
-    GfLogInfo("SituationUpdater thread is started.\n");
-
-    do
-    {
-        // Let's make current step the next one (update).
-        // 1) Lock the race engine data.
-        ReSituation::self().lock("ReSituationUpdater::threadLoop");
-
-        // 2) Check if time to terminate has come.
-        if (_bTerminate)
-
-            bEnd = true;
-
-        // 3) If not time to terminate, and running, do the update job.
-        else if (pCurrReInfo->_reRunning)
-        {
-            if (!bRunning)
-            {
-                bRunning = true;
-                GfLogInfo("SituationUpdater thread is running.\n");
-            }
-
-            realTime = GfTimeClock() - realTimeGap;
-            maxRealTime = pCurrReInfo->_reCurTime + RCM_MAX_DT_FRAME + 1e-10;
-
-            if (realTime > maxRealTime)
-            {
-                realTimeGap += realTime - maxRealTime;
-                realTime = maxRealTime;
-            }
-
-            GfProfStartProfile("reOneStep*");
-
-            while (pCurrReInfo->_reRunning
-                   && (realTime - pCurrReInfo->_reCurTime) > RCM_MAX_DT_SIMU)
-            {
-                // One simu + robots (if any) step
-                runOneStep(RCM_MAX_DT_SIMU);
-            }
-
-            GfProfStopProfile("reOneStep*");
-
-            // Send car physics to network if needed
-            if (NetGetNetwork())
-                NetGetNetwork()->SendCarControlsPacket(pCurrReInfo->s);
-        }
-
-        // 3) If not time to terminate, and not running, do nothing.
-        else
-        {
-            if (bRunning)
-            {
-                bRunning = false;
-                GfLogInfo("SituationUpdater thread is paused.\n");
-            }
-        }
-
-        // 4) Unlock the race engine data.
-        ReSituation::self().unlock("ReSituationUpdater::threadLoop");
-
-        // 5) Let the CPU take breath if possible (but after unlocking data !).
-        SDL_Delay(KWaitDelayMS[(int)bRunning]);
-    }
-    while (!bEnd);
-
-    GfLogInfo("SituationUpdater thread has been terminated.\n");
-
-    return 0;
-}
-
 ReSituationUpdater::ReSituationUpdater()
-: _fSimuTick(RCM_MAX_DT_SIMU), _fOutputTick(0), _fLastOutputTime(0)
-
+:
+    _pPrevReInfo(0),
+    _fSimuTick(RCM_MAX_DT_SIMU),
+    _fOutputTick(0),
+    _fLastOutputTime(0)
 {
     // Save the race engine info (state + situation) pointer for the current step.
     tRmInfo* pCurrReInfo = ReSituation::self().data();
     _nInitDrivers = pCurrReInfo->s->_ncars;
-
-    // Determine if we have a dedicated separate thread or not
-    // (according to the user settings, and the actual number of CPUs).
-    void *paramHandle =
-        GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
-    const char* pszMultiThreadScheme =
-        GfParmGetStr(paramHandle, RM_SECT_RACE_ENGINE, RM_ATTR_MULTI_THREADING, RM_VAL_AUTO);
-
-    if (!strcmp(pszMultiThreadScheme, RM_VAL_OFF))
-        _bThreaded = false;
-    else if (!strcmp(pszMultiThreadScheme, RM_VAL_ON))
-        _bThreaded = true;
-    else // Can't be anything else than RM_VAL_AUTO
-        _bThreaded = GfGetNumberOfCPUs() > 1;
-
-    // Determine if we apply some thread affinity or not (according to the user settings).
-    const char* pszThreadAffinityScheme =
-        GfParmGetStr(paramHandle, RM_SECT_RACE_ENGINE, RM_ATTR_THREAD_AFFINITY, RM_VAL_OFF);
-    _bThreadAffinity = strcmp(pszThreadAffinityScheme, RM_VAL_ON) == 0;
-
-    GfParmReleaseHandle(paramHandle);
-
-    // Apply thread affinity to the current = main = graphics thread
-    // (and don't forget to reset it when specified :
-    //  user settings may have changed since last race).
-    GfSetThreadAffinity(_bThreadAffinity ? NUserInterfaceCPUId : GfAffinityAnyCPU);
-
-    // Disable movie capture feature in dual-threaded mode
-    // (only available in one-threaded mode, because of a non-"real-time" behaviour).
-    // if (_bThreaded && pCurrReInfo->movieCapture.enabled)
-    // {
-    // 	pCurrReInfo->movieCapture.enabled = 0;
-    // 	GfLogInfo("Movie capture disabled (not implemented in multi-threaded mode)\n");
-    // }
-
-    // Initialize termination flag.
-    _bTerminate = false;
-
-
-    if (_bThreaded)
-    {
-        // Initialize the race engine info (state + situation) pointer for the previous step.
-        _pPrevReInfo = initSituation(pCurrReInfo);
-
-        // Activate the thread-safe mode for the the race engine info.
-        ReSituation::self().setThreadSafe(true);
-
-        // Create and start the updater thread.
-        _pUpdateThread = SDL_CreateThread(ReSituationUpdater::threadLoop,"Update_thread",this);
-    }
-    else
-    {
-        _pPrevReInfo = 0;
-        _pUpdateThread = 0;
-    }
-
-    GfLogInfo("SituationUpdater initialized (%sseparate thread, CPU affinity %s).\n",
-          (_bThreaded ? "" : "no "), (_bThreadAffinity ? "On" : "Off"));
 }
 
 ReSituationUpdater::~ReSituationUpdater()
 {
     terminate(); // In case not already done.
-
-    if (_bThreaded)
-    {
-        // Deactivate the thread-safe mode for the the race engine info.
-        ReSituation::self().setThreadSafe(false);
-
-        if (_pPrevReInfo)
-            freezSituation(_pPrevReInfo);
-    }
 }
 
 void ReSituationUpdater::start()
@@ -560,9 +343,6 @@ void ReSituationUpdater::start()
     tSituation *s = ReInfo->s;
 
     GfLogInfo("Starting race engine.\n");
-
-    // Lock the race engine data.
-    ReSituation::self().lock("ReSituationUpdater::start");
 
     // Allow robots to run their start function
     for (int i = 0; i < s->_ncars; i++) {
@@ -578,9 +358,6 @@ void ReSituationUpdater::start()
 
     // Resynchronize simulation time.
     ReSituation::self().data()->_reCurTime = GfTimeClock() - RCM_MAX_DT_SIMU;
-
-    // Unlock the race engine data.
-    ReSituation::self().unlock("ReSituationUpdater::start");
 }
 
 void ReSituationUpdater::stop()
@@ -588,9 +365,6 @@ void ReSituationUpdater::stop()
     tSituation *s = ReInfo->s;
 
     GfLogInfo("Stopping race engine.\n");
-
-    // Lock the race engine data.
-    ReSituation::self().lock("ReSituationUpdater::stop");
 
     // Allow robots to run their stop function
     for (int i = 0; i < s->_ncars; i++) {
@@ -602,9 +376,6 @@ void ReSituationUpdater::stop()
     // Reset the running flags.
     ReSituation::self().data()->_reRunning = 0;
     ReSituation::self().data()->s->_raceState |= RM_RACE_PAUSED;
-
-    // Unlock the race engine data.
-    ReSituation::self().unlock("ReSituationUpdater::stop");
 }
 
 int ReSituationUpdater::terminate()
@@ -618,22 +389,6 @@ int ReSituationUpdater::terminate()
     if (replayRecord) {
         replaySituation(pCurrReInfo);
         GfLogInfo("Last replay entry done.\n");
-    }
-
-    // Lock the race engine data.
-    ReSituation::self().lock("ReSituationUpdater::terminate");
-
-    // Set the death flag.
-    _bTerminate = true;
-
-    // Unlock the race engine data.
-    ReSituation::self().unlock("ReSituationUpdater::terminate");
-
-    // Wait for the thread to gracefully terminate if any.
-    if (_bThreaded)
-    {
-        SDL_WaitThread(_pUpdateThread, &status);
-        _pUpdateThread = 0;
     }
 
     return status;
@@ -1092,33 +847,14 @@ void ReSituationUpdater::acknowledgeEvents()
 
 tRmInfo* ReSituationUpdater::getPreviousStep()
 {
-    if (!_bThreaded)
-    {
-        // No multi-threading : no need to really copy.
-        _pPrevReInfo = ReSituation::self().data();
+    // No multi-threading : no need to really copy.
+    _pPrevReInfo = ReSituation::self().data();
 
-        // Acknowledge the collision and human pit events occurred
-        // since the last graphics update : we know now that they all have been processed
-        // or at least being processed by the graphics engine / menu system
-        // (the main thread's job).
-        acknowledgeEvents();
-    }
-    else
-    {
-        // Lock the race engine data.
-        if (!ReSituation::self().lock("ReSituationUpdater::getPreviousStep"))
-            return 0;
-
-        // Get the situation data.
-        copySituation(_pPrevReInfo, ReSituation::self().data());
-
-        // Acknowledge the collision and human pit events (see above).
-        acknowledgeEvents();
-
-        // Unlock the race engine data.
-        if (!ReSituation::self().unlock("ReSituationUpdater::getPreviousStep"))
-            return 0;
-    }
+    // Acknowledge the collision and human pit events occurred
+    // since the last graphics update : we know now that they all have been processed
+    // or at least being processed by the graphics engine / menu system
+    // (the main thread's job).
+    acknowledgeEvents();
 
     if (replayRecord && _pPrevReInfo->s->currentTime >= replayTimestamp) {
         replaySituation(_pPrevReInfo);
@@ -1134,12 +870,6 @@ tRmInfo* ReSituationUpdater::getPreviousStep()
 // thus hiding the possible separate thread behind to the main updater.
 void ReSituationUpdater::computeCurrentStep()
 {
-    // Nothing to do if actually threaded :
-    // the updater thread is already doing the job on his side.
-    if (_bThreaded)
-        return;
-
-    // Non-threaded mode.
     GfProfStartProfile("reOneStep*");
 
     tRmInfo* pCurrReInfo = ReSituation::self().data();
@@ -1172,10 +902,6 @@ void ReSituationUpdater::computeCurrentStep()
 
 bool ReSituationUpdater::setSchedulingSpecs(double fSimuRate, double fOutputRate)
 {
-    // Not supported if actually threaded : we can't control the updater thread output rate.
-    if (_bThreaded && fOutputRate > 0)
-        return false; // Specs not changed.
-
     // Can't output faster than the simu, even in non-real time !
     if (fOutputRate > fSimuRate)
         fOutputRate = fSimuRate;
