@@ -204,6 +204,8 @@ void DisplayMenu::onCancel(void *pDisplayMenu)
 	// Get the DisplayMenu instance from call-back user data.
 	const DisplayMenu* pMenu = static_cast<DisplayMenu*>(pDisplayMenu);
 
+	GfuiUnSelectCurrent();
+
 	// Back to previous screen.
 	GfuiScreenActivate(pMenu->getPreviousMenuHandle());
 }
@@ -596,23 +598,16 @@ bool DisplayMenu::initialize(void *pPreviousMenu)
 
     openXMLDescriptor();
 
-    createStaticControls();
-
-	createComboboxControl("ScreenSizeCombo", this, onChangeScreenSize);
-
 	const int nDisplayModeComboId =
 		createComboboxControl("DisplayModeCombo", this, onChangeDisplayMode);
+
+	createComboboxControl("ScreenSizeCombo", this, onChangeScreenSize);
 
 	const int nDisplayTypeComboId =
 		createComboboxControl("MonitorTypeCombo", this, onChangeMonitorType);
 
-	const int nSpanSplitsComboId =
-		createComboboxControl("SpanSplitsCombo", this, onChangeSpansplit);
-
 	const int nMenuDisplayComboId =
 		createComboboxControl("StartupDisplayCombo", this, onChangeMenuDisplay);
-
-
 
 	_nAttachedDisplays = GfScrGetAttachedDisplays();
 	for (int i = 0; i < _nAttachedDisplays; i++)
@@ -626,27 +621,6 @@ bool DisplayMenu::initialize(void *pPreviousMenu)
 		GfuiEnable(getMenuHandle(),nMenuDisplayComboId,GFUI_DISABLE);
 	}
 
-	_nBezelCompID = createEditControl("bezelcompedit", this, NULL, onChangeBezelComp);
-	_nScreenDistId = createEditControl("screendistedit", this, NULL, onChangeScreenDist);
-	_nArcRatioID = createEditControl("arcratioedit", this, NULL, onChangeArcRatio);
-
-
-	const int nMaxRefRateComboId =
-		createComboboxControl("MaxRefreshRateCombo", this, onChangeMaxRefreshRate);
-
-	createButtonControl("ApplyButton", this, onAccept);
-	createButtonControl("CancelButton", this, onCancel);
-
-	// Keyboard shortcuts.
-	addDefaultShortcuts();
-	addShortcut(GFUIK_RETURN, "Apply", this, onAccept, 0);
-	addShortcut(GFUIK_ESCAPE, "Cancel", this, onCancel, 0);
-	// TODO Keyboard shortcuts: Add support for shortcuts in GfuiCombobox ?
-	//addShortcut(GFUIK_LEFT, "Previous Resolution", this, onChangeScreenSize, 0);
-	//addShortcut(GFUIK_RIGHT, "Next Resolution", this, onChangeScreenSize, 0);
-
-    closeXMLDescriptor();
-
 	// Load constant value lists in combo-boxes.
 	// 1) Color depths combo : not constant, as depends on selected video detection mode.
 
@@ -658,9 +632,8 @@ bool DisplayMenu::initialize(void *pPreviousMenu)
 	for (int nDisplayTypeInd = 0; nDisplayTypeInd < nDisplayTypes; nDisplayTypeInd++)
 		GfuiComboboxAddText(getMenuHandle(), nDisplayTypeComboId, MonitorTypes[nDisplayTypeInd]);
 
-	for (int index = 0; index < NbSpansplitValues; index++)
-		GfuiComboboxAddText(getMenuHandle(), nSpanSplitsComboId, SpansplitValues[index]);
-
+	const int nMaxRefRateComboId =
+		createComboboxControl("MaxRefreshRateCombo", this, onChangeMaxRefreshRate);
 
 	// 6) Max refresh rate combo.
 	std::ostringstream ossMaxRefRate;
@@ -673,6 +646,30 @@ bool DisplayMenu::initialize(void *pPreviousMenu)
 			ossMaxRefRate << "None";
 		GfuiComboboxAddText(getMenuHandle(), nMaxRefRateComboId, ossMaxRefRate.str().c_str());
 	}
+
+	const int nSpanSplitsComboId =
+		createComboboxControl("SpanSplitsCombo", this, onChangeSpansplit);
+
+	for (int index = 0; index < NbSpansplitValues; index++)
+		GfuiComboboxAddText(getMenuHandle(), nSpanSplitsComboId, SpansplitValues[index]);
+
+	_nBezelCompID = createEditControl("bezelcompedit", this, NULL, onChangeBezelComp);
+	_nScreenDistId = createEditControl("screendistedit", this, NULL, onChangeScreenDist);
+	_nArcRatioID = createEditControl("arcratioedit", this, NULL, onChangeArcRatio);
+
+	createButtonControl("ApplyButton", this, onAccept);
+	createButtonControl("CancelButton", this, onCancel);
+
+	// Keyboard shortcuts.
+	addDefaultShortcuts();
+	addShortcut(GFUIK_RETURN, "Apply", this, onAccept, 0);
+	addShortcut(GFUIK_ESCAPE, "Cancel", this, onCancel, 0);
+	// TODO Keyboard shortcuts: Add support for shortcuts in GfuiCombobox ?
+	//addShortcut(GFUIK_LEFT, "Previous Resolution", this, onChangeScreenSize, 0);
+	//addShortcut(GFUIK_RIGHT, "Next Resolution", this, onChangeScreenSize, 0);
+
+	createStaticControls();
+	closeXMLDescriptor();
 
 	return true;
 }
