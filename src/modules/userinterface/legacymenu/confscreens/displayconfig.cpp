@@ -204,6 +204,8 @@ void DisplayMenu::onCancel(void *pDisplayMenu)
 	// Get the DisplayMenu instance from call-back user data.
 	const DisplayMenu* pMenu = static_cast<DisplayMenu*>(pDisplayMenu);
 
+	GfuiUnSelectCurrent();
+
 	// Back to previous screen.
 	GfuiScreenActivate(pMenu->getPreviousMenuHandle());
 }
