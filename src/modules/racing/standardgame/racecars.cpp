@@ -489,7 +489,6 @@ reCarsApplyRaceRules(tCarElt *car)
 static void
 ReCarsSendLap(const tCarElt *car)
 {
-#ifdef WEBSERVER
     WebServer &w = webServer();
 
     if (car->_driverType != RM_DRV_HUMAN)
@@ -502,7 +501,6 @@ ReCarsSendLap(const tCarElt *car)
 
     if (car->_remainingLaps < 0)
         w.sendRaceEnd(w.raceId, car->_pos);
-#endif
 }
 
 void
