@@ -45,9 +45,6 @@ public:
     // TODO: Remove when all necessary safe accessors ready.
     struct RmInfo* data();
 
-    //! Activate/Deactivate the thread-safe mode.
-    void setThreadSafe(bool bOn = true);
-
     //! Safe accessors.
     void setDisplayMode(unsigned bfDispMode);
     void accelerateTime(double fMultFactor);
@@ -62,12 +59,6 @@ private:
     ReSituation();
     ReSituation(const ReSituation &); // = delete;
     ReSituation & operator = (const ReSituation &); // = delete;
-
-    //! Lock the data when thread-safe mode activated (otherwise do nothing).
-    bool lock(const char* pszCallerName = 0);
-
-    //! Unlock the data when thread-safe mode activated (otherwise do nothing).
-    bool unlock(const char* pszCallerName = 0);
 
 private:
 
@@ -118,12 +109,6 @@ public:
 
 private:
 
-    //! The thread function.
-    int threadLoop();
-
-    //! The C wrapper on the thread function.
-    static int threadLoop(void*);
-
     //! Acknowledge the situation events (simu / graphics synchronization).
     void acknowledgeEvents();
 
@@ -149,18 +134,6 @@ private:
 
     //! The previous step of the situation
     struct RmInfo* _pPrevReInfo;
-
-    //! The situation updater thread
-    struct SDL_Thread* _pUpdateThread;
-
-    //! True if the updater is actually threaded (may be not the case)
-    bool _bThreaded;
-
-    //! True if thread affinity has to be applied (even in case !_bThreaded)
-    bool _bThreadAffinity;
-
-    //! Flag to set in order to terminate the updater.
-    bool _bTerminate;
 
     //! Simulation tick (s) (defaults to RCM_MAX_DT_SIMU).
     double _fSimuTick;
