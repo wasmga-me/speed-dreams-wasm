@@ -25,8 +25,10 @@
 #include <algorithm>
 #include <list>
 #include <string>
+#include <stdexcept>
 
 #include <tgfclient.h>
+#include <guimenu.h>
 
 #include <raceman.h>
 
@@ -136,107 +138,158 @@ rmOnSelectRaceMan(void *pvRaceManTypeIndex)
 	}
 }
 
-static void
-rmOnChangeRaceMan(tComboBoxInfo *)
+static bool
+rmSupported(const std::string &type)
 {
+	if (LmRaceEngine().supportsHumanDrivers())
+		return type != "OptimizationMT";
+
+	return type == "Practice" || type == "OptimizationMT";
+}
+
+static std::string
+rmRemoveSpaces(const std::string &s)
+{
+	std::string ret;
+
+	for (auto c : s)
+		if (c != ' ')
+			ret += c;
+
+	return ret;
+}
+
+static int
+rmCreateRaceSubtype(void *h, const char *name)
+{
+	const std::vector<std::string> &types = GfRaceManagers::self()->getTypes();
+
+	for (const auto &type : types)
+	{
+		std::string btn = rmRemoveSpaces(type) + "Combo";
+
+		if (!rmSupported(type) || btn != name)
+			continue;
+
+		int id = -1;
+		bool first = true;
+		std::vector<GfRaceManager*> managers =
+			GfRaceManagers::self()->getRaceManagersWithType(type);
+
+		for (auto m : managers)
+		{
+			const std::string &subtype = m->getSubType();
+
+			if (subtype.empty())
+				continue;
+			else if (id < 0
+				&& (id = GfuiMenuCreateComboboxControl(RmRaceSelectMenuHandle,
+					h, name, nullptr, nullptr)) < 0)
+			{
+				GfLogError("GfuiMenuCreateComboboxControl %s failed\n", name);
+				return -1;
+			}
+
+			int enable = first ? GFUI_DISABLE : GFUI_ENABLE;
+
+			GfuiEnable(RmRaceSelectMenuHandle, id, enable);
+
+			if (first)
+				first = false;
+
+			GfuiComboboxAddText(RmRaceSelectMenuHandle, id, subtype.c_str());
+		}
+
+		rmMapSubTypeComboIds[type] = id;
+		break;
+	}
+
+	return 0;
+}
+
+static int
+rmCreateRaceType(void *h, const char *name)
+{
+	const std::vector<std::string> &types = GfRaceManagers::self()->getTypes();
+
+	for (const auto &type : types)
+	{
+		std::string btn = rmRemoveSpaces(type) + "Button";
+
+		if (!rmSupported(type) || btn != name)
+			continue;
+
+		rmRaceTypes.push_back(type);
+
+		if (GfuiMenuCreateButtonControl(RmRaceSelectMenuHandle, h,
+			name, &rmRaceTypes.back(), rmOnSelectRaceMan) < 0)
+		{
+			GfLogError("GfuiMenuCreateButtonControl %s failed\n", name);
+			return -1;
+		}
+
+		break;
+	}
+
+	return 0;
+}
+
+static bool
+rmEndsWith(const char *s, const char *suffix)
+{
+	const char *p = strstr(s, suffix);
+
+	return p && !*(p + strlen(suffix));
 }
 
 /* Initialize the single player menu */
 void *
 RmRaceSelectInit(void *prevMenu)
 {
-	// Ask the RaceEngine what types of races should be allowed here
-	bool SupportsHumanDrivers = LmRaceEngine().supportsHumanDrivers();
-
 	// Create screen, load menu XML descriptor and create static controls.
 	RmRaceSelectMenuHandle = GfuiScreenCreate((float*)NULL,
 											NULL, rmOnActivate,
 											NULL, (tfuiCallback)NULL,
 											1);
 #if defined(CLIENT_SERVER)
-	void *hMenuXMLDesc = GfuiMenuLoad("csraceselectmenu.xml");
+	void *h = GfuiMenuLoad("csraceselectmenu.xml");
 #else
-	void *hMenuXMLDesc = GfuiMenuLoad("raceselectmenu.xml");
+	void *h = GfuiMenuLoad("raceselectmenu.xml");
 #endif
-	GfuiMenuCreateStaticControls(RmRaceSelectMenuHandle, hMenuXMLDesc);
-	rmRaceTypes.clear();
 
-	// Create the raceman type buttons and sub-type combo-boxes (if any).
-	const std::vector<std::string>& vecRaceManTypes = GfRaceManagers::self()->getTypes();
-	std::vector<std::string>::const_iterator itRaceManType;
-	// For each race manager type :
-	for (itRaceManType = vecRaceManTypes.begin();
-		 itRaceManType != vecRaceManTypes.end(); ++itRaceManType)
+	GfuiMenuCreateStaticControls(RmRaceSelectMenuHandle, h);
+
+	const char *section = GFMNU_SECT_DYNAMIC_CONTROLS;
+	int n = GfParmGetEltNb(h, section);
+
+	if (n < 0)
+		std::runtime_error("GfParmGetEltNb failed");
+	else if (GfParmListSeekFirst(h, section))
+		std::runtime_error("GfParmListSeekFirst failed");
+
+	for (int i = 0; i < n; i++)
 	{
-		// Get the racemanagers with this type
-		const std::vector<GfRaceManager*> vecRaceMans =
-			GfRaceManagers::self()->getRaceManagersWithType(*itRaceManType);
+		const char *name = GfParmListGetCurEltName(h, section);
+		int res;
 
-		// Create the race manager type button.
-		std::string strButtonCtrlName(*itRaceManType);
-		if (!SupportsHumanDrivers)
-		{
-			if ((strButtonCtrlName != "Practice")
-				&& (strButtonCtrlName != "OptimizationMT"))
-				continue;
-		}
-		else
-		{
-			if (strButtonCtrlName == "OptimizationMT")
-				continue;
-		}
-
-		rmRaceTypes.push_back(*itRaceManType);
-		strButtonCtrlName.erase(std::remove(strButtonCtrlName.begin(), strButtonCtrlName.end(), ' '), strButtonCtrlName.end()); // Such a pain to remove spaces !
-		strButtonCtrlName += "Button";
-		GfuiMenuCreateButtonControl(RmRaceSelectMenuHandle, hMenuXMLDesc, strButtonCtrlName.c_str(),
-							&rmRaceTypes.back(),
-							rmOnSelectRaceMan);
-
-		// Look for sub-types : if any, we have a sub-type combo box for this type.
-		bool bCreateCombo = false;
-		std::vector<GfRaceManager*>::const_iterator itRaceMan;
-		for (itRaceMan = vecRaceMans.begin(); itRaceMan != vecRaceMans.end(); ++itRaceMan)
-		{
-			if (!(*itRaceMan)->getSubType().empty())
-			{
-				bCreateCombo = true;
-				break;
-			}
-		}
-
-		if (!bCreateCombo)
-			continue;
-
-		// Create the race manager sub-type combo-box.
-		std::string strComboCtrlName(*itRaceManType);
-		strComboCtrlName.erase(std::remove(strComboCtrlName.begin(), strComboCtrlName.end(), ' '), strComboCtrlName.end()); // Such a pain to remove spaces !
-		strComboCtrlName += "Combo";
-		rmMapSubTypeComboIds[*itRaceManType] =
-			GfuiMenuCreateComboboxControl(RmRaceSelectMenuHandle, hMenuXMLDesc,
-								  strComboCtrlName.c_str(), 0, rmOnChangeRaceMan);
-
-		// Add one item in the combo for each race manager of this type.
-		for (itRaceMan = vecRaceMans.begin(); itRaceMan != vecRaceMans.end(); ++itRaceMan)
-		{
-			GfuiComboboxAddText(RmRaceSelectMenuHandle, rmMapSubTypeComboIds[*itRaceManType],
-								(*itRaceMan)->getSubType().c_str());
-		}
-
-		// Select the first one by default.
-		GfuiComboboxSetPosition(RmRaceSelectMenuHandle, rmMapSubTypeComboIds[*itRaceManType], 0);
-
-		// Disable combo if only one race manager.
-		if (vecRaceMans.size() == 1)
-			GfuiEnable(RmRaceSelectMenuHandle, rmMapSubTypeComboIds[*itRaceManType], GFUI_DISABLE);
+		if (!name)
+			std::runtime_error("GfParmListGetCurEltName failed");
+		else if (rmEndsWith(name, "Button") && rmCreateRaceType(h, name))
+			std::runtime_error("rmCreateRaceType failed");
+		else if (rmEndsWith(name, "Combo") && rmCreateRaceSubtype(h, name))
+			std::runtime_error("rmCreateRaceSubtype failed");
+		else if ((res = GfParmListSeekNext(h, section)) < 0)
+			std::runtime_error("GfParmListSeekNext failed");
+		else if (res > 0)
+			break;
 	}
 
 	// Create Back button
-	GfuiMenuCreateButtonControl(RmRaceSelectMenuHandle, hMenuXMLDesc, "BackButton",
+	GfuiMenuCreateButtonControl(RmRaceSelectMenuHandle, h, "BackButton",
 								prevMenu, rmOnRaceSelectShutdown);
 
 	// Close menu XML descriptor.
-	GfParmReleaseHandle(hMenuXMLDesc);
+	GfParmReleaseHandle(h);
 
 	// Register keyboard shortcuts.
 	GfuiMenuDefaultKeysAdd(RmRaceSelectMenuHandle);
