@@ -116,8 +116,19 @@ execute_process(
    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-if(NOT result EQUAL 0)
-   set(VERSION "undefined-version")
+if(result EQUAL 0)
+   set(version_regex "v([0-9]+)\.([0-9]+)\.([0-9]+).*")
+   string(REGEX REPLACE
+      ${version_regex}
+      "\\1" CMAKE_PROJECT_VERSION_MAJOR ${VERSION})
+   string(REGEX REPLACE
+      ${version_regex}
+      "\\2" CMAKE_PROJECT_VERSION_MINOR ${VERSION})
+   string(REGEX REPLACE
+      ${version_regex}
+      "\\3" CMAKE_PROJECT_VERSION_PATCH ${VERSION})
+else()
+   set(VERSION "v${CMAKE_PROJECT_VERSION}")
 endif()
 
 set(VERSION_LONG ${VERSION} CACHE STRING "The version string displayed")
