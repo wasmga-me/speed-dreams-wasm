@@ -590,14 +590,25 @@ void DownloadsMenu::process(thumbnail *t, entry *e)
     bool enable = false, show_progress = false, show_delete = false;
     float progress = 0.0f;
 
+    if (e->state == entry::init)
+    {
+        bool update;
+
+        if (fetch_thumbnail(e))
+            throw std::runtime_error("Failed to start thumbnail fetch");
+        else if (e->a.needs_update(update))
+            e->state = entry::download;
+        else if (update)
+            e->state = entry::update;
+        else
+            e->state = entry::done;
+    }
+
     switch (e->state)
     {
         case entry::init:
-            if (fetch_thumbnail(e))
-                throw std::runtime_error("Failed to start thumbnail fetch");
+            break;
 
-            e->state = entry::download;
-            /* Fall through. */
         case entry::download:
             enable = true;
             break;
