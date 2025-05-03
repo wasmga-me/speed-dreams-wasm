@@ -92,19 +92,11 @@ int entry::rename()
 
 int entry::on_thumbnail()
 {
-    bool update;
-
     if (rename())
     {
         GfLogError("Failed to rename thumbnail\n");
         return -1;
     }
-    else if (a.needs_update(update))
-        state = entry::download;
-    else if (update)
-        state = entry::update;
-    else
-        state = entry::done;
 
     thumbnail_fetched = true;
     return 0;
