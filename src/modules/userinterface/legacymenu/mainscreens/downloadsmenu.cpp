@@ -847,9 +847,7 @@ int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
     for (auto e : entries)
         if (e->thumbnail == w->path)
         {
-            if (e->on_thumbnail())
-                return -1;
-
+            e->thumbnail_fetched = true;
             break;
         }
 
