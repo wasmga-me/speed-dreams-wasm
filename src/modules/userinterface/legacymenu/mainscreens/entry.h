@@ -24,13 +24,8 @@ struct entry
     bool thumbnail_fetched;
     float progress;
     std::string data;
-    int on_thumbnail();
 
 private:
-    enum thumbnail_type {jpeg, png};
-    static int get(const std::string &path, enum thumbnail_type &type);
-    static int trypng(const std::string &path);
-    static int tryjpeg(const std::string &path);
     int rename();
 };
 

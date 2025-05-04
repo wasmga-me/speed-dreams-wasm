@@ -24,6 +24,8 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
+#include <cerrno>
 
 #ifdef _WIN32
 #include <direct.h>
@@ -495,6 +497,52 @@ GfTexReadImageFromJPEG(const char *filename, float screen_gamma, int *pWidth, in
 	return aTgtImageBuffer;
 }
 
+static int tryformat(const char *filename, const void *src, void *dst, size_t n)
+{
+	int ret = -1;
+	FILE *f = fopen(filename, "rb");
+
+	if (!f)
+	{
+		fprintf(stderr, "fopen(3) %s : %s\n", filename, strerror(errno));
+		goto end;
+	}
+	else if (!fread(dst, n, 1, f))
+	{
+		if (ferror(f))
+			fprintf(stderr, "%s: got ferror\n", filename);
+
+		goto end;
+	}
+
+    ret = memcmp(dst, src, n);
+
+end:
+	if (f && fclose(f))
+	{
+		fprintf(stderr, "fclose(3) %s : %s\n", filename, strerror(errno));
+		ret = -1;
+	}
+
+	return ret;
+}
+
+static int trypng(const char *filename)
+{
+	static const unsigned char header[] = {0x89, 'P', 'N', 'G'};
+    unsigned char buf[sizeof header] = {0};
+
+	return tryformat(filename, header, buf, sizeof buf);
+}
+
+static int tryjpeg(const char *filename)
+{
+    static const unsigned char header[] = {0xff, 0xd8, 0xff};
+    unsigned char buf[sizeof header] = {0};
+
+	return tryformat(filename, header, buf, sizeof buf);
+}
+
 /** Load a PNG or JPEG image from disk to a buffer in RGBA mode (if specified, enforce 2^N x 2^P size for the target buffer, to suit with low-end OpenGL hardwares/drivers poor texture support).
     WARNING: 2^N x 2^P enforcement not yet implemented for JPEG images.
     @ingroup	img
@@ -513,13 +561,12 @@ GfTexReadImageFromFile(const char *filename, float screen_gamma, int *pWidth, in
 {
 	unsigned char* pImageBuffer = 0;
 
-	if (strstr(filename, ".png") || strstr(filename, ".PNG"))
+	if (!trypng(filename))
 	{
 	    pImageBuffer = GfTexReadImageFromPNG(filename, screen_gamma, pWidth, pHeight,
 											 pPow2Width, pPow2Height);
 	}
-	else if (strstr(filename, ".jpg") || strstr(filename, ".JPG")
-		 || strstr(filename, ".jpeg") || strstr(filename, ".JPEG"))
+	else if (!tryjpeg(filename))
 	{
 	    pImageBuffer = GfTexReadImageFromJPEG(filename, screen_gamma, pWidth, pHeight,
 											  pPow2Width, pPow2Height);
