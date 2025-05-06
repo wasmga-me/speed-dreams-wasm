@@ -37,6 +37,11 @@ This file deals with car setup
 
 int currentFocusedIndex=0;
 
+static const char *const sets[] =
+{
+    "NONE", "SOFT", "MEDIUM", "HARD", "WET", "EXTREME WET"
+};
+
 // callback functions
 
 void CarSetupMenu::onActivateCallback(void *pMenu)
@@ -211,6 +216,14 @@ void CarSetupMenu::onCombo(tComboBoxInfo *pInfo)
     attribute &att = items[currentPage][pData->index];
 
     att.strValue = pInfo->vecChoices[pInfo->nPos];
+
+    if (att.section == "Tires Set")
+        for (unsigned i = 0; i < sizeof sets / sizeof *sets; i++)
+            if (sets[i] == att.strValue)
+            {
+                att.value = i;
+                break;
+            }
 }
 
 void CarSetupMenu::onPlus(int ctrlIndex)
@@ -475,7 +488,7 @@ void CarSetupMenu::loadSettings()
             att.param = GfParmGetStr(hparmItems, strSection.c_str(), "param", "");
             att.label = GfParmGetStr(hparmItems, strSection.c_str(), "label", "");
 
-            if (att.type == "edit")
+            if (att.type == "edit" || att.section == "Tires Set")
             {
                 att.units = GfParmGetStr(hparmItems, strSection.c_str(), "unit", "");
                 att.precision = GfParmGetNum(hparmItems, strSection.c_str(), "precision", "", 0);
@@ -497,6 +510,23 @@ void CarSetupMenu::loadSettings()
                            att.section.c_str(), att.param.c_str(), att.units.c_str(),
                            att.label.c_str(), page, index, att.precision, att.labelId, att.editId,
                            att.defaultLabelId, att.exists, att.minValue, att.defaultValue, att.maxValue, att.value);
+
+                if (att.section == "Tires Set")
+                {
+                    static const size_t sz = sizeof sets / sizeof *sets;
+
+                    for (unsigned i = att.minValue; i <= att.maxValue
+                        && i < sz; i++)
+                        att.in.push_back(sets[i]);
+
+                    unsigned defvalue = att.defaultValue, value = att.value;
+
+                    if (value < sz)
+                        att.strValue = sets[value];
+
+                    if (att.defaultValue < sz)
+                        att.defaultStrValue = sets[defvalue];
+                }
             }
             else if (att.type == "combo")
             {
@@ -602,7 +632,7 @@ void CarSetupMenu::storeSettings()
             // Only write items that exist and have been changed.
             if (att.exists)
             {
-                if (att.type == "edit")
+                if (att.type == "edit" || att.section == "Tires Set")
                 {
                     if (att.value != att.defaultValue)
                     {
