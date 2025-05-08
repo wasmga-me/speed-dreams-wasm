@@ -438,7 +438,7 @@ int ForceFeedbackManager::engineRevvingEffect(tCarElt* car, tSituation *s)
         div = rpm * 2 * prevsign * mult;
 
     //force acting on the front wheels
-    effectForce = 50000 / div / 100;
+    effectForce = div ? 50000 / div / 100 : 0;
 
     GfLogDebug("RPM: (%i)\n", (int)car->_enginerpm);
     GfLogDebug("Efect: (%i)\n", effectForce);
