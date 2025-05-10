@@ -26,9 +26,9 @@ AppDir:
     exec: usr/games/speed-dreams-2
     exec_args: \$@
   after_runtime: |
-    cd "\$TARGET_APPDIR/lib/x86_64-linux-gnu/"
-    ln -rs ../../runtime/compat/lib/x86_64-linux-gnu/libcrypt.so.1 libcrypt.so.1
-    ln -rs ../../runtime/compat/lib/x86_64-linux-gnu/libcrypt.so.1.1.0 libcrypt.so.1.1.0
+    cd "\$TARGET_APPDIR/lib/$arch-linux-gnu/"
+    ln -rs ../../runtime/compat/lib/$arch-linux-gnu/libcrypt.so.1 libcrypt.so.1
+    ln -rs ../../runtime/compat/lib/$arch-linux-gnu/libcrypt.so.1.1.0 libcrypt.so.1.1.0
   apt:
     arch:
     - $dpkgarch
@@ -74,7 +74,7 @@ AppDir:
     - perl
   files:
     include:
-    - lib64/ld-linux-x86-64.so.2
+    - lib64/ld-linux-$(echo $arch | tr _ -).so.2
     - usr/share/games/speed-dreams-2/*
     - usr/lib/games/speed-dreams-2/*
     - /usr/local/lib/libcjson.so*
