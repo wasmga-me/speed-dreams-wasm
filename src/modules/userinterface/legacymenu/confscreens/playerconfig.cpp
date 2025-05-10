@@ -371,6 +371,7 @@ refreshEditVal(void)
 
 
     } else {
+        enum tSkillLevel skill = (*CurrPlayer)->skillLevel();
 
         if (strcmp((*CurrPlayer)->dispName(), NoPlayer)) {
             GfuiEditboxSetString(ScrHandle, NameEditId, (*CurrPlayer)->dispName());
@@ -393,24 +394,28 @@ refreshEditVal(void)
         GfuiLabelSetText(ScrHandle, NationEditId, (*CurrPlayer)->nation());
         GfuiEnable(ScrHandle, NationEditId, GFUI_ENABLE);
 
-        GfuiLabelSetText(ScrHandle, SkillEditId, SkillLevelString[(*CurrPlayer)->skillLevel()]);
+        GfuiLabelSetText(ScrHandle, SkillEditId, SkillLevelString[skill]);
         GfuiEnable(ScrHandle, SkillEditId, GFUI_ENABLE);
 
         GfuiLabelSetText(ScrHandle, AutoReverseEditId, Yn[(*CurrPlayer)->autoReverse()]);
         GfuiEnable(ScrHandle, AutoReverseEditId, GFUI_ENABLE);
 
+        int enable = skill == PRO ? GFUI_ENABLE : GFUI_DISABLE;
+
         snprintf(buf, sizeof(buf), "%s", (*CurrPlayer)->webserverusername());
         GfuiEditboxSetString(ScrHandle, WebUsernameEditId, buf);
-        GfuiEnable(ScrHandle, WebUsernameEditId, GFUI_ENABLE);
+        GfuiEnable(ScrHandle, WebUsernameEditId, enable);
 
         snprintf(buf, sizeof(buf), "%s", (*CurrPlayer)->webserverpassword());
         GfuiEditboxSetString(ScrHandle, WebPasswordEditId, buf);
-        GfuiEnable(ScrHandle, WebPasswordEditId, GFUI_ENABLE);
+        GfuiEnable(ScrHandle, WebPasswordEditId, enable);
 
-        GfuiCheckboxSetChecked(ScrHandle, WebServerCheckboxId, (*CurrPlayer)->webserverenabled());
-        GfuiEnable(ScrHandle, WebServerCheckboxId, GFUI_ENABLE);
+        bool checked = (*CurrPlayer)->webserverenabled();
 
-        updateWebserverControls((*CurrPlayer)->webserverenabled());
+        GfuiCheckboxSetChecked(ScrHandle, WebServerCheckboxId, checked);
+        GfuiEnable(ScrHandle, WebServerCheckboxId, enable);
+
+        updateWebserverControls(skill == PRO && checked);
 
         if ((*CurrPlayer)->gearChangeMode() == GEAR_MODE_AUTO)
             autoRevVisible = GFUI_VISIBLE;
@@ -513,8 +518,9 @@ PutPlayerSettings(unsigned index)
     GfParmSetStr(PrefHdle, drvSectionPath, HM_ATT_AUTOREVERSE, Yn[player->autoReverse()]);
     GfParmSetStr(PrefHdle, drvSectionPath, "WebServerUsername", player->webserverusername());
     GfParmSetStr(PrefHdle, drvSectionPath, "WebServerPassword", player->webserverpassword());
-    GfParmSetNum(PrefHdle, drvSectionPath, "WebServerEnabled", (char*)NULL, player->webserverenabled());
-
+    GfParmSetNum(PrefHdle, drvSectionPath, "WebServerUserEnable", NULL, player->webserverenabled());
+    GfParmSetNum(PrefHdle, drvSectionPath, "WebServerEnabled", (char*)NULL,
+        player->skillLevel() == PRO && player->webserverenabled());
 
     /* Allow neutral gear in sequential mode if neutral gear command not defined */
     if (player->gearChangeMode() == GEAR_MODE_SEQ
@@ -608,7 +614,7 @@ onCopyPlayer(void * /* dummy */)
 
         const char *str;
         char sstring[128];
-        int webserverenabledval;
+        int webserverenabledval, webserveruserenable;
         /* Load players settings from human/preferences.xml file*/
         PrefHdle = GfParmReadFileLocal(HM_PREF_FILE, GFPARM_RMODE_REREAD);
         if (!PrefHdle) {
@@ -621,7 +627,8 @@ onCopyPlayer(void * /* dummy */)
         (*CurrPlayer)->setWebserverpassword(str);
 
         webserverenabledval = GfParmGetNum(PrefHdle, sstring, "WebServerEnabled", (char*)NULL, (int)0);
-        (*CurrPlayer)->setWebserverEnabled(webserverenabledval);
+        webserveruserenable = GfParmGetNum(PrefHdle, sstring, "WebServerUserEnable", NULL, webserverenabledval);
+        (*CurrPlayer)->setWebserverEnabled(webserveruserenable);
 
         // Update preferences and drivers params (rename those after, add new).
         snprintf(sectionPath, sizeof(sectionPath), "%s/%s", HM_SECT_PREF, HM_LIST_DRV);
@@ -743,7 +750,7 @@ GenPlayerList(void)
     const char *str;
     int racenumber;
     float color[4];
-    int webserverenabledval;
+    int webserverenabledval, webserveruserenable;
 
     /* Reset players list */
     tPlayerInfoList::iterator playerIter;
@@ -830,7 +837,8 @@ GenPlayerList(void)
         PlayersInfo[i]->setWebserverpassword(str);
 
         webserverenabledval = GfParmGetNum(PrefHdle, sstring, "WebServerEnabled", (char*)NULL, (int)0);
-        PlayersInfo[i]->setWebserverEnabled(webserverenabledval);
+        webserveruserenable = GfParmGetNum(PrefHdle, sstring, "WebServerUserEnable", NULL, webserverenabledval);
+        PlayersInfo[i]->setWebserverEnabled(webserveruserenable);
     }
 
     return 0;
