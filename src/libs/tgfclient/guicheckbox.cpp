@@ -36,6 +36,9 @@ gfuiChecked(void *idv)
 {
 	tGfuiObject* object = static_cast <tGfuiObject *>(idv);
 
+	if (object->state == GFUI_DISABLE)
+		return;
+
 	GfuiCheckboxSetChecked(GfuiScreen, object->id, false);
 	GfuiUnSelectCurrent();
 
@@ -50,6 +53,9 @@ static void
 gfuiUnchecked(void *idv)
 {
 	tGfuiObject* object = static_cast <tGfuiObject *>(idv);
+
+	if (object->state == GFUI_DISABLE)
+		return;
 
 	GfuiCheckboxSetChecked(GfuiScreen, object->id, true);
 	GfuiUnSelectCurrent();
@@ -92,14 +98,14 @@ GfuiCheckboxCreate(void *scr, int font, int x, int y, int imagewidth, int imageh
 	// Note: We avoid sharing the same userDataOnFocus among multiple controls
 	//       (otherwise multiple frees at release time ...).
 	checkbox->checkId =
-		GfuiGrButtonCreate(scr, "data/img/checked.png", "data/img/checked.png",
+		GfuiGrButtonCreate(scr, "data/img/checked-disabled.png", "data/img/checked.png",
 						   "data/img/checked.png", "data/img/checked.png",
 						   x, y, imagewidth, imageheight, GFUI_MIRROR_NONE, false, GFUI_MOUSE_UP,
 						   object, gfuiChecked,
 						   userDataOnFocus, onFocus, onFocusLost);
 
 	checkbox->uncheckId =
-		GfuiGrButtonCreate(scr, "data/img/unchecked.png", "data/img/unchecked.png",
+		GfuiGrButtonCreate(scr, "data/img/unchecked-disabled.png", "data/img/unchecked.png",
 						   "data/img/unchecked.png", "data/img/unchecked.png",
 						   x, y, imagewidth, imageheight, GFUI_MIRROR_NONE, false, GFUI_MOUSE_UP,
 						   object, gfuiUnchecked,
