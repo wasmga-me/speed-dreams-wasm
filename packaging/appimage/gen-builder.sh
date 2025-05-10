@@ -15,7 +15,7 @@ version: 1
 AppDir:
   path: $dir
   app_info:
-    id: org.speed_dreams.SpeedDreams
+    id: net.speed_dreams.SpeedDreams
     name: speed-dreams
     icon: icon
     version: $(git describe --tags --dirty)
