@@ -1,14 +1,18 @@
 #! /bin/sh
 
-while getopts d: arg
+while getopts a:d:p: arg
 do
     case $arg in
+        a) arch="$OPTARG" ;;
         d) dir="$OPTARG" ;;
-        ?) printf "%s [-d <dir>] \n" "$0"
+        p) dpkgarch="$OPTARG" ;;
+        ?) printf "%s [-d <dir>] [-a <arch>] [-p <dpkgarch>] \n" "$0"
     esac
 done
 
 dir=${dir:-"/AppDir"}
+arch=${arch:-"$(uname -m)"}
+dpkgarch=${dpkgarch:-"$(dpkg --print-architecture)"}
 
 cat <<EOF
 version: 1
@@ -27,7 +31,7 @@ AppDir:
     ln -rs ../../runtime/compat/lib/x86_64-linux-gnu/libcrypt.so.1.1.0 libcrypt.so.1.1.0
   apt:
     arch:
-    - $(dpkg --print-architecture)
+    - $dpkgarch
     allow_unauthenticated: true
     sources:
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
@@ -37,7 +41,7 @@ AppDir:
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
         http://security.ubuntu.com/ubuntu focal-security main universe
     include:
-    - libc6:$(dpkg --print-architecture)
+    - libc6:$dpkgarch
     - locales
     - libcrypt1
     - libenet7
@@ -81,6 +85,6 @@ AppDir:
     - usr/share/doc/*/NEWS.*
     - usr/share/doc/*/TODO.*
 AppImage:
-  arch: $(uname -m)
+  arch: $arch
   update-information: guess
 EOF
