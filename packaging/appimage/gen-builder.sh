@@ -1,18 +1,20 @@
 #! /bin/sh
 
-while getopts a:d:p: arg
+while getopts a:d:p:u: arg
 do
     case $arg in
         a) arch="$OPTARG" ;;
         d) dir="$OPTARG" ;;
         p) dpkgarch="$OPTARG" ;;
-        ?) printf "%s [-d <dir>] [-a <arch>] [-p <dpkgarch>] \n" "$0"
+        u) url="$OPTARG" ;;
+        ?) printf "%s [-d <dir>] [-a <arch>] [-p <dpkgarch>] [-u <url>]\n" "$0"
     esac
 done
 
 dir=${dir:-"/AppDir"}
 arch=${arch:-"$(uname -m)"}
 dpkgarch=${dpkgarch:-"$(dpkg --print-architecture)"}
+url=${url:-"http://archive.ubuntu.com/ubuntu"}
 
 cat <<EOF
 version: 1
@@ -35,11 +37,11 @@ AppDir:
     allow_unauthenticated: true
     sources:
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
-        http://archive.ubuntu.com/ubuntu focal main universe
+        $url focal main universe
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
-        http://archive.ubuntu.com/ubuntu focal-updates main universe
+        $url focal-updates main universe
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
-        http://security.ubuntu.com/ubuntu focal-security main universe
+        $url focal-security main universe
     include:
     - libc6:$dpkgarch
     - locales
