@@ -565,6 +565,15 @@ GfuiEnable(void *scr, int id, int flag)
 				curObject->u.button.state = GFUI_BTN_RELEASED;
 			break;
 
+		case GFUI_CHECKBOX:
+		{
+			const tGfuiCheckbox *checkbox = &curObject->u.checkbox;
+
+			GfuiEnable(scr, checkbox->checkId, curObject->state);
+			GfuiEnable(scr, checkbox->uncheckId, curObject->state);
+		}
+			break;
+
 		default:
 			break;
 	}
