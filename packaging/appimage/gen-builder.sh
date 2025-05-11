@@ -1,43 +1,49 @@
 #! /bin/sh
 
-while getopts d: arg
+while getopts a:d:p:u: arg
 do
     case $arg in
+        a) arch="$OPTARG" ;;
         d) dir="$OPTARG" ;;
-        ?) printf "%s [-d <dir>] \n" "$0"
+        p) dpkgarch="$OPTARG" ;;
+        u) url="$OPTARG" ;;
+        ?) printf "%s [-d <dir>] [-a <arch>] [-p <dpkgarch>] [-u <url>]\n" "$0"
     esac
 done
 
 dir=${dir:-"/AppDir"}
+arch=${arch:-"$(uname -m)"}
+dpkgarch=${dpkgarch:-"$(dpkg --print-architecture)"}
+url=${url:-"http://archive.ubuntu.com/ubuntu"}
 
 cat <<EOF
 version: 1
 AppDir:
   path: $dir
   app_info:
-    id: org.speed_dreams.SpeedDreams
+    id: net.speed_dreams.SpeedDreams
     name: speed-dreams
     icon: icon
     version: $(git describe --tags --dirty)
     exec: usr/games/speed-dreams-2
     exec_args: \$@
   after_runtime: |
-    cd "\$TARGET_APPDIR/lib/x86_64-linux-gnu/"
-    ln -rs ../../runtime/compat/lib/x86_64-linux-gnu/libcrypt.so.1 libcrypt.so.1
-    ln -rs ../../runtime/compat/lib/x86_64-linux-gnu/libcrypt.so.1.1.0 libcrypt.so.1.1.0
+    cd "\$TARGET_APPDIR/lib/$arch-linux-gnu/"
+    ln -rs ../../runtime/compat/lib/$arch-linux-gnu/libcrypt.so.1 libcrypt.so.1
+    ln -rs ../../runtime/compat/lib/$arch-linux-gnu/libcrypt.so.1.1.0 libcrypt.so.1.1.0
   apt:
     arch:
-    - $(dpkg --print-architecture)
+    - $dpkgarch
     allow_unauthenticated: true
     sources:
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
-        http://archive.ubuntu.com/ubuntu focal main universe
+        $url focal main universe
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
-        http://archive.ubuntu.com/ubuntu focal-updates main universe
+        $url focal-updates main universe
     - sourceline: deb [signed-by="/usr/share/keyrings/ubuntu-archive-keyring.gpg"]
-        http://security.ubuntu.com/ubuntu focal-security main universe
+        $url focal-security main universe
     include:
-    - libc6:$(dpkg --print-architecture)
+    - libc6:$dpkgarch
     - locales
     - libcrypt1
     - libenet7
@@ -70,7 +76,7 @@ AppDir:
     - perl
   files:
     include:
-    - lib64/ld-linux-x86-64.so.2
+    - lib64/ld-linux-$(echo $arch | tr _ -).so.2
     - usr/share/games/speed-dreams-2/*
     - usr/lib/games/speed-dreams-2/*
     - /usr/local/lib/libcjson.so*
@@ -81,6 +87,6 @@ AppDir:
     - usr/share/doc/*/NEWS.*
     - usr/share/doc/*/TODO.*
 AppImage:
-  arch: $(uname -m)
+  arch: $arch
   update-information: guess
 EOF
