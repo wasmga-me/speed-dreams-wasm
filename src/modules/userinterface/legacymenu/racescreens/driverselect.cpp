@@ -202,7 +202,7 @@ rmdsCanGenerateDriverType()
 	const std::string &driver = VecDriverTypes[CurDriverTypeIndex];
 	static const char *exc[] =
 	{
-		"human", "networkhuman", AnyDriverType
+		"human", "networkhuman"
 	};
 
 	for (size_t i = 0; i < sizeof exc / sizeof *exc; i++)
@@ -889,6 +889,7 @@ rmdsGenerate(void *)
 {
 	const std::string &catId = VecCarCategoryIds[CurCarCategoryIndex],
 		&driver = VecDriverTypes[CurDriverTypeIndex],
+		&seldriver = driver == AnyDriverType ? "" : driver,
 		&model = VecCarModels[CurCarModelIdx],
 		&selcar = model == AnyCarModel ? "" : model;
 	GfDrivers *drivers = GfDrivers::self();
@@ -916,11 +917,12 @@ rmdsGenerate(void *)
 	}
 
 	for (unsigned long i = 0; i < num; i++)
-		if (drivers->gen(driver, catId, selcar))
+		if (drivers->gen(seldriver, catId, selcar))
 		{
+			const char *d = seldriver.empty() ? "random" : seldriver.c_str();
+
 			GfLogError("Failed to generate driver %lu with driver type "
-				"\"%s\" and category \"%s\"\n", i, driver.c_str(),
-				catId.c_str());
+				"\"%s\" and category \"%s\"\n", i, d, catId.c_str());
 			return;
 		}
 

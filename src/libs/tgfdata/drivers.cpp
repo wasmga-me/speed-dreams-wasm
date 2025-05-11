@@ -1757,20 +1757,47 @@ end:
     return ret;
 }
 
+int GfDrivers::pickdriver(std::string &out) const
+{
+    do
+    {
+        unsigned index;
+
+        if (portability::rand(&index, sizeof index))
+        {
+            GfLogError("Failed to generate random driver index\n");
+            return -1;
+        }
+
+        const std::vector<std::string> &t = _pPrivate->vecTypes;
+
+        index %= t.size();
+        out = t.at(index);
+    } while (human(out));
+
+    return 0;
+}
+
 int GfDrivers::gen(const std::string &driver, const std::string &category,
     const std::string &car) const
 {
     const char *dir = GfLocalDir();
+    std::string seldriver = driver;
 
     if (!dir)
     {
         GfLogError("GfLocalDir failed\n");
         return -1;
     }
+    else if (seldriver.empty() && pickdriver(seldriver))
+    {
+        GfLogError("Failed to pick random driver\n");
+        return -1;
+    }
 
     std::string drvdir = dir;
 
-    drvdir += "drivers/" + driver + "/";
+    drvdir += "drivers/" + seldriver + "/";
 
     const char *d = drvdir.c_str();
 
@@ -1792,12 +1819,12 @@ int GfDrivers::gen(const std::string &driver, const std::string &category,
         GfLogError("Failed to created directory: %s\n", d);
         return -1;
     }
-    else if (genparams(driver, category, car, drvdir))
+    else if (genparams(seldriver, category, car, drvdir))
     {
         GfLogError("Failed to generate driver parameters\n");
         return -1;
     }
-    else if (genskill(driver, drvdir))
+    else if (genskill(seldriver, drvdir))
     {
         GfLogError("Failed to generate driver skill\n");
         return -1;
