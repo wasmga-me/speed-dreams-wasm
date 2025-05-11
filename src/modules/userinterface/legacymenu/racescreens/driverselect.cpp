@@ -53,6 +53,8 @@ static void* ScrHandle;
 static tRmDriverSelect* MenuData;
 
 // GUI control Ids.
+static int		CandidatesLabelId;
+static int		CompetitorsLabelId;
 static int		CompetitorsScrollListId, CandidatesScrollListId;
 static int		CandidateCarId;
 static int		SelectButtonId, DeselectButtonId;
@@ -109,6 +111,19 @@ static void rmdsFilterCandidatesScrollList(const std::string& strCarCatId,
 										   const std::string& strCarModel);
 static void rmdsClickOnDriver(void * /* dummy */);
 
+static void
+rmdsUpdateLabels()
+{
+	int ncm = GfuiScrollListGetNumberOfElements(ScrHandle, CompetitorsScrollListId),
+		nca = GfuiScrollListGetNumberOfElements(ScrHandle, CandidatesScrollListId);
+	char cmlabel[sizeof "COMPETITORS (18446744073709551615)"],
+		calabel[sizeof "CANDIDATES (18446744073709551615)"];
+
+	snprintf(cmlabel, sizeof cmlabel, "COMPETITORS (%d)", ncm);
+	snprintf(calabel, sizeof calabel, "CANDIDATES (%d)", nca);
+	GfuiLabelSetText(ScrHandle, CompetitorsLabelId, cmlabel);
+	GfuiLabelSetText(ScrHandle, CandidatesLabelId, calabel);
+}
 
 static bool
 rmdsIsAnyCompetitorHighlighted()
@@ -178,6 +193,7 @@ rmdsReloadCompetitorsScrollList()
 			   nCandidates > 0 && bAcceptsMore ? GFUI_ENABLE : GFUI_DISABLE);
 	GfuiEnable(ScrHandle, SelectRandomButtonId,
 			   nCandidates > 0 && bAcceptsMore ? GFUI_ENABLE : GFUI_DISABLE);
+	rmdsUpdateLabels();
 }
 
 static bool
@@ -303,6 +319,7 @@ rmdsActivate(void * /* not used */)
 								   VecDriverTypes[CurDriverTypeIndex],
 								   VecCarModels[CurCarModelIdx]);
 	rmdsUpdateGenerate();
+	rmdsUpdateLabels();
 }
 
 static void
@@ -343,6 +360,7 @@ rmdsChangeCarCategory(int dir)
 	rmdsUpdateGenerate();
 	CurCarModelIdx = 0;
 	rmdsRefreshCarModels();
+	rmdsUpdateLabels();
 }
 
 static void
@@ -375,6 +393,7 @@ rmdsChangeDriverType(int dir)
 	rmdsUpdateGenerate();
 	CurCarModelIdx = 0;
 	rmdsRefreshCarModels();
+	rmdsUpdateLabels();
 }
 
 static void
@@ -734,6 +753,7 @@ rmdsSelectDeselectDriver(void * /* dummy */ )
 
     // Update selected driver displayed info.
     rmdsClickOnDriver(0);
+	rmdsUpdateLabels();
 
 	// For a smart display refresh, when automatically called multiple time.
     GfuiDisplay();
@@ -755,6 +775,8 @@ rmdsRemoveAllCompetitors(void * /* dummy */ )
 		// Do the normal deselection job (just as if the user had manually done it).
 		rmdsSelectDeselectDriver(0);
 	}
+
+	rmdsUpdateLabels();
 }
 
 static void
@@ -785,6 +807,8 @@ rmdsSelectRandomCandidates(void * /* dummy */ )
 		// Next random candidate.
 		nCount++;
 	}
+
+	rmdsUpdateLabels();
 }
 
 static void
@@ -960,6 +984,8 @@ RmDriversSelect(void *vs)
     void *menuDescHdle = GfuiMenuLoad("driverselectmenu.xml");
     GfuiMenuCreateStaticControls(ScrHandle, menuDescHdle);
 
+    CandidatesLabelId = GfuiMenuCreateLabelControl(ScrHandle, menuDescHdle, "candidateslabel");
+    CompetitorsLabelId = GfuiMenuCreateLabelControl(ScrHandle, menuDescHdle, "competitorslabel");
     CompetitorsScrollListId = GfuiMenuCreateScrollListControl(ScrHandle, menuDescHdle, "competitorsscrolllist", NULL, rmdsClickOnDriver);
     CandidatesScrollListId = GfuiMenuCreateScrollListControl(ScrHandle, menuDescHdle, "candidatesscrolllist", NULL, rmdsClickOnDriver);
 
@@ -1158,4 +1184,5 @@ rmdsFilterCandidatesScrollList(const std::string& strCarCatId,
 			   nCandidates > 0 && bAcceptsMore ? GFUI_ENABLE : GFUI_DISABLE);
 	GfuiEnable(ScrHandle, SelectRandomButtonId,
 			   nCandidates > 0 && bAcceptsMore ? GFUI_ENABLE : GFUI_DISABLE);
+	rmdsUpdateLabels();
 }
