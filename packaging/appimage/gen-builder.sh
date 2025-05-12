@@ -35,6 +35,8 @@ AppDir:
     done <<EOF
     libcrypt.so.1
     libcrypt.so.1.1.0
+    libnsl-2.31.so
+    libnsl.so.1
     EOF
   apt:
     arch:
