@@ -29,8 +29,13 @@ AppDir:
     exec_args: \$@
   after_runtime: |
     cd "\$TARGET_APPDIR/lib/$arch-linux-gnu/"
-    ln -rs ../../runtime/compat/lib/$arch-linux-gnu/libcrypt.so.1 libcrypt.so.1
-    ln -rs ../../runtime/compat/lib/$arch-linux-gnu/libcrypt.so.1.1.0 libcrypt.so.1.1.0
+    while read f
+    do
+      ln -rs ../../runtime/compat/lib/$arch-linux-gnu/\$f \$f
+    done <<EOF
+    libcrypt.so.1
+    libcrypt.so.1.1.0
+    EOF
   apt:
     arch:
     - $dpkgarch
