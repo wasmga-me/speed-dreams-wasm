@@ -423,24 +423,22 @@ int ForceFeedbackManager::engineRevvingEffect(tCarElt* car, tSituation *s)
     GfLogDebug("StartTime: (%f)\n",(double)effectStart);
     GfLogDebug("TimeDiff: (%f)\n", timeDiff);
 
+    int &prevsign = this->effectsConfig["engineRevvingEffect"]["_previousSign"];
+
     if (timeDiff > 40)
     {
-        if( this->effectsConfig["engineRevvingEffect"]["_previousSign"] > 0 )
-        {
-            this->effectsConfig["engineRevvingEffect"]["_previousSign"] = -1;
-        }
-        else
-        {
-            this->effectsConfig["engineRevvingEffect"]["_previousSign"] = 1;
-        }
-
+        prevsign = prevsign > 0 ? -1 : 1;
         effectStart = std::clock();
     }
 
-    GfLogDebug("Sign: (%i)\n", this->effectsConfig["engineRevvingEffect"]["_previousSign"]);
+    GfLogDebug("Sign: (%i)\n", prevsign);
+
+    int rpm = car->_enginerpm,
+        mult = this->effectsConfig["engineRevvingEffect"]["multiplier"],
+        div = rpm * 2 * prevsign * mult;
 
     //force acting on the front wheels
-    effectForce = 50000 / (int)car->_enginerpm * 2 * this->effectsConfig["engineRevvingEffect"]["_previousSign"] * this->effectsConfig["engineRevvingEffect"]["multiplier"] / 100;
+    effectForce = div ? 50000 / div / 100 : 0;
 
     GfLogDebug("RPM: (%i)\n", (int)car->_enginerpm);
     GfLogDebug("Efect: (%i)\n", effectForce);
