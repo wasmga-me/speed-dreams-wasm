@@ -347,6 +347,7 @@ public class TerrainProperties extends PropertyPanel
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Elevation map image file selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG images", "png");
@@ -375,6 +376,7 @@ public class TerrainProperties extends PropertyPanel
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Relief file selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("AC", "ac");
@@ -451,6 +453,7 @@ public class TerrainProperties extends PropertyPanel
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Tiled file selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("JPG images", "jpg");
