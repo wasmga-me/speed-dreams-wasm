@@ -540,26 +540,6 @@ void GfRace::load(GfRaceManager* pRaceMan, bool bKeepHumans, void* hparmResults)
             _pPrivate->bIsDirty = true;
         }
     }
-
-    // Load focused competitor data from the raceman params.
-    _pPrivate->strFocusedModuleName =
-        GfParmGetStr(hparmRaceMan, RM_SECT_DRIVERS, RM_ATTR_FOCUSED, "");
-
-    const char *driver =
-        GfParmGetStr(hparmRaceMan, RM_SECT_DRIVERS, RM_ATTR_FOCUSEDNAME, NULL);
-
-    if (driver)
-    {
-        const GfDriver *d = GfDrivers::self()->getDriverWithName(driver);
-
-        if (!d)
-        {
-            GfLogWarning("Focused driver does not exist: %s\n", driver);
-            return;
-        }
-
-        _pPrivate->nFocusedItfIndex = d->getInterfaceIndex();
-    }
 }
 
 void GfRace::store()
@@ -715,26 +695,6 @@ void GfRace::store()
             || GfParmGetStr(hparmRaceMan, strDrvSec.c_str(), RM_ATTR_SKINNAME, 0))
             GfParmSetStr(hparmRaceMan, strDrvSec.c_str(), RM_ATTR_SKINNAME,
                          skin.getName().c_str());
-    }
-
-    // Save focused competitor data to the raceman params.
-    GfParmSetStr(hparmRaceMan, RM_SECT_DRIVERS, RM_ATTR_FOCUSED,
-                 _pPrivate->strFocusedModuleName.c_str());
-
-    const char *driver =
-        GfParmGetStr(hparmRaceMan, RM_SECT_DRIVERS, RM_ATTR_FOCUSEDNAME, NULL);
-
-    if (driver)
-    {
-        const GfDriver *d = GfDrivers::self()->getDriverWithName(driver);
-
-        if (!d)
-        {
-            GfLogWarning("Focused driver does not exist: %s\n", driver);
-            return;
-        }
-
-        _pPrivate->nFocusedItfIndex = d->getInterfaceIndex();
     }
 
     // Now we are consistent with the race params (in memory).

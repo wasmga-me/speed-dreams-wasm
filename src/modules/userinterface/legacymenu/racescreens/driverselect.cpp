@@ -457,24 +457,6 @@ rmdsChangeSkinRight(void *)
 	rmdsChangeSkin(1);
 }
 
-#ifdef FOCUS
-static void
-rmdsSetFocus(void * /* dummy */)
-{
-    const char	*name;
-    GfDriver	*pDriver;
-
-    name = GfuiScrollListGetSelectedElement(ScrHandle, CompetitorsScrollListId, (void**)&pDriver);
-    if (name) {
-		GfParmSetStr(MenuData->param, RM_SECT_DRIVERS, RM_ATTR_FOCUSED,
-					 pDriver->getModuleName().c_str());
-		GfParmSetNum(MenuData->param, RM_SECT_DRIVERS, RM_ATTR_FOCUSEDIDX,
-					 (char*)NULL, pDriver->getInterfaceIndex());
-		GfuiLabelSetText(ScrHandle, FocusedDriverLabelId, pDriver->getName().c_str());
-    }
-}
-#endif
-
 static void
 rmdsNextMenu(void * /* dummy */)
 {

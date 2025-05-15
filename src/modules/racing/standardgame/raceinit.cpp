@@ -809,8 +809,6 @@ ReInitCars(void)
     ReInfo->carList = (tCarElt*)calloc(nCars, sizeof(tCarElt));
     FREEZ(ReInfo->rules);
     ReInfo->rules = (tRmCarRules*)calloc(nCars, sizeof(tRmCarRules));
-    //focused = GfParmGetStr(ReInfo->params, RM_SECT_DRIVERS, RM_ATTR_FOCUSED, "");
-    //focusedIdx = (int)GfParmGetNum(ReInfo->params, RM_SECT_DRIVERS, RM_ATTR_FOCUSEDIDX, NULL, 0);
     index = 0;
 
     /* For each car/driver : */
