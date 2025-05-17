@@ -266,8 +266,6 @@ typedef struct RmInfo
 
 #define RM_ATTR_MAXNUM		"maximum number"
 #define RM_ATTR_MINNUM		"minimum number"
-#define RM_ATTR_FOCUSED		"focused module"
-#define RM_ATTR_FOCUSEDNAME	"focused name"
 #define RM_ATTR_ACCEPT_TYPES	"accepted types"
 #define RM_ATTR_REJECT_TYPES	"rejected types"
 #define RM_ATTR_ACCEPT_CATEGORIES	"accepted categories"
