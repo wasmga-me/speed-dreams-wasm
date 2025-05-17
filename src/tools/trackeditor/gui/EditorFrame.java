@@ -663,6 +663,7 @@ public class EditorFrame extends JFrame
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Project path selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		String trackDir = preferences.get(SD_DATA_DIRECTORY, null);
 		if (trackDir == null)
@@ -2369,6 +2370,7 @@ public class EditorFrame extends JFrame
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Background image file selection");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG images", "png");
@@ -3263,6 +3265,7 @@ public class EditorFrame extends JFrame
 		fc.rescanCurrentDirectory();
 		fc.setApproveButtonMnemonic(0);
 		fc.setDialogTitle("Import track from Xml");
+		fc.setFileHidingEnabled(false);
 		fc.setVisible(true);
 		String trackDir = preferences.get(SD_DATA_DIRECTORY, null);
 		if (trackDir == null)
