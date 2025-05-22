@@ -86,15 +86,9 @@ else()
    message(STATUS "Data directory: ${SD_DATADIR_ABS}")
 endif()
 
-find_package(SOLID 2.1.2 QUIET)
+find_package(SOLID 2.1.2)
 
-if(SOLID_FOUND)
-   message(STATUS "Found SOLID: ${SOLID_LIBRARY} "
-      "(found version \"${SOLID_VERSION}\")")
-   add_library(solid UNKNOWN IMPORTED)
-   set_property(TARGET solid PROPERTY IMPORTED_LOCATION ${SOLID_LIBRARY})
-   target_include_directories(solid INTERFACE ${SOLID_INCLUDE_DIR})
-else()
+if(NOT SOLID_FOUND)
    message(STATUS "SOLID not found. Using in-tree submodule.")
    add_subdirectory(freesolid)
 endif()
