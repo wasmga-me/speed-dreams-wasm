@@ -1146,13 +1146,11 @@ cGrBoard::grDispCarBoard3(const tSituation *s)
     double deltaBehind =0.0f;
 
     color = normal_color_;  // white
-    // if we are not first get the gap to the car directly ahead of us
-    tCarElt *firstAheadCar;
-    firstAheadCar = s->cars[car_->_pos - 2];
 
     if (car_->_pos > 1)
     {
-        const tCarElt *f = firstAheadCar;
+        // if we are not first get the gap to the car directly ahead of us
+        const tCarElt *f = s->cars[car_->_pos - 2];
         int fdist = f->_distFromStartLine, cdist = car_->_distFromStartLine;
         float *t = f->_currLapTimeAtTrackPosition,
             ftime = t[fdist],
