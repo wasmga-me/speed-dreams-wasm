@@ -149,6 +149,8 @@ GfRaceManagers::GfRaceManagers()
             _pPrivate->vecRaceMans.push_back(pRaceMan);
             _pPrivate->mapRaceMansById[strRaceManId] = pRaceMan;
         }
+        else
+            delete pRaceMan;
     }
     while ((pFile = pFile->next) != lstFiles);
 
