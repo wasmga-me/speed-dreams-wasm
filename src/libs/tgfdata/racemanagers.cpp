@@ -99,7 +99,7 @@ GfRaceManagers::GfRaceManagers()
     }
 
     // For each found XML file :
-    tFList* pFile = lstFiles;
+    const tFList* pFile = lstFiles;
     do
     {
         // Open the XML descriptor file (look first in user settings, then in the install folder).
