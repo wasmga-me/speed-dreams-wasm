@@ -141,7 +141,9 @@ reCarsAddPenalty(tCarElt *car, int penalty)
     char msg[64];
     tCarPenalty *newPenalty;
 
-    if (penalty == RM_PENALTY_DRIVETHROUGH)
+    if (penalty == RM_PENALTY_3SEC_SLOWDOWN)
+        snprintf(msg, sizeof(msg), "%s 3s Slowdown penalty", car->_name);
+    else if (penalty == RM_PENALTY_DRIVETHROUGH)
         snprintf(msg, sizeof(msg), "%s Drive-Through penalty", car->_name);
     else if (penalty == RM_PENALTY_STOPANDGO)
         snprintf(msg, sizeof(msg), "%s Stop-and-Go penalty", car->_name);
@@ -163,7 +165,13 @@ reCarsAddPenalty(tCarElt *car, int penalty)
     // Add the penalty in the list.
     newPenalty = (tCarPenalty*)calloc(1, sizeof(tCarPenalty));
     newPenalty->penalty = penalty;
-    newPenalty->lapToClear = car->_laps + 5;
+    if (penalty == RM_PENALTY_3SEC_SLOWDOWN) {
+        newPenalty->timeToClear = 3.0; // Initially, this is the relative diff, it will be added to the current cronometer when suitable
+        newPenalty->clearing = false;
+        newPenalty->lapToClear = car->_laps + 2;
+    } else {
+        newPenalty->lapToClear = car->_laps + 5;
+    }
     GF_TAILQ_INSERT_TAIL(&(car->_penaltyList), newPenalty, link);
     //GfLogDebug("reCarsAddPenalty(car #%d) : Added penalty %p\n", car->index, newPenalty);
 }
@@ -278,33 +286,34 @@ reCarsApplyRaceRules(tCarElt *car)
         }
     }
 
+    penalty = GF_TAILQ_FIRST(&(car->_penaltyList));
     tdble cuttinglimit = car->_dimension_y*0.7f;
     if (toborder < -cuttinglimit)
     {
-        if (ReInfo->s->_raceType != RM_TYPE_RACE && car->_commitBestLapTime)
-        {
+        if (penalty && penalty->penalty == RM_PENALTY_3SEC_SLOWDOWN) {
+            // Do not add another penalty if the current one hasn't been served yet
+        } else {
             car->_commitBestLapTime = false;
-            snprintf(msg, sizeof(msg), "%s Cut corner, laptime invalidated", car->_name);
+            snprintf(msg, sizeof(msg), "%s 3s Slowdown time", car->_name);
+            GfLogInfo("%s Got a 3s slowdown.\n", car->_name);
             msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
             ReSituation::self().setRaceMessage(msg, 5);
+            reCarsAddPenalty(car, RM_PENALTY_3SEC_SLOWDOWN);
         }
-
-        if (ReInfo->s->_raceType == RM_TYPE_RACE)
-        {
-            // In race, apply additionally corner cutting time penalty
-            minradius -= cuttinglimit;
-            if (minradius > 1.0f)
-            {
-                car->_commitBestLapTime = false;
-                /* Temporarily replace the message to work around #944
-        snprintf(msg, sizeof(msg), "%s 10s Penalty Time", car->_name);
-        */
-        snprintf(msg, sizeof(msg), "%s Cut corner, laptime invalidated", car->_name);
+    } else if (penalty && penalty->penalty == RM_PENALTY_3SEC_SLOWDOWN){
+        tSituation *s = ReInfo->s;
+        if (penalty->clearing == false) {
+            penalty->clearing = true;
+            penalty->timeToClear += s->currentTime;
+        } else if (penalty->clearing == true) {
+            if (s->currentTime > penalty->timeToClear) {
+                snprintf(msg, sizeof(msg), "%s Slowdown penalty cleared", car->_name);
                 msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
                 ReSituation::self().setRaceMessage(msg, 5);
-                /* Temporarily remove to work around #944
-        reCarsAddPenalty(car, RM_PENALTY_10SEC_STOPANDGO);
-        */
+                reCarsRemovePenalty(car, penalty);
+                GfLogInfo("%s might get its slowdown penalty cleared.\n", car->_name);
+            } else {
+                if (car->ctrl.accelCmd > 0.2) car->ctrl.accelCmd = 0.2;
             }
         }
     }
@@ -328,6 +337,9 @@ reCarsApplyRaceRules(tCarElt *car)
     {
         switch (penalty->penalty)
         {
+            case RM_PENALTY_3SEC_SLOWDOWN:
+                snprintf(car->ctrl.msg[3], RM_CMD_MAX_MSG_SIZE, "3s Slowdown Penalty");
+                break;
             case RM_PENALTY_DRIVETHROUGH:
                 snprintf(car->ctrl.msg[3], RM_CMD_MAX_MSG_SIZE, "Drive-Through Penalty");
                 break;

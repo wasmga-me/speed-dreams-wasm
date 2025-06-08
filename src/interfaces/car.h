@@ -163,6 +163,7 @@ typedef struct {
 #define RM_DRV_HUMAN	1
 #define RM_DRV_ROBOT	2
 
+#define RM_PENALTY_3SEC_SLOWDOWN    5
 #define RM_PENALTY_DRIVETHROUGH     1
 #define RM_PENALTY_STOPANDGO        2
 #define RM_PENALTY_10SEC_STOPANDGO  3
@@ -173,6 +174,8 @@ typedef struct CarPenalty
 {
     int penalty;	/**< penalty type */
     int lapToClear;	/**< the lap before the penalty has to be cleared */
+    double timeToClear;	/**< the time before the penalty has to be cleared */
+    bool clearing;	/**< if the penalty is being cleared this will be on */
     GF_TAILQ_ENTRY(struct CarPenalty) link;
 } tCarPenalty;
 
