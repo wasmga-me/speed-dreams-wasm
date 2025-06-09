@@ -298,7 +298,7 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
     RePhysicsEngine().updateSituation(s, deltaTimeIncrement);
     bool bestLapChanged = false;
     for (int i = 0; i < s->_ncars; i++)
-        ReCarsManageCar(s->cars[i], bestLapChanged);
+        ReCarsManageCar(s->cars[i], bestLapChanged, deltaTimeIncrement);
 
     GfSchedEndEvent("raceupdate", "physics");
     GfProfStopProfile("physicsEngine.update*");

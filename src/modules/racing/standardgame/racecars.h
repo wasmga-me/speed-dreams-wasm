@@ -27,7 +27,7 @@
 #include <car.h>
 
 extern void ReCarsUpdateCarPitTime(tCarElt *car);
-extern void ReCarsManageCar(tCarElt *car, bool& bestLapChanged);
+extern void ReCarsManageCar(tCarElt *car, bool& bestLapChanged, double deltaTime);
 extern void ReCarsSortCars(void);
 
 #endif /* _RACECARS_H_ */
