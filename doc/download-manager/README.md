@@ -181,6 +181,8 @@ download manager:
 - `assets.cpp`
 - `assets.h`
 - `assets.h`
+- `dispatcher.cpp`
+- `dispatcher.h`
 - `downloadservers.cpp`
 - `downloadservers.h`
 - `downloadsmenu.cpp`
@@ -197,6 +199,8 @@ download manager:
 - `sink.h`
 - `thumbnail.cpp`
 - `thumbnail.h`
+- `transfer.cpp`
+- `transfer.h`
 - `unzip.cpp`
 - `unzip.h`
 - `writebuf.cpp`
@@ -317,6 +321,19 @@ common interface for all hash functions to implement.
 `sha256.cpp` and `sha256.h` implement the `sha256` class, derived from the
 `hash` abstract class, which implements the interface to run the
 [SHA256](https://en.wikipedia.org/wiki/SHA-2) hash function.
+
+#### `transfer`
+
+`transfer.cpp` and `transfer.h` implement the `transfer` class, which defines
+a HTTP `GET` operation and binds it against a `sink`-derived object and a
+completion callback. This class contains the glue code related to `curl` that
+sets up and checks the HTTP operation, as well as its I/O callback.
+
+#### `dispatcher`
+
+`dispatcher.cpp` and `dispatcher.h` implement the `dispatcher` class, which
+contains a list of `transfer` objects and multiplexes them via `curl`'s
+`multi` interface.
 
 ### Auxiliary source files
 
