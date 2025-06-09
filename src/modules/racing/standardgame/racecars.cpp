@@ -297,9 +297,9 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
             // if it's less than 1 meter, assume 1 meter. Can be thought of as a bit of leeway for small cuts not to have a factor of 0.001 or something
             if (cutDistance < 1) cutDistance = 1;
             double constant = 5.0/100.0; // 100 meters offtrack at cutDistance=1 gives 5 seconds of penalty
+            double speed = sqrt(car->_speed_x*car->_speed_x + car->_speed_y*car->_speed_y + car->_speed_z*car->_speed_z);
             penalty->timeToClear += cutDistance * constant * car->_speed_x * deltaTime;
             if      (penalty->timeToClear > 20) penalty->timeToClear = 20;
-            else if (penalty->timeToClear < 3)  penalty->timeToClear = 3;
         } else if (lastPenaltyIsSlowdown && penalty->clearing == true) {
             // If the penalty is clearing, don't accrue any more time if the user went off track
         } else {
@@ -313,6 +313,7 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     } else if (lastPenaltyIsSlowdown){
         tSituation *s = ReInfo->s;
         if (penalty->clearing == false) {
+            if (penalty->timeToClear < 3)  penalty->timeToClear = 3;
             snprintf(msg, sizeof(msg), "%s %0.1f Slowdown penalty clearing", car->_name, penalty->timeToClear);
             msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
             ReSituation::self().setRaceMessage(msg, penalty->timeToClear);
