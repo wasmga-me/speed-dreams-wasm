@@ -74,65 +74,6 @@ static void on_category(tComboBoxInfo *info)
     static_cast<DownloadsMenu *>(info->userData)->on_category();
 }
 
-static int randname(std::string &name)
-{
-    static const size_t len = 32;
-
-    for (size_t i = 0; i < len; i++)
-    {
-        unsigned char b;
-
-        if (portability::rand(&b, sizeof b))
-        {
-            GfLogError("%s: portability::rand failed\n", __func__);
-            return -1;
-        }
-
-        char hex[sizeof "00"];
-        int n = snprintf(hex, sizeof hex, "%02hhx", b);
-
-        if (n < 0 || n >= static_cast<int>(sizeof hex))
-        {
-            GfLogError("snprintf(3) failed with %d\n", n);
-            return -1;
-        }
-
-        name += hex;
-    }
-
-    return 0;
-}
-
-static int tmppath(std::string &path)
-{
-    const char *dir = GfLocalDir();
-
-    if (!dir)
-    {
-        GfLogError("unexpected null GfLocalDir\n");
-        return -1;
-    }
-
-    const std::string tmpdir = std::string(dir) + "/tmp/";
-
-    if (GfDirCreate(tmpdir.c_str()) != GF_DIR_CREATED)
-    {
-        GfLogError("Failed to create directory %s\n", tmpdir.c_str());
-        return -1;
-    }
-
-    std::string r;
-
-    if (randname(r))
-    {
-        GfLogError("Failed to generate random file name\n");
-        return -1;
-    }
-
-    path = tmpdir + r;
-    return 0;
-}
-
 const char *DownloadsMenu::tr(const char *s) const
 {
     std::string section = std::string("translatable/") + s;
@@ -560,10 +501,10 @@ int DownloadsMenu::extract(const entry *e, const std::string &src,
     const Asset &a = e->a;
     std::string name;
 
-    if (randname(name))
+    if (GfRandName(name))
     {
         error = tr("failedranddir");
-        GfLogError("randname failed\n");
+        GfLogError("GfRandName failed\n");
         return -1;
     }
 
@@ -713,7 +654,7 @@ int DownloadsMenu::fetch_thumbnail(entry *e)
     const Asset &a = e->a;
     std::string path;
 
-    if (tmppath(path))
+    if (GfTmpPath(path))
     {
         GfLogError("Failed to create a temporary file name\n");
         return -1;
@@ -907,9 +848,9 @@ void DownloadsMenu::pressed(thumbnail *t)
         const Asset &a = e->a;
         std::string path;
 
-        if (tmppath(path))
+        if (GfTmpPath(path))
         {
-            GfLogError("tmppath failed\n");
+            GfLogError("GfTmpPath failed\n");
             return;
         }
 
