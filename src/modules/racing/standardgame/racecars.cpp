@@ -291,7 +291,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     tdble cuttinglimit = car->_dimension_y*0.7f;
     if (toborder < -cuttinglimit)
     {
-        if (lastPenaltyIsSlowdown && penalty->clearing == false) {
+        if (lastPenaltyIsSlowdown) {
+            penalty->clearing = false;
             // Do not add another penalty if the current one hasn't been served yet. Instead, accrue penalty time.
             double cutDistance = (-toborder) - cuttinglimit; // How much did we cut by? In meters
             // if it's less than 1 meter, assume 1 meter. Can be thought of as a bit of leeway for small cuts not to have a factor of 0.001 or something
@@ -300,15 +301,15 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
             double speed = sqrt(car->_speed_x*car->_speed_x + car->_speed_y*car->_speed_y + car->_speed_z*car->_speed_z);
             penalty->timeToClear += cutDistance * constant * car->_speed_x * deltaTime;
             if      (penalty->timeToClear > 20) penalty->timeToClear = 20;
-        } else if (lastPenaltyIsSlowdown && penalty->clearing == true) {
-            // If the penalty is clearing, don't accrue any more time if the user went off track
+            if (((int)(penalty->timeToClear*10) % 5) == 0) {
+                snprintf(msg, sizeof(msg), "%s %0.1f Slowdown penalty", car->_name, penalty->timeToClear);
+                msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
+            }
+            ReSituation::self().setRaceMessage(msg, 5);
         } else {
             car->_commitBestLapTime = false;
-            snprintf(msg, sizeof(msg), "%s Slowdown penalty", car->_name);
-            GfLogInfo("%s Got a 3s slowdown.\n", car->_name);
-            msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
-            ReSituation::self().setRaceMessage(msg, 5);
             reCarsAddPenalty(car, RM_PENALTY_SLOWDOWN);
+            GfLogInfo("%s Got a slowdown.\n", car->_name);
         }
     } else if (lastPenaltyIsSlowdown){
         tSituation *s = ReInfo->s;
@@ -318,9 +319,10 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
             msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
             ReSituation::self().setRaceMessage(msg, penalty->timeToClear);
             penalty->clearing = true;
-            penalty->timeToClear += s->currentTime;
+            penalty->timeToClear;
         } else if (penalty->clearing == true) {
-            if (s->currentTime > penalty->timeToClear) {
+            if (penalty->timeToClear <= 0) {
+                penalty->timeToClear = 0;
                 snprintf(msg, sizeof(msg), "%s Slowdown penalty cleared", car->_name);
                 msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
                 ReSituation::self().setRaceMessage(msg, 5);
@@ -328,6 +330,7 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
                 GfLogInfo("%s might get its slowdown penalty cleared.\n", car->_name);
             } else {
                 if (car->ctrl.accelCmd > 0.2) car->ctrl.accelCmd = 0.2;
+                penalty->timeToClear -= deltaTime;
             }
         }
     }
