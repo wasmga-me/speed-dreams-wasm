@@ -96,7 +96,7 @@ ReCarsUpdateCarPitTime(tCarElt *car)
             break;
 
         case RM_PIT_STOPANDGO:
-            penalty = GF_TAILQ_FIRST(&(car->_penaltyList));
+            penalty = GF_TAILQ_LAST(&(car->_penaltyList), CarPenaltyHead);
 
             if (penalty && penalty->penalty == RM_PENALTY_10SEC_STOPANDGO)
                 info->totalPitTime = 10.0;
@@ -286,7 +286,7 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
         }
     }
 
-    penalty = GF_TAILQ_FIRST(&(car->_penaltyList));
+    penalty = GF_TAILQ_LAST(&(car->_penaltyList), CarPenaltyHead);
     bool lastPenaltyIsSlowdown = penalty && penalty->penalty == RM_PENALTY_SLOWDOWN;
     tdble cuttinglimit = car->_dimension_y*0.7f;
     if (toborder < -cuttinglimit)
