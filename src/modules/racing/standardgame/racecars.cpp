@@ -167,8 +167,14 @@ reCarsAddPenalty(tCarElt *car, int penalty)
     newPenalty->penalty = penalty;
     if (penalty == RM_PENALTY_SLOWDOWN) {
         newPenalty->timeToClear = 0.0; // Initially, this is the relative diff, it will be added to the current cronometer when suitable
-        newPenalty->clearing = false;
+
+        newPenalty->thr1 = false;
+        newPenalty->thr2 = false;
+        newPenalty->accum_thr1 = 0.0;
+        newPenalty->accum_thr2 = 0.0;
+
         newPenalty->lapToClear = car->_laps + 2;
+        newPenalty->clearing = false;
     } else {
         newPenalty->lapToClear = car->_laps + 5;
     }
@@ -183,6 +189,16 @@ reCarsRemovePenalty(tCarElt *car, tCarPenalty *penalty)
     //GfLogDebug("reCarsRemovePenalty(car #%d) : Removed penalty %p\n",
     //		   car->index, penalty);
     FREEZ(penalty);
+}
+
+static double penaltyFactor(tCarPenalty *penalty) {
+    if (penalty == NULL)
+        return 1.0;
+    if (penalty->thr2)
+        return RM_SLOW_THRESHOLD_2_FACTOR;
+    if (penalty->thr1)
+        return RM_SLOW_THRESHOLD_1_FACTOR;
+    return 1.0;
 }
 
 /* Compute the race rules and penalties */
@@ -291,21 +307,58 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     tdble cuttinglimit = car->_dimension_y*0.7f;
     if (toborder < -cuttinglimit)
     {
+        // Do not add another penalty if the current one hasn't been served yet.
+        // Instead, accrue penalty time.
         if (lastPenaltyIsSlowdown) {
+            // If the penalty was clearing and we went offtrack again, reset
+            // the threshold flags
+            if (penalty->clearing == true) {
+                penalty->thr1 = false;
+                penalty->thr2 = false;
+                penalty->accum_thr1 = 0.0;
+                penalty->accum_thr2 = 0.0;
+            }
             penalty->clearing = false;
-            // Do not add another penalty if the current one hasn't been served yet. Instead, accrue penalty time.
+
             double cutDistance = (-toborder) - cuttinglimit; // How much did we cut by? In meters
-            // if it's less than 1 meter, assume 1 meter. Can be thought of as a bit of leeway for small cuts not to have a factor of 0.001 or something
+            // if it's <=1meter, assume 1 meter.
             if (cutDistance < 1) cutDistance = 1;
-            double constant = 5.0/100.0; // 100 meters offtrack at cutDistance=1 gives 5 seconds of penalty
+
+            // 100 meters offtrack at cutDistance=1 gives 5 seconds of penalty
+            double constant = 5.0/100.0;
             double speed = sqrt(car->_speed_x*car->_speed_x + car->_speed_y*car->_speed_y + car->_speed_z*car->_speed_z);
-            penalty->timeToClear += cutDistance * constant * speed * deltaTime;
-            if      (penalty->timeToClear > 20) penalty->timeToClear = 20;
-            if (((int)(penalty->timeToClear*10) % 5) == 0) {
+
+            if (speed < RM_SLOW_THRESHOLD_1)
+                penalty->accum_thr1 += deltaTime;
+            if (speed < RM_SLOW_THRESHOLD_2)
+                penalty->accum_thr2 += deltaTime;
+
+            // The instant a certain threshold's minmum time is reached,
+            //  multiply the penalty by its factor.
+            // If threshold 2 is already active, threshold 1 is ignored.
+            if (!penalty->thr2 && penalty->accum_thr2 > RM_SLOW_THRESHOLD_2_TIME) {
+                penalty->thr2 = true;
+                penalty->timeToClear = penalty->timeToClear*penaltyFactor(penalty);
+      
+                snprintf(msg, sizeof(msg), "%s Slowdown penalty forgiven", car->_name);
+                msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
+                ReSituation::self().setRaceMessage(msg, 5);
+            }
+            if (!penalty->thr2 && !penalty->thr1 && penalty->accum_thr1 > RM_SLOW_THRESHOLD_1_TIME) {
+                penalty->thr1 = true;
+                penalty->timeToClear = penalty->timeToClear*penaltyFactor(penalty);
+            }
+
+            penalty->timeToClear += cutDistance * constant * speed * deltaTime * penaltyFactor(penalty);
+            double maxPenalty = 20*penaltyFactor(penalty);
+            if (penalty->timeToClear > maxPenalty) penalty->timeToClear = maxPenalty;
+
+            if (penalty->timeToClear > 0.1 && ((int)(penalty->timeToClear*10) % 5) == 0) {
+                //Only refresh penalty message if the accrued time has a decimal digit of .5 or .0
                 snprintf(msg, sizeof(msg), "%s %0.1f Slowdown penalty", car->_name, penalty->timeToClear);
                 msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
+                ReSituation::self().setRaceMessage(msg, 5);
             }
-            ReSituation::self().setRaceMessage(msg, 5);
         } else {
             car->_commitBestLapTime = false;
             reCarsAddPenalty(car, RM_PENALTY_SLOWDOWN);
@@ -314,8 +367,9 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     } else if (lastPenaltyIsSlowdown){
         tSituation *s = ReInfo->s;
         if (penalty->clearing == false) {
-            if (penalty->timeToClear < 3)  penalty->timeToClear = 3;
-            snprintf(msg, sizeof(msg), "%s %0.1f Slowdown penalty clearing", car->_name, penalty->timeToClear);
+            if (penalty->timeToClear > 0.1 && penalty->timeToClear < 3)  penalty->timeToClear = 3;
+            snprintf(msg, sizeof(msg), "%s %0.1f Slowdown penalty clearing",
+                                        car->_name, penalty->timeToClear);
             msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
             ReSituation::self().setRaceMessage(msg, penalty->timeToClear);
             penalty->clearing = true;
