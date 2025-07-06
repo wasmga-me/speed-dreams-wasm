@@ -21,7 +21,7 @@
 
 namespace osggraph {
 
-#if defined(__GNUC__) && ((4 < __GNUC__)||(4 == __GNUC__ && 1 <= __GNUC_MINOR__)) && (defined(__x86_64__) || defined(__powerpc64__) || defined(__aarch64__))
+#if defined(__GNUC__) && ((4 < __GNUC__)||(4 == __GNUC__ && 1 <= __GNUC_MINOR__)) && (defined(__x86_64__) || defined(__powerpc64__) || defined(__aarch64__) || defined(__riscv))
 // No need to include something. Is a Compiler API ...
 # define SDATOMIC_USE_GCC4_BUILTINS
 #elif defined(__GNUC__) && (defined(__i386__) || defined(__arm__))
