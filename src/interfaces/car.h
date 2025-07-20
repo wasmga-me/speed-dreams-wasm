@@ -163,14 +163,14 @@ typedef struct {
 #define RM_DRV_HUMAN	1
 #define RM_DRV_ROBOT	2
 
-#define RM_PENALTY_SLOWDOWN    5
 #define RM_PENALTY_DRIVETHROUGH     1
 #define RM_PENALTY_STOPANDGO        2
 #define RM_PENALTY_10SEC_STOPANDGO  3
 #define RM_PENALTY_DISQUALIFIED     4
+#define RM_PENALTY_SLOWDOWN         5
 
-#define MPS_TO_KPH(x) (x*3600.0/1000.0)
-#define KPH_TO_MPS(x) (x*1000.0/3600.0)
+#define MPS_TO_KPH(x) ((x)*3600.0/1000.0)
+#define KPH_TO_MPS(x) ((x)*1000.0/3600.0)
 #define RM_SLOW_THRESHOLD_1 KPH_TO_MPS(40.0)
 #define RM_SLOW_THRESHOLD_1_TIME 0.0
 #define RM_SLOW_THRESHOLD_1_FACTOR 0.5 // If threshold 1 is reached, penalty is halved
