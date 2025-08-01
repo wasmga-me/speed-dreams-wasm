@@ -96,7 +96,7 @@ ReCarsUpdateCarPitTime(tCarElt *car)
             break;
 
         case RM_PIT_STOPANDGO:
-            penalty = GF_TAILQ_FIRST(&(car->_penaltyList));
+            penalty = GF_TAILQ_LAST(&(car->_penaltyList), CarPenaltyHead);
 
             if (penalty && penalty->penalty == RM_PENALTY_10SEC_STOPANDGO)
                 info->totalPitTime = 10.0;
@@ -141,7 +141,9 @@ reCarsAddPenalty(tCarElt *car, int penalty)
     char msg[64];
     tCarPenalty *newPenalty;
 
-    if (penalty == RM_PENALTY_DRIVETHROUGH)
+    if (penalty == RM_PENALTY_SLOWDOWN)
+        snprintf(msg, sizeof(msg), "%s Slowdown penalty", car->_name);
+    else if (penalty == RM_PENALTY_DRIVETHROUGH)
         snprintf(msg, sizeof(msg), "%s Drive-Through penalty", car->_name);
     else if (penalty == RM_PENALTY_STOPANDGO)
         snprintf(msg, sizeof(msg), "%s Stop-and-Go penalty", car->_name);
@@ -163,7 +165,15 @@ reCarsAddPenalty(tCarElt *car, int penalty)
     // Add the penalty in the list.
     newPenalty = (tCarPenalty*)calloc(1, sizeof(tCarPenalty));
     newPenalty->penalty = penalty;
-    newPenalty->lapToClear = car->_laps + 5;
+
+    // Initially, the newPenalty->timeToClear field is 0.
+    // This field is the relative diff, and it will be
+    // added to the current cronometer when suitable
+    if (penalty == RM_PENALTY_SLOWDOWN) {
+        newPenalty->lapToClear = car->_laps + 2;
+    } else {
+        newPenalty->lapToClear = car->_laps + 5;
+    }
     GF_TAILQ_INSERT_TAIL(&(car->_penaltyList), newPenalty, link);
     //GfLogDebug("reCarsAddPenalty(car #%d) : Added penalty %p\n", car->index, newPenalty);
 }
@@ -177,9 +187,19 @@ reCarsRemovePenalty(tCarElt *car, tCarPenalty *penalty)
     FREEZ(penalty);
 }
 
+static double penaltyFactor(tCarPenalty *penalty) {
+    if (penalty == NULL)
+        return 1.0;
+    if (penalty->thr2)
+        return RM_SLOW_THRESHOLD_2_FACTOR;
+    if (penalty->thr1)
+        return RM_SLOW_THRESHOLD_1_FACTOR;
+    return 1.0;
+}
+
 /* Compute the race rules and penalties */
 static void
-reCarsApplyRaceRules(tCarElt *car)
+reCarsApplyRaceRules(tCarElt *car, double deltaTime)
 {
     char msg[64];
     tCarPenalty		*penalty;
@@ -278,33 +298,83 @@ reCarsApplyRaceRules(tCarElt *car)
         }
     }
 
+    penalty = GF_TAILQ_LAST(&(car->_penaltyList), CarPenaltyHead);
+    bool lastPenaltyIsSlowdown = penalty && penalty->penalty == RM_PENALTY_SLOWDOWN;
     tdble cuttinglimit = car->_dimension_y*0.7f;
     if (toborder < -cuttinglimit)
     {
-        if (ReInfo->s->_raceType != RM_TYPE_RACE && car->_commitBestLapTime)
-        {
-            car->_commitBestLapTime = false;
-            snprintf(msg, sizeof(msg), "%s Cut corner, laptime invalidated", car->_name);
-            msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
-            ReSituation::self().setRaceMessage(msg, 5);
-        }
+        // Do not add another penalty if the current one hasn't been served yet.
+        // Instead, accrue penalty time.
+        if (lastPenaltyIsSlowdown) {
+            // If the penalty was clearing and we went offtrack again, reset
+            // the threshold flags
+            if (penalty->clearing == true) {
+                penalty->thr1 = false;
+                penalty->thr2 = false;
+                penalty->accum_thr1 = 0.0;
+                penalty->accum_thr2 = 0.0;
+            }
+            penalty->clearing = false;
 
-        if (ReInfo->s->_raceType == RM_TYPE_RACE)
-        {
-            // In race, apply additionally corner cutting time penalty
-            minradius -= cuttinglimit;
-            if (minradius > 1.0f)
-            {
-                car->_commitBestLapTime = false;
-                /* Temporarily replace the message to work around #944
-        snprintf(msg, sizeof(msg), "%s 10s Penalty Time", car->_name);
-        */
-        snprintf(msg, sizeof(msg), "%s Cut corner, laptime invalidated", car->_name);
-                msg[sizeof(msg)-1] = 0; // Some snprintf implementations fail to do so.
+            double cutDistance = (-toborder) - cuttinglimit; // How much did we cut by? In meters
+            // if it's <=1meter, assume 1 meter.
+            if (cutDistance < 1) cutDistance = 1;
+
+            // 100 meters offtrack at cutDistance=1 gives 5 seconds of penalty
+            double constant = 5.0/100.0;
+            double speed = sqrt(car->_speed_x*car->_speed_x + car->_speed_y*car->_speed_y + car->_speed_z*car->_speed_z);
+
+            if (speed < RM_SLOW_THRESHOLD_1)
+                penalty->accum_thr1 += deltaTime;
+            if (speed < RM_SLOW_THRESHOLD_2)
+                penalty->accum_thr2 += deltaTime;
+
+            // The instant a certain threshold's minmum time is reached,
+            //  multiply the penalty by its factor.
+            // If threshold 2 is already active, threshold 1 is ignored.
+            if (!penalty->thr2 && penalty->accum_thr2 > RM_SLOW_THRESHOLD_2_TIME) {
+                penalty->thr2 = true;
+                penalty->timeToClear = penalty->timeToClear*penaltyFactor(penalty);
+      
+                snprintf(msg, sizeof(msg), "%s Slowdown penalty forgiven", car->_name);
                 ReSituation::self().setRaceMessage(msg, 5);
-                /* Temporarily remove to work around #944
-        reCarsAddPenalty(car, RM_PENALTY_10SEC_STOPANDGO);
-        */
+            }
+            if (!penalty->thr2 && !penalty->thr1 && penalty->accum_thr1 > RM_SLOW_THRESHOLD_1_TIME) {
+                penalty->thr1 = true;
+                penalty->timeToClear = penalty->timeToClear*penaltyFactor(penalty);
+            }
+
+            penalty->timeToClear += cutDistance * constant * speed * deltaTime * penaltyFactor(penalty);
+            double maxPenalty = 20*penaltyFactor(penalty);
+            if (penalty->timeToClear > maxPenalty) penalty->timeToClear = maxPenalty;
+
+            if (penalty->timeToClear > 0.1 && ((int)(penalty->timeToClear*10) % 5) == 0) {
+                //Only refresh penalty message if the accrued time has a decimal digit of .5 or .0
+                snprintf(msg, sizeof(msg), "%s %0.1fs Slowdown penalty", car->_name, penalty->timeToClear);
+                ReSituation::self().setRaceMessage(msg, 5);
+            }
+        } else {
+            car->_commitBestLapTime = false;
+            reCarsAddPenalty(car, RM_PENALTY_SLOWDOWN);
+            GfLogInfo("%s Got a slowdown.\n", car->_name);
+        }
+    } else if (lastPenaltyIsSlowdown){
+        if (penalty->clearing == false) {
+            if (penalty->timeToClear > 0.1 && penalty->timeToClear < 3)  penalty->timeToClear = 3;
+            snprintf(msg, sizeof(msg), "%s %0.1f Slowdown penalty clearing",
+                                        car->_name, penalty->timeToClear);
+            ReSituation::self().setRaceMessage(msg, penalty->timeToClear);
+            penalty->clearing = true;
+        } else if (penalty->clearing == true) {
+            if (penalty->timeToClear <= 0) {
+                penalty->timeToClear = 0;
+                snprintf(msg, sizeof(msg), "%s Slowdown penalty cleared.", car->_name);
+                ReSituation::self().setRaceMessage(msg, 5);
+                reCarsRemovePenalty(car, penalty);
+                GfLogInfo("%s should get its slowdown penalty cleared.\n", car->_name);
+            } else {
+                if (car->ctrl.accelCmd > 0.2) car->ctrl.accelCmd = 0.2;
+                penalty->timeToClear -= deltaTime;
             }
         }
     }
@@ -328,6 +398,9 @@ reCarsApplyRaceRules(tCarElt *car)
     {
         switch (penalty->penalty)
         {
+            case RM_PENALTY_SLOWDOWN:
+                snprintf(car->ctrl.msg[3], RM_CMD_MAX_MSG_SIZE, "Slowdown Penalty");
+                break;
             case RM_PENALTY_DRIVETHROUGH:
                 snprintf(car->ctrl.msg[3], RM_CMD_MAX_MSG_SIZE, "Drive-Through Penalty");
                 break;
@@ -504,7 +577,7 @@ ReCarsSendLap(const tCarElt *car)
 }
 
 void
-ReCarsManageCar(tCarElt *car, bool& bestLapChanged)
+ReCarsManageCar(tCarElt *car, bool& bestLapChanged, double deltaTime)
 {
     char msg[64];
     int i;
@@ -923,7 +996,7 @@ ReCarsManageCar(tCarElt *car, bool& bestLapChanged)
 
 
     // Apply race rules (penalties if enabled).
-    reCarsApplyRaceRules(car);
+    reCarsApplyRaceRules(car, deltaTime);
 
     // Update misc car info.
     info->prevTrkPos = car->_trkPos;

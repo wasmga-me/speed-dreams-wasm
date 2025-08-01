@@ -167,12 +167,29 @@ typedef struct {
 #define RM_PENALTY_STOPANDGO        2
 #define RM_PENALTY_10SEC_STOPANDGO  3
 #define RM_PENALTY_DISQUALIFIED     4
+#define RM_PENALTY_SLOWDOWN         5
+
+#define MPS_TO_KPH(x) ((x)*3600.0/1000.0)
+#define KPH_TO_MPS(x) ((x)*1000.0/3600.0)
+#define RM_SLOW_THRESHOLD_1 KPH_TO_MPS(40.0)
+#define RM_SLOW_THRESHOLD_1_TIME 0.0
+#define RM_SLOW_THRESHOLD_1_FACTOR 0.5 // If threshold 1 is reached, penalty is halved
+
+#define RM_SLOW_THRESHOLD_2 KPH_TO_MPS(10.0)
+#define RM_SLOW_THRESHOLD_2_TIME 1.0
+#define RM_SLOW_THRESHOLD_2_FACTOR 0.0 // If threshold 2 is reached, penalty is nullified
 
 /** One penalty */
 typedef struct CarPenalty
 {
     int penalty;	/**< penalty type */
     int lapToClear;	/**< the lap before the penalty has to be cleared */
+    double timeToClear;	/**< the time remaining for the penalty to be cleared */
+    bool thr1; /**< if the car's speed was <=40kph, this will be true*/
+    bool thr2; /**< if the car's speed was <=10kph for >1sec, this will be true*/
+    double accum_thr1; /**< if if this hits above 0.0, thr1 will be true*/
+    double accum_thr2; /**< if if this hits above 1.0, thr2 will be true*/
+    bool clearing;	/**< if the penalty is being cleared this will be on */
     GF_TAILQ_ENTRY(struct CarPenalty) link;
 } tCarPenalty;
 
