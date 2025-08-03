@@ -25,15 +25,11 @@
 #include <car.h>		//tCarElt
 #include <raceman.h>	//tSituation
 #include "grcam.h"		//cGrPerspCamera
-#if !defined(__APPLE__) && !defined(__HAIKU__)
-#include "grshader.h"   //cGrShader
-#endif
 
 namespace ssggraph {
 
 class cGrSkidmarks;
 class ssgVtxTableShadow;
-class cgrShader;
 
 class tgrCarInstrument
 {
@@ -103,9 +99,6 @@ public:
     tdble				py;
     tdble				sx;
     tdble				sy;
-#if !defined(__APPLE__) && !defined(__HAIKU__)
-    cgrShader           *shader;
-#endif
 };
 
 extern tgrCarInfo	*grCarInfo;
