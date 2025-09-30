@@ -100,7 +100,7 @@ void SDParticleSystem::setEmissionType(std::string groundMaterialType){
 
         //set the shooting angle
         // Theta is the angle between the velocity vector and Z axis
-        this->shooter->setThetaRange( osg::PI_2 - 0.4f, osg::PI_2 + 0.4f );//negatives value on the first parameter mean wider on the top of the car
+        this->shooter->setThetaRange( osg::PI_2 - 0.01f, osg::PI_2 + 0.01f );//negatives value on the first parameter mean wider on the top of the car
                                                                             //positive value on the second parameter mean wider on the bottom of the car
         // Phi is the angle between X axis and the velocity vector projected
         // onto the XOY plane
@@ -156,6 +156,7 @@ void SDParticleSystem::setEmissionType(std::string groundMaterialType){
             osg::Vec4(0.19, 0.1, 0, 1.0f)));
         this->particleSystem->setDefaultParticleTemplate(newTemplate);
         this->shooter->setInitialSpeedRange(-0.5,-0.9); // meters/second
+        this->shooter->setThetaRange( osg::PI_2 - 0.01f, osg::PI_2 + 0.01f );
     }else if(groundMaterialType.find("snow")!=std::string::npos){
         osgParticle::Particle newTemplate;
         newTemplate.setLifeTime(1.5);
@@ -176,6 +177,7 @@ void SDParticleSystem::setEmissionType(std::string groundMaterialType){
             osg::Vec4(1.0f, 1.0f, 1.0f, 0.1f)));
         this->particleSystem->setDefaultParticleTemplate(newTemplate);
         this->shooter->setInitialSpeedRange(1.5, 5.0);
+        this->shooter->setThetaRange( osg::PI_2 - 0.01f, osg::PI_2 + 0.01f );
     }
 
 };
