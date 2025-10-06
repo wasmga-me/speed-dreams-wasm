@@ -348,7 +348,7 @@ void SDRender::Init(const tTrack *track)
     {
     case 0:
         scene->setNodeMask(~NODE_MASK_SHADOW_CAST);
-        cargroup->setNodeMask(~NODE_MASK_SHADOW_RECV);
+        cargroup->setNodeMask(NODE_MASK_ALL);
         break;
     case 1:
         scene->setNodeMask(~NODE_MASK_SHADOW_CAST);
