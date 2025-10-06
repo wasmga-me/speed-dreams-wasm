@@ -132,12 +132,10 @@ the download manager. The URL must point to an image file with an extension
 known to the `GfTexReadImageFromFile` function. The URL does not have to point
 to the same web server hosting the asset database.
 - `directory`: defines the directory where the asset shall be stored.
-`datadir` depends on how Speed Dreams is configured during build and
-installation and matches the value returned by the `GfDataDir` function,
-whereas the `localdir` directory is calculated at run-time by Speed Dreams
+`localdir` is the path to a directory calculated at run-time by Speed Dreams,
 and matches the value returned by the `GfLocalDir` function.
-    - Cars are stored into `<datadir>/cars/models/<directory>`.
-    - Tracks are stored into `<datadir>/tracks/<category>/<directory>`.
+    - Cars are stored into `<localdir>/cars/models/<directory>`.
+    - Tracks are stored into `<localdir>/tracks/<category>/<directory>`.
     - Drivers are stored into `<localdir>/drivers/<category>/<index>`.
     Since Speed Dreams refers to drivers by their indexes, once extracted
     it will rename `directory` to the next integer `index` available in the
