@@ -2769,7 +2769,7 @@ osg::ref_ptr <osg::Group> SDHUD::generateHudFromXmlFile(int scrH, int scrW)
                             }
 
                             //set the text string
-                            text->setText(textStr);
+                            text->setText(textStr, osgText::String::Encoding::ENCODING_UTF8);
 
                             //set the position
                             //find the referenceObj bounding box
