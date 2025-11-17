@@ -56,6 +56,13 @@ set(SDL2_MIXER_URL https://github.com/libsdl-org/SDL_mixer/releases/download/rel
 #https://github.com/libsdl-org/SDL_mixer/releases/download/release-2.6.1/SDL2_mixer-2.6.1.tar.gz
 set(SDL2_MIXER_HASH SHA256=1cfb34c87b26dbdbc7afd68c4f545c0116ab5f90bbfecc5aebe2a9cb4bb31549)
 
+# SDL2_TTF
+set(SDL2_TTF_VERSION 2.22.0)
+set(SDL2_TTF_PROJECT SDL2_ttf-${SDL2_TTF_VERSION})
+set(SDL2_TTF_FILE release-${SDL2_TTF_VERSION}.tar.gz)
+set(SDL2_TTF_URL https://github.com/libsdl-org/SDL_ttf/archive/refs/tags/${SDL2_TTF_FILE})
+set(SDL2_TTF_HASH SHA256=2275d0ddfffa53f0efa628bc1621f662dacbd42467b5a44db99e38255fbb575a)
+
 # OpenAL-soft
 set(OPENAL_PROJECT_VERSION 1.23.1)
 set(OPENAL_PROJECT openal-soft-${OPENAL_PROJECT_VERSION})

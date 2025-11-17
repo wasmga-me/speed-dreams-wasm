@@ -94,6 +94,7 @@ endif()
 
 option(OPTION_SDL2 "Download and Build SDL2" true)
 cmake_dependent_option(OPTION_SDL2_MIXER "Download and Build SDL2_Mixer" true "OPTION_SDL2" false)
+cmake_dependent_option(OPTION_SDL2_TTF "Download and Build SDL2_TTF" true "OPTION_SDL2" false)
 option(OPTION_OPENAL "Download and Build OpenAL" true)
 option(OPTION_PLIB "Download and Build PLIB" true)
 option(OPTION_JPEG "Download and Build libjpeg" true)
@@ -471,6 +472,18 @@ if(OPTION_FREETYPE)
 else()
    set(FREETYPE_PROJECT )
    set(FREETYPE_LEGACY_PROJECT )
+endif()
+
+if(OPTION_SDL2_TTF)
+   set(SDL2_TTF_ARGS ${EXTERNALS_CMAKE_ARGS} -DSDL2TTF_DEBUG_POSTFIX:STRING=''
+                                              -DSDL2TTF_HARFBUZZ:BOOL=OFF)
+   ExternalProject_Add(${SDL2_TTF_PROJECT}
+      URL ${SDL2_TTF_URL}
+      URL_HASH ${SDL2_TTF_HASH}
+      CMAKE_ARGS ${SDL2_TTF_ARGS}
+      DEPENDS ${SDL2_PROJECT} ${FREETYPE_PROJECT} ${FREETYPE_LEGACY_PROJECT} )
+else()
+   set(SDL2_TTF_PROJECT )
 endif()
 
 if(OPTION_CURL)

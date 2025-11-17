@@ -12,6 +12,9 @@ ADD_JPEG_INCLUDEDIR()
 ADD_PLIB_INCLUDEDIR()
 ADD_CURL_INCLUDEDIR()
 
+find_package(SDL2 REQUIRED)
+find_package(SDL2_ttf REQUIRED)
+
 SET(_SOURCES control.cpp glfeatures.cpp guibutton.cpp guifont.cpp
             guiimage.cpp guimenu.cpp guiscrollbar.cpp guitexture.cpp
             tgfclient.cpp gui.cpp guiedit.cpp guihelp.cpp
@@ -48,7 +51,8 @@ ENDIF(MSVC)
 # Note: Other sources needed for having them available in IDEs.
 SD_ADD_LIBRARY(tgfclient SHARED ${_SOURCES} ${_OTHER_SOURCES})
 
-target_include_directories(tgfclient PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(tgfclient PUBLIC ${CMAKE_CURRENT_LIST_DIR}
+    PRIVATE ${SDL2_TTF_INCLUDE_DIRS})
 
 # Might not work with GCC 4.5 or + (non-robot modules crash at 1st reload = after 1 dlclose)
 #SET_TARGET_PROPERTIES(tgfclient PROPERTIES VERSION ${VERSION} SOVERSION 0.0.0)
@@ -60,7 +64,7 @@ ADD_SDLIB_LIBRARY(tgfclient portability tgf)
 
 ADD_PNG_LIBRARY(tgfclient)
 ADD_JPEG_LIBRARY(tgfclient)
-target_link_libraries(tgfclient CURL::libcurl)
+target_link_libraries(tgfclient CURL::libcurl ${SDL2_TTF_LIBRARY})
 
 IF(OPENGL_FOUND)
     TARGET_LINK_LIBRARIES(tgfclient ${OPENGL_LIBRARY})
