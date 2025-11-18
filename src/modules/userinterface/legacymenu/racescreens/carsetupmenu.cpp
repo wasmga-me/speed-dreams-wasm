@@ -22,6 +22,7 @@ This file deals with car setup
 */
 
 #include <portability.h>
+#include <translation.h>
 
 #include <sstream>
 #include <iomanip>
@@ -486,7 +487,7 @@ void CarSetupMenu::loadSettings()
             att.type = GfParmGetStr(hparmItems, strSection.c_str(), "type", "");
             att.section = GfParmGetStr(hparmItems, strSection.c_str(), "section", "");
             att.param = GfParmGetStr(hparmItems, strSection.c_str(), "param", "");
-            att.label = GfParmGetStr(hparmItems, strSection.c_str(), "label", "");
+            att.label = GfuiGetTranslatedText(hparmItems, strSection.c_str(), "label", "");
 
             if (att.type == "edit" || att.section == "Tires Set")
             {

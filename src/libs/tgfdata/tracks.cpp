@@ -22,6 +22,7 @@
 #include <cstring>
 
 #include <tgf.h>
+#include <translation.h>
 #include <itrackloader.h>
 
 #include "tracks.h"
@@ -242,7 +243,7 @@ const std::vector<std::string>& GfTracks::getCategoryNames() const
 			}
 			else
 				pszCatName =
-					GfParmGetStr(hparmCat, TRK_SECT_HDR, TRK_ATT_NAME, (*itCatId).c_str());
+					GfuiGetTranslatedText(hparmCat, TRK_SECT_HDR, TRK_ATT_NAME, (*itCatId).c_str());
 			_pPrivate->vecCatNames.push_back(pszCatName);
 
 			GfParmReleaseHandle(hparmCat);

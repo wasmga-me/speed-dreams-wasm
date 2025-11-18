@@ -26,7 +26,8 @@ SET(_SOURCES control.cpp glfeatures.cpp guibutton.cpp guifont.cpp
             glfeatures.h gui.h guiscreen.h guimenu.h tgfclient.h guifont.h
             forcefeedback.cpp forcefeedback.h
             guimenusfx.cpp guimenusfx.h
-            webserver.cpp webserver.h)
+            webserver.cpp webserver.h
+            tgfclient_api.h translation.h)
 
 SET(_OTHER_SOURCES guimenutest.xml)
 
