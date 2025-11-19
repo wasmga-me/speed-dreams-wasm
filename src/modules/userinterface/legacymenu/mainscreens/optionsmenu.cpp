@@ -25,6 +25,7 @@
 #include <openglconfig.h>
 #include <soundconfig.h>
 #include <simuconfig.h>
+#include <languageconfig.h>
 
 #include "optionsmenu.h"
 
@@ -36,6 +37,12 @@ static void *MenuHandle = NULL;
 //#define MonitorMenu 1
 
 #ifndef MonitorMenu
+
+static void
+onLangMenuActivate(void * /* dummy */)
+{
+    new LanguageConfig(MenuHandle);
+}
 
 static void
 onDisplayMenuActivate(void * /* dummy */)
@@ -94,6 +101,8 @@ OptionsMenuInit(void *prevMenu)
     void *param = GfuiMenuLoad("optionsmenu.xml");
 
     GfuiMenuCreateStaticControls(MenuHandle, param);
+
+    GfuiMenuCreateButtonControl(MenuHandle, param, "language", NULL, onLangMenuActivate);
 
 // SDW hack to get access to Monitor menu, doesn't have a defined position yet
 #ifdef MonitorMenu
