@@ -25,7 +25,6 @@
 #include <openglconfig.h>
 #include <soundconfig.h>
 #include <simuconfig.h>
-#include <aiconfig.h>
 
 #include "optionsmenu.h"
 
@@ -84,12 +83,6 @@ onSimuMenuActivate(void * /* dummy */)
     GfuiScreenActivate(SimuMenuInit(MenuHandle));
 }
 
-static void
-onAIMenuActivate(void * /* dummy */)
-{
-    GfuiScreenActivate(AIMenuInit(MenuHandle));
-}
-
 void *
 OptionsMenuInit(void *prevMenu)
 {
@@ -116,7 +109,6 @@ OptionsMenuInit(void *prevMenu)
     GfuiMenuCreateButtonControl(MenuHandle, param, "opengl", NULL, onOpenGLMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, param, "sound", NULL, onSoundMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, param, "simulation", NULL, onSimuMenuActivate);
-    GfuiMenuCreateButtonControl(MenuHandle, param, "ai", NULL, onAIMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, param, "back", prevMenu, GfuiScreenActivate);
 
     GfParmReleaseHandle(param);

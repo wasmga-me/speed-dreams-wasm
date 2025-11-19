@@ -25,6 +25,7 @@
 #include <cstring>
 
 #include <raceman.h>
+#include <robot.h>
 #include <portability.h>
 #include <tgfclient.h>
 
@@ -73,6 +74,51 @@ static int CooldownSchemeId;
 static void *ScrHandle = NULL;
 static void *PrevScrHandle = NULL;
 
+static const char* AIGlobalSkillFilePathName = "config/raceman/extra/skill.xml";
+
+/* Available skill level names and associated values */
+static const char *SkillLevels[] = ROB_VALS_LEVEL;
+static const tdble SkillLevelValues[] = { 30.0, 20.0, 10.0, 7.0, 3.0, 0.0};
+static const int NSkillLevels = sizeof(SkillLevels) / sizeof(SkillLevels[0]);
+static int CurSkillLevelIndex = 0;
+static int SkillLevelCombo;
+
+/* Load the parameter values from the corresponding parameter file */
+static void ReadAICfg(void)
+{
+	tdble aiSkillValue;
+	int i;
+
+	void *paramHandle = GfParmReadFileLocal(AIGlobalSkillFilePathName, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
+	aiSkillValue = GfParmGetNum(paramHandle, "skill", "level", 0, SkillLevelValues[0]);
+
+	CurSkillLevelIndex = NSkillLevels-1; // In case aiSkillValue < 0.
+	for (i = 0; i < NSkillLevels; i++) {
+		if (aiSkillValue >= SkillLevelValues[i]) {
+			CurSkillLevelIndex = i;
+			break;
+		}
+	}
+
+	GfParmReleaseHandle(paramHandle);
+	GfuiComboboxSetSelectedIndex(ScrHandle, SkillLevelCombo, CurSkillLevelIndex);
+}
+
+/* Change the global AI skill level */
+static void
+ChangeSkillLevel(tComboBoxInfo *info)
+{
+	CurSkillLevelIndex = info->nPos;
+}
+
+/* Save the choosen values into the corresponding parameter file */
+static void SaveSkillLevel()
+{
+	void *paramHandle = GfParmReadFileLocal(AIGlobalSkillFilePathName, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
+	GfParmSetNum(paramHandle, "skill", "level", 0, SkillLevelValues[CurSkillLevelIndex]);
+	GfParmWriteFile(NULL, paramHandle, "Skill");
+	GfParmReleaseHandle(paramHandle);
+}
 
 static void loadSimuCfg(void)
 {
@@ -150,6 +196,9 @@ static void loadSimuCfg(void)
 
     GfParmReleaseHandle(paramHandle);
 
+    for (int i = 0; i < NSkillLevels; i++)
+        GfuiComboboxAddText(ScrHandle, SkillLevelCombo, SkillLevels[i]);
+
     GfuiLabelSetText(ScrHandle, SimuVersionId, SimuVersionDispNameList[CurSimuVersion]);
     GfuiLabelSetText(ScrHandle, ReplayRateSchemeId, ReplaySchemeDispNameList[CurReplayScheme]);
 
@@ -158,6 +207,7 @@ static void loadSimuCfg(void)
 #endif
     GfuiLabelSetText(ScrHandle, StartPausedSchemeId, StartPausedSchemeList[CurStartPausedScheme]);
     GfuiLabelSetText(ScrHandle, CooldownSchemeId, CooldownSchemeList[CurCooldownScheme]);
+    ReadAICfg();
 }
 
 
@@ -174,6 +224,7 @@ static void storeSimuCfg(void * /* dummy */)
 
     /* return to previous screen */
     GfuiScreenActivate(PrevScrHandle);
+    SaveSkillLevel();
     return;
 }
 
@@ -319,6 +370,8 @@ SimuMenuInit(void *prevMenu)
 
     GfuiMenuCreateButtonControl(ScrHandle, menuDescHdle, "cooldownleftarrow", NULL, onChangeCooldownLeft);
     GfuiMenuCreateButtonControl(ScrHandle, menuDescHdle, "cooldownrightarrow", NULL, onChangeCooldownRight);
+
+    SkillLevelCombo = GfuiMenuCreateComboboxControl(ScrHandle, menuDescHdle, "aiskillcombo", NULL, ChangeSkillLevel);
 
     GfuiMenuCreateButtonControl(ScrHandle, menuDescHdle, "ApplyButton", PrevScrHandle, storeSimuCfg);
     GfuiMenuCreateButtonControl(ScrHandle, menuDescHdle, "CancelButton", PrevScrHandle, GfuiScreenActivate);
