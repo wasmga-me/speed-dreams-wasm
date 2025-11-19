@@ -123,8 +123,6 @@ static void SaveSkillLevel()
 static void loadSimuCfg(void)
 {
     const char *simuVersionName;
-    const char *multiThreadSchemeName;
-    const char *threadAffinitySchemeName;
 #ifdef THIRD_PARTY_SQLITE3
     const char *replayRateSchemeName;
 #endif
