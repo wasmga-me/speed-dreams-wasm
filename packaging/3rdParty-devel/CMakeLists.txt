@@ -232,13 +232,13 @@ else()
 endif()
 
 if(OPTION_OPENAL)
-   set(OPENAL_ARGS ${EXTERNALS_CMAKE_ARGS})
+   set(OPENAL_ARGS ${EXTERNALS_CMAKE_ARGS} -DALSOFT_BACKEND_PIPEWIRE=Off)
    if(MSVC_VERSION LESS 1900)
       #message(WARNING "openal-soft versions newer than 1.18.2 need Visual Studio 2015")
       ExternalProject_Add(${OPENAL_LEGACY_PROJECT}
          URL ${OPENAL_LEGACY_URL}
          URL_HASH ${OPENAL_LEGACY_HASH}
-         CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS}
+         CMAKE_ARGS ${OPENAL_ARGS}
          DEPENDS ${SDL2_PROJECT})
       ExternalProject_Add_Step(${OPENAL_LEGACY_PROJECT} openal_patch_cmake
          COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -251,11 +251,11 @@ if(OPTION_OPENAL)
       ExternalProject_Add(${OPENAL_C11_PROJECT}
          URL ${OPENAL_C11_URL}
          URL_HASH ${OPENAL_C11_HASH}
-         CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS}
+         CMAKE_ARGS ${OPENAL_ARGS}
          DEPENDS ${SDL2_PROJECT})
    else()
       if(${CMAKE_SYSTEM_VERSION} VERSION_LESS "10.0")
-        set(OPENAL_ARGS ${EXTERNALS_CMAKE_ARGS} -DCMAKE_SYSTEM_VERSION=10.0)
+        set(OPENAL_ARGS ${OPENAL_ARGS} -DCMAKE_SYSTEM_VERSION=10.0)
       endif()
       #message(WARNING "Version ${OPENAL_PROJECT_VERSION} of openal-soft is available for Visual Studio 2017 delete the cache and specify -D CMAKE_SYSTEM_VERSION=10.0 on the command line")
       ExternalProject_Add(${OPENAL_PROJECT}
