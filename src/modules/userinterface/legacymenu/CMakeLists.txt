@@ -46,14 +46,14 @@ SET(CONFSCREENS_SOURCES ${CS}/playerconfig.cpp ${CS}/controlconfig.cpp
                         ${CS}/joy2butconfig.cpp
                         ${CS}/displayconfig.cpp ${CS}/graphconfig.cpp ${CS}/openglconfig.cpp
                         ${CS}/monitorconfig.cpp ${CS}/advancedgraphconfig.cpp
-                        ${CS}/simuconfig.cpp ${CS}/soundconfig.cpp ${CS}/aiconfig.cpp
+                        ${CS}/simuconfig.cpp ${CS}/soundconfig.cpp
                         ${CS}/hostsettingsmenu.cpp ${CS}/forcefeedbackconfig.cpp)
 SET(CONFSCREENS_HEADERS ${CS}/confscreens.h ${CS}/advancedgraphconfig.h
                         ${CS}/playerconfig.h ${CS}/controlconfig.h
                         ${CS}/joystickconfig.h ${CS}/mouseconfig.h
                         ${CS}/joy2butconfig.h ${CS}/monitorconfig.h
                         ${CS}/displayconfig.h ${CS}/graphconfig.h ${CS}/openglconfig.h
-                        ${CS}/simuconfig.h ${CS}/soundconfig.h ${CS}/aiconfig.h
+                        ${CS}/simuconfig.h ${CS}/soundconfig.h
                         ${CS}/hostsettingsmenu.h ${CS}/forcefeedbackconfig.h)
 
 SET(RS racescreens)
