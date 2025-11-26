@@ -146,7 +146,7 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE=packaging/3rdParty-devel/i686-w64-mingw32.
 #### Debian/Ubuntu
 
 ```sh
-sudo apt install git cmake build-essential libopenscenegraph-dev libcurl4-gnutls-dev libsdl2-dev libsdl2-mixer-dev librhash-dev libenet-dev libpng-dev libjpeg-dev zlib1g-dev libminizip-dev libopenal-dev libplib-dev libexpat1-dev libcjson-dev openjdk-17-jdk openjdk-17-jre
+sudo apt install git cmake build-essential libopenscenegraph-dev libcurl4-gnutls-dev libsdl2-dev libsdl2-mixer-dev librhash-dev libenet-dev libpng-dev libjpeg-dev zlib1g-dev libminizip-dev libopenal-dev libplib-dev libexpat1-dev libcjson-dev openjdk-17-jdk openjdk-17-jre libsdl2-ttf-dev
 ```
 
 > The version for the `openjdk-*` packages might change among distributions.

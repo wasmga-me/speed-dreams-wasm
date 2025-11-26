@@ -18,41 +18,21 @@
 #ifndef _GUIFONT_H_
 #define _GUIFONT_H_
 
-//glFont character structure (DO NOT MODIFY)
-typedef struct
-{
-    float dx, dy;
-    float tx1, ty1;
-    float tx2, ty2;
-} GLFONTCHAR;
-
-//glFont structure (DO NOT MODIFY)
-typedef struct
-{
-    unsigned Tex;
-    int TexWidth, TexHeight;
-    int IntStart, IntEnd;
-    GLFONTCHAR *Char;
-} GLFONT;
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 class GfuiFontClass
 {
 protected:
-    GLFONT	*font;
-    float	size;
+  TTF_Font *font;
 
 public:
-  GfuiFontClass(char *font);
-
+  GfuiFontClass(const char *font, int size);
   ~GfuiFontClass();
-
-  void create(int point_size);
-
-  void drawString(int x, int y, const char* text);
-
-  int getWidth(const char* text);
+  int drawString(int x, int y, const char* text, const float *color = nullptr)
+    const;
   int getHeight() const;
-  int getDescender() const;
+  int getWidth(const char* text) const;
 };
 
 extern GfuiFontClass	*gfuiFont[];

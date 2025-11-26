@@ -32,6 +32,7 @@
 #include <iostream>
 
 #include "tgfclient.h"
+#include "translation.h"
 #include "gui.h"
 #include "guimenu.h"
 
@@ -117,8 +118,6 @@ static const TMapFontSize::value_type AMapFontSize[] =
     TMapFontSize::value_type("large_t",  GFUI_FONT_LARGE_T),
     TMapFontSize::value_type("medium_t", GFUI_FONT_MEDIUM_T),
     TMapFontSize::value_type("small_t",  GFUI_FONT_SMALL_T),
-
-    TMapFontSize::value_type("digit",    GFUI_FONT_DIGIT),
 };
 
 static const TMapFontSize MapFontSize(AMapFontSize, AMapFontSize + sizeof(AMapFontSize) / sizeof(TMapFontSize::value_type));
@@ -294,6 +293,38 @@ GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName)
     return createStaticImage(hscr, hparm, strControlPath.c_str());
 }
 
+const char *GfuiGetTranslatedText(void* hparm, const char* pszPath,
+    const char* pszKey, const char* pszDefault)
+{
+    const char *ret = pszDefault, *path = "config/language" PARAMEXT, *lang;
+    void *h = GfParmReadFileLocal(path, GFPARM_RMODE_STD);
+    std::string key;
+
+    if (!h)
+    {
+        GfLogError("GfParmReadFileLocal failed: %s\n", path);
+        goto end;
+    }
+
+    lang = GfParmGetStr(h, "Language", "language", nullptr);
+    key = pszKey;
+
+    if (lang)
+    {
+        key += "-";
+        key += lang;
+    }
+
+    if (!(ret = GfParmGetStr(hparm, pszPath, key.c_str(), nullptr)))
+        ret = GfParmGetStr(hparm, pszPath, pszKey, pszDefault);
+
+end:
+    if (h)
+        GfParmReleaseHandle(h);
+
+    return ret;
+}
+
 static int
 createLabel(void* hscr, void* hparm, const char* pszPath,
             bool bFromTemplate = false,
@@ -312,7 +343,7 @@ createLabel(void* hscr, void* hparm, const char* pszPath,
 
     const char* pszText =
         bFromTemplate && text != GFUI_TPL_TEXT
-        ? text : GfParmGetStr(hparm, pszPath, GFMNU_ATTR_TEXT, "");
+        ? text : GfuiGetTranslatedText(hparm, pszPath, GFMNU_ATTR_TEXT, "");
     const int nX =
         bFromTemplate && x != GFUI_TPL_X
         ? x : (int)GfParmGetNum(hparm, pszPath, GFMNU_ATTR_X, NULL, 0);
@@ -359,7 +390,7 @@ createLabel(void* hscr, void* hparm, const char* pszPath,
     void* userDataOnFocus = 0;
     tfuiCallback onFocus = 0;
     tfuiCallback onFocusLost = 0;
-    const char* pszTip = GfParmGetStr(hparm, pszPath, GFMNU_ATTR_TIP, 0);
+    const char* pszTip = GfuiGetTranslatedText(hparm, pszPath, GFMNU_ATTR_TIP, nullptr);
     if (pszTip && strlen(pszTip) > 0)
     {
         tMenuCallbackInfo * cbinfo = (tMenuCallbackInfo*)calloc(1, sizeof(tMenuCallbackInfo));
@@ -430,10 +461,10 @@ createTextButton(void* hscr, void* hparm, const char* pszPath,
 
     const char* pszText =
         bFromTemplate && text != GFUI_TPL_TEXT
-        ? text : GfParmGetStr(hparm, pszPath, GFMNU_ATTR_TEXT, "");
+        ? text : GfuiGetTranslatedText(hparm, pszPath, GFMNU_ATTR_TEXT, "");
     const char* pszTip =
         bFromTemplate && tip != GFUI_TPL_TIP
-        ? tip : GfParmGetStr(hparm, pszPath, GFMNU_ATTR_TIP, "");
+        ? tip : GfuiGetTranslatedText(hparm, pszPath, GFMNU_ATTR_TIP, "");
     const int nX =
         bFromTemplate && x != GFUI_TPL_X
         ? x : (int)GfParmGetNum(hparm, pszPath, GFMNU_ATTR_X, NULL, 0);
@@ -549,7 +580,7 @@ createImageButton(void* hscr, void* hparm, const char* pszPath,
 
     const char* pszTip =
         bFromTemplate && tip != GFUI_TPL_TIP
-        ? tip : GfParmGetStr(hparm, pszPath, GFMNU_ATTR_TIP, "");
+        ? tip : GfuiGetTranslatedText(hparm, pszPath, GFMNU_ATTR_TIP, "");
     const int nX =
         bFromTemplate && x != GFUI_TPL_X
         ? x : (int)GfParmGetNum(hparm, pszPath, GFMNU_ATTR_X, NULL, 0);
@@ -685,7 +716,7 @@ GfuiMenuCreateEditControl(void* hscr, void* hparm, const char* pszName,
     //                 onFocusLost = onFocusLostHideTip;
     //         }
 
-    const char* pszText = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_TEXT, "");
+    const char* pszText = GfuiGetTranslatedText(hparm, strControlPath.c_str(), GFMNU_ATTR_TEXT, "");
     const int x = (int)GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_X, NULL, 0.0);
     const int y = (int)GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_Y, NULL, 0.0);
     const char* pszFontName = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_FONT, "");
@@ -744,11 +775,11 @@ GfuiMenuCreateComboboxControl(void* hscr, void* hparm, const char* pszName,
     const int nArrowsWidth = (int)GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_ARROWS_WIDTH, NULL, 0);
     const int nArrowsHeight = (int)GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_ARROWS_HEIGHT, NULL, 0);
 
-    const char* pszText = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_TEXT, "");
+    const char* pszText = GfuiGetTranslatedText(hparm, strControlPath.c_str(), GFMNU_ATTR_TEXT, "");
 
     const int maxlen = (int)GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_MAX_LEN, 0, 0);
 
-    const char* pszTip = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_TIP, 0);
+    const char* pszTip = GfuiGetTranslatedText(hparm, strControlPath.c_str(), GFMNU_ATTR_TIP, nullptr);
 
     void* userDataOnFocus = 0;
     tfuiCallback onFocus = 0;
@@ -847,7 +878,7 @@ GfuiMenuCreateCheckboxControl(void* hscr, void* hparm, const char* pszName,void*
     std::string strFontName = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_FONT, "");
     const int font = gfuiMenuGetFontId(strFontName.c_str());
 
-    const char* pszText = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_TEXT, "");
+    const char* pszText = GfuiGetTranslatedText(hparm, strControlPath.c_str(), GFMNU_ATTR_TEXT, "");
 
     int imagewidth =
         (int)GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_IMAGE_WIDTH, NULL, 0.0);
@@ -862,7 +893,7 @@ GfuiMenuCreateCheckboxControl(void* hscr, void* hparm, const char* pszName,void*
     const bool bChecked =
         getControlBoolean(hparm, strControlPath.c_str(), GFMNU_ATTR_CHECKED, false);
 
-    const char* pszTip = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_TIP, "");
+    const char* pszTip = GfuiGetTranslatedText(hparm, strControlPath.c_str(), GFMNU_ATTR_TIP, "");
 
     void* userDataOnFocus = 0;
     tfuiCallback onFocus = 0;
@@ -925,7 +956,7 @@ GfuiMenuCreateProgressbarControl(void* hscr, void* hparm, const char* pszName)
     const float max = GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_MAX, NULL, 100.0);
     const float value = GfParmGetNum(hparm, strControlPath.c_str(), GFMNU_ATTR_VALUE, NULL, 50.0);
 
-    const char* pszTip = GfParmGetStr(hparm, strControlPath.c_str(), GFMNU_ATTR_TIP, "");
+    const char* pszTip = GfuiGetTranslatedText(hparm, strControlPath.c_str(), GFMNU_ATTR_TIP, "");
 
     void* userDataOnFocus = 0;
     tfuiCallback onFocus = 0;

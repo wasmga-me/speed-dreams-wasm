@@ -61,13 +61,17 @@ gfuiInitObject(void)
 void
 gfuiDrawString(int x, int y, GfuiFontClass *font, const char *string)
 {
+#if 1
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0.1) ;
+#endif
     font->drawString(x, y, string);
+#if 1
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_TEXTURE_2D);
+#endif
 }
 
 void GfuiDrawString(const char *text, float *fgColor, int font,
@@ -78,17 +82,19 @@ void GfuiDrawString(const char *text, float *fgColor, int font,
 	glEnable(GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.1) ;
 	glColor4fv(fgColor);
+
 	switch(hAlign & GFUI_ALIGN_HMASK) {
 		case GFUI_ALIGN_HL:
-			gfuiFont[font]->drawString(x, y, text);
+			gfuiFont[font]->drawString(x, y, text, fgColor);
 			break;
 		case GFUI_ALIGN_HC:
-			gfuiFont[font]->drawString(x + (width - gfuiFont[font]->getWidth(text)) / 2, y, text);
+			gfuiFont[font]->drawString(x + (width - gfuiFont[font]->getWidth(text)) / 2, y, text, fgColor);
 			break;
 		case GFUI_ALIGN_HR:
-			gfuiFont[font]->drawString(x + width - gfuiFont[font]->getWidth(text), y, text);
+			gfuiFont[font]->drawString(x + width - gfuiFont[font]->getWidth(text), y, text, fgColor);
 			break;
 	}
+
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_TEXTURE_2D);
 }

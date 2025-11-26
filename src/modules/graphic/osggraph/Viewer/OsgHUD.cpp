@@ -37,6 +37,8 @@
 #include "OsgHUD.h"
 #include "OsgNodeMask.h"
 #include "OsgMain.h"
+#include "guimenu.h"
+#include "translation.h"
 #include "tgfclient.h"
 
 #include "forcefeedback.h"
@@ -2713,11 +2715,11 @@ osg::ref_ptr <osg::Group> SDHUD::generateHudFromXmlFile(int scrH, int scrW)
                         /* ============================
                              CREATE OSG TEXT
                            ============================*/
-                        if (type == "text" )
+                        if (type == GFMNU_ATTR_TEXT)
                         {
                             //read data into local variables
                             const std::string &elementId = subSectionName;
-                            std::string textStr =          GfParmGetStr (paramHandle, subSectionPath.c_str(),"text", "" );
+                            std::string textStr =          GfuiGetTranslatedText (paramHandle, subSectionPath.c_str(), GFMNU_ATTR_TEXT, "" );
                             std::string fontFileUrl =      GfParmGetStr (paramHandle, subSectionPath.c_str(),"fontFileUrl", "" );
                             std::string colorString =      GfParmGetStr (paramHandle, subSectionPath.c_str(),"color", "" );
                             float fontSize =               GfParmGetNum (paramHandle, subSectionPath.c_str(),"fontSize", "",0 ) * hudScale;
@@ -2769,7 +2771,7 @@ osg::ref_ptr <osg::Group> SDHUD::generateHudFromXmlFile(int scrH, int scrW)
                             }
 
                             //set the text string
-                            text->setText(textStr);
+                            text->setText(textStr, osgText::String::Encoding::ENCODING_UTF8);
 
                             //set the position
                             //find the referenceObj bounding box

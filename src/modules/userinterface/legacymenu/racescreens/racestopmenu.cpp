@@ -22,6 +22,8 @@
 #include <playerconfig.h>
 #include <controlconfig.h>
 
+#include "translation.h"
+#include "guimenu.h"
 #include "legacymenu.h"
 #include "exitmenu.h"
 #include "racescreens.h"
@@ -256,9 +258,11 @@ rmStopRaceMenu(const tButtonDesc aButtons[], int nButtons, int nCancelIndex)
     {
         // Get text and tip from button role and menu properties.
         sprintf(pszPropName, "%s.text", aButtons[nButInd].role);
-        const char* pszText = GfuiMenuGetStrProperty(hmenu, pszPropName, "");
+        const char* pszText = GfuiGetTranslatedText(hmenu,
+            GFMNU_SECT_PROPERTIES, pszPropName, "");
         sprintf(pszPropName, "%s.tip", aButtons[nButInd].role);
-        const char* pszTip = GfuiMenuGetStrProperty(hmenu, pszPropName, "");
+        const char* pszTip = GfuiGetTranslatedText(hmenu,
+            GFMNU_SECT_PROPERTIES, pszPropName, "");
         if (nButInd == nCancelIndex)
             pszCancelTip = pszTip;
 
