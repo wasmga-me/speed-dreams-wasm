@@ -43,7 +43,7 @@ static const string rgba[4] =
 static const int NB_BOARDS = 4;
 static const int NB_LBOARDS = 5;    // # of leaderboard states
 static const int NB_GFLAG = 4;
-static const int NB_DEBUG = 4;
+static const int NB_DEBUG = 5;
 
 // Boards work on a OrthoCam with fixed height of 600, width flows
 // with split screen(s) and can be limited to 'board width' % of screen
@@ -294,6 +294,14 @@ cGrBoard::grDispDebug(const tSituation *s, const cGrFrameInfo* frame)
             snprintf(buf, sizeof(buf), "Cam: %s", curCam->name);
             GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x2, y);
         }
+    } else if (debugFlag == 4) {
+        int x;
+
+        strcpy(buf, ssgShowStats());
+        /* ssgShowStats() appends a final '\n' that must not be rendered */
+        *strchr(buf, '\n') = '\0';
+        x = rightAnchor - GfuiFontWidth(GFUI_FONT_SMALL_C, buf);
+        GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y - dy);
     }
 }  // grDispDebug
 

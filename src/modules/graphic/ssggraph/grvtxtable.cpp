@@ -297,6 +297,12 @@ cgrVtxTableTrackPart::cgrVtxTableTrackPart(int nTexMaps,
 	//GfLogDebug("cgrVtxTableTrackPart@%p(...)\n", this);
 }
 
+extern "C"
+{
+	extern int stats_num_vertices    ;
+	extern int stats_num_leaves      ;
+}
+
 void cgrVtxTableTrackPart::draw ()
 {
 	if (!preDraw())
@@ -304,6 +310,9 @@ void cgrVtxTableTrackPart::draw ()
 
 	if (hasState())
 		getState()->apply();
+
+	stats_num_leaves++ ;
+	stats_num_vertices += getNumVertices() ;
 
 #ifdef _SSG_USE_DLIST
 	if (dlist)
@@ -439,6 +448,9 @@ void cgrVtxTableCarPart::draw ()
 
 	if (hasState())
 		getState()->apply();
+
+	stats_num_leaves++ ;
+	stats_num_vertices += getNumVertices() ;
 
 #ifdef _SSG_USE_DLIST
 	if (dlist)
