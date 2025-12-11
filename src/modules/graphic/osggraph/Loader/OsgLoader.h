@@ -22,17 +22,29 @@
 #include <osgDB/ReadFile>
 
 #include "ReaderWriterACC.h"
+#include <vector>
+#include <string>
 //#include "ReaderWriterACC2.h"
 
 namespace osggraph {
 
 class osgLoader
 {
+protected:
+    struct loadedModel
+    {
+        std::string strFile, skinname;
+        osg::ref_ptr<osg::Node> node;
+    };
+
 public:
+    typedef std::vector<loadedModel> loadedModels;
     osgLoader(void);
     ~osgLoader(void);
 
-    osg::Node *Load3dFile(const std::string &strFile, bool car = false, const std::string &carname = "", const std::string& name = "");
+    osg::Node *Load3dFile(loadedModels &loaded,
+        const std::string &strFile, bool car = false,
+        const std::string &carname = "", const std::string& name = "");
     osg::ref_ptr<osg::Image> LoadImageFile(const std::string &strFile);
     void AddSearchPath(const std::string &strPath);
 

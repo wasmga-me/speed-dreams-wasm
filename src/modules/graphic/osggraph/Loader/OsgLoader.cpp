@@ -52,10 +52,22 @@ osg::ref_ptr<osg::Image> osgLoader::LoadImageFile(const std::string &strFile)
     return Image;
 }
 
-osg::Node *osgLoader::Load3dFile(const std::string &strFile, bool car, const std::string& carname, const std::string& name)
+osg::Node *osgLoader::Load3dFile(loadedModels &loaded,
+    const std::string &strFile, bool car, const std::string& carname,
+    const std::string& name)
 {
     osg::Node *pNode = NULL;
     std::string ext = osgDB::getFileExtension(strFile);
+
+    for (const auto &l : loaded)
+        if (strFile == l.strFile && name == l.skinname)
+            // Model/skin combination has been already loaded before.
+            return l.node.get();
+
+    loadedModel l;
+
+    l.skinname = name;
+    l.strFile = strFile;
 
     m_ACCReader.SetCar(car);
     m_ACCReader.SetCarName(carname);
@@ -76,7 +88,8 @@ osg::Node *osgLoader::Load3dFile(const std::string &strFile, bool car, const std
                              0.0f,  0.0f, 0.0f, 1.0f);
             rot->setMatrix(mat);
             rot->addChild(nod);
-
+            l.node = rot;
+            loaded.push_back(l);
             return rot;
         }
         else
@@ -97,7 +110,7 @@ osg::Node *osgLoader::Load3dFile(const std::string &strFile, bool car, const std
                      0.0f,  0.0f, 0.0f, 1.0f);
     rot->setMatrix(mat);
     rot->addChild(pNode);
-
+    loaded.push_back(l);
     return rot;
 }
 

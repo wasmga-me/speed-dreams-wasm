@@ -82,13 +82,15 @@ private :
     int loadWing(void *handle, const char *path, const char *key,
         osgLoader &loader, const std::string &bCarName,
         const std::string &bSkinName, const char *name, bool value,
-        osg::ref_ptr<osg::Switch> &wing) const;
+        osg::ref_ptr<osg::Switch> &wing, osgLoader::loadedModels &loaded)
+        const;
 
 public :
     SDCar(void);
     ~SDCar(void);
 
-    osg::ref_ptr<osg::Node> loadCar(tCarElt *Car, bool tracktype, bool subcat, int carshader);
+    osg::ref_ptr<osg::Node> loadCar(tCarElt *Car, bool tracktype, bool subcat,
+        int carshader, osgLoader::loadedModels &loaded);
     bool isCar(const tCarElt*c) const;
 
     bool    _cockpit;
@@ -129,7 +131,8 @@ public :
     SDCars(void);
     ~SDCars(void);
 
-    void  loadCars(tSituation * pSituation, bool trackType, bool subCat);
+    void  loadCars(tSituation * pSituation, bool trackType, bool subCat,
+        osgLoader::loadedModels &loaded);
     void  updateCars(tSituation *s, tCarElt *CurCar, int current, int driver);
     void  markCarCurrent(const tCarElt*car);
     SDCar *getCar(tCarElt*car);
