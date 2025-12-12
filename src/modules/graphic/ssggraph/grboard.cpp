@@ -1608,6 +1608,8 @@ cGrBoard::grDispCounterBoard2()
                  BOTTOM_ANCHOR + (speedoRise * TOP_ANCHOR / 100), 0);
     if (curInst->texture) {
         glBindTexture(GL_TEXTURE_2D, curInst->texture->getTextureHandle());
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     glCallList(curInst->CounterList);
     glBindTexture(GL_TEXTURE_2D, 0);

@@ -480,6 +480,8 @@ gfuiDrawButton(tGfuiObject *obj)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glBindTexture(GL_TEXTURE_2D, img);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glBegin(GL_QUADS);
 
 		glTexCoord2f(0.0, 0.0);
@@ -532,6 +534,8 @@ gfuiGrButtonDraw(tGfuiGrButton *button, int state, int focus)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glBindTexture(GL_TEXTURE_2D, img);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glBegin(GL_QUADS);
 
 	const float h = (button->mirror & GFUI_MIRROR_HORI) ? 1.0 : 0.0;

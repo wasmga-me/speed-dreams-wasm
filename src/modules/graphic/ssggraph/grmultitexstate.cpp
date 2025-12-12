@@ -51,6 +51,8 @@ void cgrMultiTexState::apply(GLint nUnit)
 	glActiveTexture(nUnit);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, ssgSimpleState::getTextureHandle());
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	_fnTexScheme(); // There MUST be a texturing scheme function, so no need to check.
 }
 

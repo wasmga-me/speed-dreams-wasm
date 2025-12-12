@@ -155,6 +155,8 @@ gfuiDrawProgressbar(tGfuiObject *obj)
 
 	// Foreground image from min to value
 	glBindTexture(GL_TEXTURE_2D, progress->fgImage);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glBegin(GL_TRIANGLE_STRIP);
 	//glColor4f(1.0, 1.0, 1.0, 1.0);
@@ -166,6 +168,8 @@ gfuiDrawProgressbar(tGfuiObject *obj)
 
 	// Background image from value to max
 	glBindTexture(GL_TEXTURE_2D, progress->bgImage);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glBegin(GL_TRIANGLE_STRIP);
 	//glColor4f(1.0, 1.0, 1.0, 1.0);
