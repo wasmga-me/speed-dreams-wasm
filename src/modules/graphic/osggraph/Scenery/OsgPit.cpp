@@ -433,10 +433,11 @@ void SDPit::build(const tTrack *track)
                 loader.AddSearchPath(datadir + "data/textures");
                 loader.AddSearchPath(datadir + "data/img");
 
+                osgLoader::loadedModels loaded;
                 std::string filename = pits->pitindicator == 1
                                      ? "pit_indicator.ac"
                                      : "normal_pit_indicator.ac";
-                osg::Node *node = loader.Load3dFile(filename);
+                osg::Node *node = loader.Load3dFile(loaded, filename);
 
                 osg::MatrixTransform *transform = new osg::MatrixTransform;
                 transform->setMatrix(osg::Matrix::translate(x3, y3, z3));

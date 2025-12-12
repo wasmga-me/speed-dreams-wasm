@@ -221,9 +221,10 @@ bool SDScenery::LoadTrack(const std::string &dir, const std::string &file)
 
     std::string path = dir + file;
     osg::Node *pTrack;
+    osgLoader::loadedModels loaded;
 
-    if ((pTrack = loader.Load3dFile(GfLocalDir() + path))
-        || (pTrack = loader.Load3dFile(path)))
+    if ((pTrack = loader.Load3dFile(loaded, GfLocalDir() + path))
+        || (pTrack = loader.Load3dFile(loaded, path)))
     {
         pTrack->getOrCreateStateSet()->setRenderBinDetails(TRACKBIN,"RenderBin");
         _scenery->addChild(pTrack);

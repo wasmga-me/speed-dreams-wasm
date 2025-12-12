@@ -556,11 +556,13 @@ int initTrack(tTrack *track)
 
 int  initCars(tSituation *s)
 {
+    osgLoader::loadedModels loaded;
+
     GfLogInfo("InitCars\n");
     carLights = new SDCarLights;
     cars = new SDCars;
     carLights->loadStates();
-    cars->loadCars(s, scenery->getSpeedWay(), scenery->getSpeedWayLong());
+    cars->loadCars(s, scenery->getSpeedWay(), scenery->getSpeedWayLong(), loaded);
     render->addCars(cars->getCarsNode(), carLights->getLightsRoot());
     GfLogInfo("All cars loaded\n");
 
