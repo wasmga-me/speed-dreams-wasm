@@ -186,6 +186,8 @@ static void splashDisplay( void )
         // Prepare texture display.
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, splTextureId);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // Compute the initial width of the right area and the height of the bottom area
         // of the texture that will not be displayed

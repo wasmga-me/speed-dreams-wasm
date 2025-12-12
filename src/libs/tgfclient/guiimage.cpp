@@ -198,6 +198,8 @@ gfuiDrawImage(tGfuiObject *obj)
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glBindTexture(GL_TEXTURE_2D, image->texture[image->activeimage]);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glColor4f(1.0, 0.0, 1.0, 1.0);
 
 	// Get real 2^N x 2^P texture size (may have been 0 padded at load time
