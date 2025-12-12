@@ -102,8 +102,6 @@ OptionsMenuInit(void *prevMenu)
 
     GfuiMenuCreateStaticControls(MenuHandle, param);
 
-    GfuiMenuCreateButtonControl(MenuHandle, param, "language", NULL, onLangMenuActivate);
-
 // SDW hack to get access to Monitor menu, doesn't have a defined position yet
 #ifdef MonitorMenu
     GfuiMenuCreateButtonControl(MenuHandle, param, "display", NULL, onMonitorMenuActivate);
@@ -118,6 +116,7 @@ OptionsMenuInit(void *prevMenu)
     GfuiMenuCreateButtonControl(MenuHandle, param, "opengl", NULL, onOpenGLMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, param, "sound", NULL, onSoundMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, param, "simulation", NULL, onSimuMenuActivate);
+    GfuiMenuCreateButtonControl(MenuHandle, param, "language", NULL, onLangMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, param, "back", prevMenu, GfuiScreenActivate);
 
     GfParmReleaseHandle(param);
