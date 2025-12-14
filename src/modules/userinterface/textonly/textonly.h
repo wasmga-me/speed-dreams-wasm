@@ -64,7 +64,7 @@ public:
 	virtual void onRaceInitializing();
 	virtual bool onRaceStarting();
 	virtual void onRaceLoadingDrivers();
-	virtual void onRaceDriversLoaded();
+	virtual int onRaceDriversLoaded();
 	virtual void onRaceSimulationReady();
 	virtual void onRaceStarted();
 	virtual void onRaceResuming();

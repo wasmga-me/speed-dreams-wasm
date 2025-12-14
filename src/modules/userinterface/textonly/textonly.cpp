@@ -177,10 +177,11 @@ void TextOnlyUI::onRaceLoadingDrivers()
 	GfLogDebug("TextOnlyUI::onRaceLoadingDrivers()\n");
 }
 
-void TextOnlyUI::onRaceDriversLoaded()
+int TextOnlyUI::onRaceDriversLoaded()
 {
 	// Actually nothing to do.
 	GfLogDebug("TextOnlyUI::onRaceDriversLoaded()\n");
+	return 0;
 }
 
 void TextOnlyUI::onRaceSimulationReady()

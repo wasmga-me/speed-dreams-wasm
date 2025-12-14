@@ -372,7 +372,7 @@ void LegacyMenu::onRaceLoadingDrivers()
     }
 }
 
-void LegacyMenu::onRaceDriversLoaded()
+int LegacyMenu::onRaceDriversLoaded()
 {
     if (_piRaceEngine->inData()->_displayMode == RM_DISP_MODE_NORMAL)
 	{
@@ -389,9 +389,12 @@ void LegacyMenu::onRaceDriversLoaded()
             addLoadingMessage(buf);
 
             // Initialize the track graphics.
-            loadTrackGraphics(_piRaceEngine->inData()->track);
+            if (!loadTrackGraphics(_piRaceEngine->inData()->track))
+                return -1;
         }
     }
+
+    return 0;
 }
 
 void LegacyMenu::onRaceSimulationReady()
