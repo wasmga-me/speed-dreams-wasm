@@ -854,7 +854,8 @@ ReRaceRealStart(void)
     RtTeamManagerStart();
 
     // Notify the UI that the drivers have been loaded now.
-    ReUI().onRaceDriversLoaded();
+    if (ReUI().onRaceDriversLoaded())
+        return RM_ERROR;
 
     // Initialize the physics engine
     GfLogDebug("Initialize Physic Engine ...\n");
