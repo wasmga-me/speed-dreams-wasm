@@ -94,7 +94,9 @@ void shutdownMusic()
 	std::map<std::string, SDL2MusicPlayer*>::const_iterator itPlayers = mapSDL2Players.begin();
 	while(itPlayers != mapSDL2Players.end()) {
 		SDL2MusicPlayer* player = itPlayers->second;
-		player->stop();
+		const int ms = 1000;
+		player->pause(ms);
+		GfSleep(ms / 1000.0f);
 		player->rewind();
 		++itPlayers;
 	}
