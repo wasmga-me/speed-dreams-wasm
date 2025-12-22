@@ -39,6 +39,8 @@
 TGFCLIENT_API void initMusic();
 TGFCLIENT_API void shutdownMusic();
 TGFCLIENT_API void enableMusic(bool enable = true);
+TGFCLIENT_API void fadeInDefaultMusic();
+TGFCLIENT_API void fadeOutDefaultMusic();
 TGFCLIENT_API void setMusicVolume(float volume = 100.0f);
 TGFCLIENT_API float getMusicVolume();
 TGFCLIENT_API void playMusic(char* filename);

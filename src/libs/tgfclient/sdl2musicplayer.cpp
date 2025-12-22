@@ -71,10 +71,9 @@ void SDL2MusicPlayer::start()
     }
 }
 
-void SDL2MusicPlayer::pause()
+void SDL2MusicPlayer::pause(int ms)
 {
-        //Mix_PauseMusic();
-        Mix_FadeOutMusic(1000);
+    Mix_FadeOutMusic(ms);
 }
 
 void SDL2MusicPlayer::resume()

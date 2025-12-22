@@ -23,6 +23,7 @@
 #include <sstream>
 
 #include <portability.h>
+#include <musicplayer.h>
 
 #include <robot.h>
 #ifdef CLIENT_SERVER
@@ -759,9 +760,14 @@ ReRaceRealStart(void)
     tMemoryPool oldPool = NULL;
     void* carHdle;
 
+    fadeOutDefaultMusic();
+
     // Load the physics engine
     if (!StandardGame::self().loadPhysicsEngine())
+    {
+        fadeInDefaultMusic();
         return RM_ERROR;
+    }
 
     // Get the session display mode (default to "All sessions" ones, or else "normal").
     std::string strDispMode =
@@ -798,7 +804,10 @@ ReRaceRealStart(void)
     // Initialize & place cars
     // Note: if SimuSimu display mode, robot->rbNewTrack isn't called. This is a lot faster.
     if (ReInitCars())
+    {
+        fadeInDefaultMusic();
         return RM_ERROR;
+    }
 
     // Check if there is a human in the current race
     // Warning: Don't move this before ReInitCars (initializes s->cars).
@@ -855,7 +864,10 @@ ReRaceRealStart(void)
 
     // Notify the UI that the drivers have been loaded now.
     if (ReUI().onRaceDriversLoaded())
+    {
+        fadeInDefaultMusic();
         return RM_ERROR;
+    }
 
     // Initialize the physics engine
     GfLogDebug("Initialize Physic Engine ...\n");
@@ -970,7 +982,10 @@ ReRaceStart(void)
         int nCurrDrvInd =
             (int)GfParmGetNum(results, RE_SECT_CURRENT, RE_ATTR_CUR_DRIVER, NULL, 1);
         if (nCurrDrvInd <= 0)
+        {
+            fadeInDefaultMusic();
             return RM_ERROR;
+        }
 
         // Propagate competitor drivers info to the real race starting grid
         snprintf(path, sizeof(path), "%s/%d", RM_SECT_DRIVERS, ReStartingOrderIdx[nCurrDrvInd-1]);
@@ -1037,6 +1052,8 @@ ReRaceStart(void)
         if (bGoOn)
             mode = ReRaceRealStart();
     }
+    else
+        fadeInDefaultMusic();
 
     return mode;
 }

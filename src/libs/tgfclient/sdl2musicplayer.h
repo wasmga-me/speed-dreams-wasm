@@ -29,7 +29,7 @@ class SDL2MusicPlayer
 
 		virtual void start();
 		virtual void stop();
-		virtual void pause();
+		virtual void pause(int ms=3000);
 		virtual void resume();
 		virtual void rewind();
 		virtual void setvolume(float volume);

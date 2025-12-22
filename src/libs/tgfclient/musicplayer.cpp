@@ -160,6 +160,22 @@ void playMusic(char* filename)
 	}
 }
 
+void fadeInDefaultMusic()
+{
+	SDL2MusicPlayer* player = getMusicPlayer(currentMusicfile);
+
+	if (player)
+		player->start();
+}
+
+void fadeOutDefaultMusic()
+{
+	SDL2MusicPlayer* player = getMusicPlayer(currentMusicfile);
+
+	if (player)
+		player->pause();
+}
+
 void setDefaultMusic(const char* filename)
 {
 	if(0 != filename){
