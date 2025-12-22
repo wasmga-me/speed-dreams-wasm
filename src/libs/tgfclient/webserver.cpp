@@ -67,15 +67,6 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-//to string (from c++11)
-template <typename T>
-std::string to_string(T value)
-{
-    std::ostringstream os ;
-    os << value ;
-    return os.str() ;
-}
-
 static size_t WriteStringCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -444,8 +435,8 @@ int WebServer::updateAsyncStatus()
         nextRequest = this->orderedAsyncRequestQueque.front();
 
         //replace the {{tags}} with actual data received from previous requests replies
-        replaceAll(nextRequest.data, "{{race_id}}", to_string(this->raceId));
-        replaceAll(nextRequest.data, "{{user_id}}", to_string(this->userId));
+        replaceAll(nextRequest.data, "{{race_id}}", std::to_string(this->raceId));
+        replaceAll(nextRequest.data, "{{user_id}}", std::to_string(this->userId));
 
         GfLogInfo("WebServer: Adding AsyncRequest from orderedAsyncRequestQueque with id: %i\n", nextRequest.id);
         this->pendingAsyncRequestId = nextRequest.id;
@@ -534,7 +525,7 @@ int WebServer::updateAsyncStatus()
                         for( int dispatchedMsgs = 0; dispatchedMsgs < msgsCount; dispatchedMsgs = dispatchedMsgs + 1 )
                            {
                             std::string msgTag = "message";
-                            msgTag.append(to_string(dispatchedMsgs));
+                            msgTag.append(std::to_string(dispatchedMsgs));
                             GfLogInfo("WebServer: Adding messagge to be displayed to the NotificationQueque:\n%s\n", msgTag.c_str());
 
                             notifications.msglist.push_back(GfParmGetStr(xmlReply, "content/reply/messages", msgTag.c_str(), "null"));
@@ -656,7 +647,7 @@ int WebServer::addOrderedAsyncRequest(const std::string &data)
     request.id = getUniqueId();
     request.data = data;
 
-    replaceAll(request.data, "{{request_id}}", to_string(request.id));
+    replaceAll(request.data, "{{request_id}}", std::to_string(request.id));
 
     this->orderedAsyncRequestQueque.push_back(request);
 
@@ -803,11 +794,11 @@ int WebServer::sendLap (int race_id, bool valid, double laptime, double fuel,
 
     //replace the {{tags}} with the respecting values
     //The following tags will be replaced later because some other request must be done before: {{race_id}}
-    replaceAll(dataToSend, "{{laptime}}", to_string(laptime));
-    replaceAll(dataToSend, "{{fuel}}", to_string(fuel));
-    replaceAll(dataToSend, "{{position}}", to_string(position));
-    replaceAll(dataToSend, "{{wettness}}", to_string(wettness));
-    replaceAll(dataToSend, "{{valid}}", to_string(valid));
+    replaceAll(dataToSend, "{{laptime}}", std::to_string(laptime));
+    replaceAll(dataToSend, "{{fuel}}", std::to_string(fuel));
+    replaceAll(dataToSend, "{{position}}", std::to_string(position));
+    replaceAll(dataToSend, "{{wettness}}", std::to_string(wettness));
+    replaceAll(dataToSend, "{{valid}}", std::to_string(valid));
 
     this->addOrderedAsyncRequest(dataToSend);
 
@@ -859,13 +850,13 @@ int WebServer::sendRaceStart (tSkillLevel user_skill, const char *track_id, char
 
     //replace the {{tags}} with the respecting values
     //The following tags will be replaced later because some other request must be done before: {{user_id}}
-    replaceAll(dataToSend, "{{user_skill}}", to_string(user_skill));
-    replaceAll(dataToSend, "{{track_id}}", to_string(track_id));
-    replaceAll(dataToSend, "{{car_id}}", to_string(car_id));
-    replaceAll(dataToSend, "{{type}}", to_string(type));
+    replaceAll(dataToSend, "{{user_skill}}", std::to_string(user_skill));
+    replaceAll(dataToSend, "{{track_id}}", std::string(track_id));
+    replaceAll(dataToSend, "{{car_id}}", std::string(car_id));
+    replaceAll(dataToSend, "{{type}}", std::to_string(type));
     replaceAll(dataToSend, "{{setup}}", mysetup);
-    replaceAll(dataToSend, "{{startposition}}", to_string(startposition));
-    replaceAll(dataToSend, "{{sdversion}}", to_string(sdversion));
+    replaceAll(dataToSend, "{{startposition}}", std::to_string(startposition));
+    replaceAll(dataToSend, "{{sdversion}}", std::string(sdversion));
 
     this->addOrderedAsyncRequest(dataToSend);
 
@@ -912,7 +903,7 @@ int WebServer::sendRaceEnd (int race_id, int endposition)
 
     //replace the {{tags}} with the respecting values
     //The following tags will be replaced later because some other request must be done before: {{race_id}}
-    replaceAll(dataToSend, "{{endposition}}", to_string(endposition));
+    replaceAll(dataToSend, "{{endposition}}", std::to_string(endposition));
 
     this->addOrderedAsyncRequest(dataToSend);
 
