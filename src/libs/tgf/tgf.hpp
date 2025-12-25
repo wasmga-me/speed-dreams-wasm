@@ -164,6 +164,10 @@ class TGF_API GfEventLoop
 	//! inside it.
 	void recompute(unsigned ms);
 
+	//! Do any tasks outside the recompute callback, and before the screen
+	//! is rendered again.
+	void predisplay();
+
   private: // Member data.
 
 	//! Private data (pimp pattern).

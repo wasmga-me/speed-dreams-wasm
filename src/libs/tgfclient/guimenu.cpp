@@ -284,6 +284,14 @@ createBackgroundImage(void* hscr, void* hparm, const char* pszName)
     return 1;
 }
 
+static int
+createGallery(void* hscr, void* hparm, const char* pszName)
+{
+    const char *pszDirname = GfParmGetStr(hparm, pszName, GFMNU_ATTR_DIR, "");
+    GfuiScreenSetGallery(hscr, pszDirname);
+    return 1;
+}
+
 int
 GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName)
 {
@@ -1006,6 +1014,10 @@ GfuiMenuCreateStaticControls(void* hscr, void* hparm)
         else if (!strcmp(pszType, GFMNU_TYPE_BACKGROUND_IMAGE))
         {
             createBackgroundImage(hscr, hparm, buf);
+        }
+        else if (!strcmp(pszType, GFMNU_TYPE_GALLERY))
+        {
+            createGallery(hscr, hparm, buf);
         }
         else
         {

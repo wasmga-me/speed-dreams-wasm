@@ -43,6 +43,7 @@ class GfuiEventLoop::Private
 	void (*cbJoystickButton)(int joy, int button, int value);
 	void (*cbDisplay)(void);
 	void (*cbReshape)(int width, int height);
+	void (*cbPredisplay)();
 
 	// Variables.
 	bool bRedisplay; // Flag to say if a redisplay is necessary.
@@ -52,7 +53,9 @@ class GfuiEventLoop::Private
 GfuiEventLoop::Private::Private()
 : cbMouseButton(0), cbMouseMotion(0), cbMousePassiveMotion(0), cbMouseWheel(0),
   cbJoystickAxis(0), cbJoystickButton(0),
-  cbDisplay(0), cbReshape(0), bRedisplay(false),
+  cbDisplay(0), cbReshape(0),
+  cbPredisplay(0),
+  bRedisplay(false),
   max_refresh(50.0)
 {
 }
@@ -244,6 +247,9 @@ void GfuiEventLoop::operator()()
 			// Recompute if anything to.
 			recompute(1000.0 * rate);
 
+			// Call predisplay callback, if any.
+			predisplay();
+
 			// Redisplay if anything to.
 			redisplay();
 
@@ -278,6 +284,11 @@ void GfuiEventLoop::setMouseWheelCB(void (*func)(int x, int y, unsigned int dire
 void GfuiEventLoop::setMousePassiveMotionCB(void (*func)(int x, int y))
 {
 	_pPrivate->cbMousePassiveMotion = func;
+}
+
+void GfuiEventLoop::setPredisplayCB(void (*func)(void))
+{
+	_pPrivate->cbPredisplay = func;
 }
 
 void GfuiEventLoop::setRedisplayCB(void (*func)(void))
@@ -318,6 +329,11 @@ void GfuiEventLoop::forceRedisplay()
 		_pPrivate->cbDisplay();
 }
 
+void GfuiEventLoop::predisplay()
+{
+    if (_pPrivate->cbPredisplay)
+        _pPrivate->cbPredisplay();
+}
 
 void GfuiEventLoop::redisplay()
 {

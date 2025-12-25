@@ -269,6 +269,7 @@ TGFCLIENT_API void GfuiDisplay(void);
 TGFCLIENT_API void GfuiDisplayNothing(void);
 TGFCLIENT_API void GfuiIdle(void);
 TGFCLIENT_API void GfuiIdleMenu(void);
+TGFCLIENT_API void GfuiGallery(void);
 
 struct RmInfo;
 typedef struct RmInfo tRmInfo;
@@ -300,6 +301,7 @@ TGFCLIENT_API void GfuiHelpScreen(void *targetScreen);
 TGFCLIENT_API void GfuiHelpScreen(void *targetScreen, void *returnScreen);
 TGFCLIENT_API void GfuiScreenShot(void *notused);
 TGFCLIENT_API void GfuiScreenAddBgImg(void *scr, const char *filename);
+TGFCLIENT_API void GfuiScreenSetGallery(void *scr, const char *dirname);
 TGFCLIENT_API void GfuiScreenAddMusic(void *scr, const char *filename);
 TGFCLIENT_API void GfuiKeyEventRegister(void *scr, tfuiKeyCallback onKeyAction);
 TGFCLIENT_API void GfuiKeyEventRegisterCurrent(tfuiKeyCallback onKeyAction);
@@ -790,8 +792,14 @@ class TGFCLIENT_API GfuiEventLoop : public GfEventLoop
     //! Set the "joystick button pressed" callback function.
     void setJoystickButtonCB(void (*func)(int joy, int button, int value));
 
+    //! Set the "predisplay" callback function.
+    void setPredisplayCB(void (*func)(void));
+
     //! Set the "redisplay/refresh" callback function.
     void setRedisplayCB(void (*func)(void));
+
+    //! Call any actions required before rendering the screen.
+    void predisplay();
 
     //! Set the "reshape" callback function with given new screen/window geometry.
     void setReshapeCB(void (*func)(int width, int height));
