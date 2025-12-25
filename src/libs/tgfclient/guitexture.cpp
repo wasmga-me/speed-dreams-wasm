@@ -531,7 +531,12 @@ end:
 	return ret;
 }
 
-static int trypng(const char *filename)
+/** Load a file from disk and test whether it contains the PNG magic bytes,
+    @ingroup	img
+    @param	filename	name of the image to test
+    @return	Zero if the file contains the magic bytes from a PNG image, non-zero otherwise.
+ */
+int GfTexTryPNGImage(const char *filename)
 {
 	static const unsigned char header[] = {0x89, 'P', 'N', 'G'};
     unsigned char buf[sizeof header] = {0};
@@ -539,7 +544,12 @@ static int trypng(const char *filename)
 	return tryformat(filename, header, buf, sizeof buf);
 }
 
-static int tryjpeg(const char *filename)
+/** Load a file from disk and test whether it contains the JPEG magic bytes,
+    @ingroup	img
+    @param	filename	name of the image to test
+    @return	Zero if the file contains the magic bytes from a JPEG image, non-zero otherwise.
+ */
+int GfTexTryJPEGImage(const char *filename)
 {
     static const unsigned char header[] = {0xff, 0xd8, 0xff};
     unsigned char buf[sizeof header] = {0};
@@ -565,12 +575,12 @@ GfTexReadImageFromFile(const char *filename, float screen_gamma, int *pWidth, in
 {
 	unsigned char* pImageBuffer = 0;
 
-	if (!trypng(filename))
+	if (!GfTexTryPNGImage(filename))
 	{
 	    pImageBuffer = GfTexReadImageFromPNG(filename, screen_gamma, pWidth, pHeight,
 											 pPow2Width, pPow2Height);
 	}
-	else if (!tryjpeg(filename))
+	else if (!GfTexTryJPEGImage(filename))
 	{
 	    pImageBuffer = GfTexReadImageFromJPEG(filename, screen_gamma, pWidth, pHeight,
 											  pPow2Width, pPow2Height);

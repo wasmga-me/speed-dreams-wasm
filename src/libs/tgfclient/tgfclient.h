@@ -678,6 +678,8 @@ TGFCLIENT_API const char* GfuiMenuGetStrProperty(void* hparm, const char* pszNam
  * Texture / image interface *
  *****************************/
 
+TGFCLIENT_API int GfTexTryPNGImage(const char *filename);
+TGFCLIENT_API int GfTexTryJPEGImage(const char *filename);
 TGFCLIENT_API unsigned char* GfTexReadImageFromFile(const char* filename, float screen_gamma, int* pWidth, int* pHeight, int* pPow2Width = 0, int* pPow2Height = 0);
 TGFCLIENT_API unsigned char* GfTexReadImageFromPNG(const char* filename, float screen_gamma, int* pWidth, int* pHeight, int* pPow2Width = 0, int* pPow2Height = 0, bool useGammaCorrection = true);
 TGFCLIENT_API unsigned char* GfTexReadImageFromJPEG(const char* filename, float screen_gamma, int* pWidth, int* pHeight, int* pPow2Width = 0, int* pPow2Height = 0);
