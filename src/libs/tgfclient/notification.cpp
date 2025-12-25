@@ -56,8 +56,11 @@ void NotificationManager::updateStatus(){
     this->screenHandle = GfuiGetScreen();
 
     //get the ui descriptor
-    if (!this->menuXMLDescHdle)
-        this->menuXMLDescHdle = GfuiMenuLoad("notifications.xml");
+    if (!this->menuXMLDescHdle) {
+        //do not reuse the descriptor because two or more instances can co-exist
+        this->menuXMLDescHdle = GfParmReadFile("data/menu/notifications.xml",
+            GFPARM_RMODE_STD, true, true, false);
+    }
 
     //if we are doing nothing and we have some message to display: let's do it
     if(this->busy==false && !this->msglist.empty()){

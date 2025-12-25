@@ -1294,10 +1294,10 @@ GfParmReadFile(const std::string &file, int mode, bool neededFile, bool trace)
 }
 
 void *
-GfParmReadFile (const char *file, int mode, bool neededFile, bool trace)
+GfParmReadFile (const char *file, int mode, bool neededFile, bool trace, bool reuse)
 {
     FILE		*in = NULL;
-    struct parmHeader	*conf;
+    struct parmHeader	*conf = NULL;
     struct parmHandle	*parmHandle = NULL;
     char		buf[LINE_SZ];
     int			len;
@@ -1306,8 +1306,10 @@ GfParmReadFile (const char *file, int mode, bool neededFile, bool trace)
     /* switch on/off loggers */
     TraceLoggersAvailable = trace;
 
-    /* search for an already open header & clean the conf if necessary */
-    conf = getSharedHeader (file, mode);
+    if (reuse) {
+        /* search for an already open header & clean the conf if necessary */
+        conf = getSharedHeader (file, mode);
+    }
 
     /* Conf Header creation */
     if (conf == NULL) {
