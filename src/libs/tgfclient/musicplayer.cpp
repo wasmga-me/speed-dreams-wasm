@@ -39,6 +39,7 @@ static char currentMusicfile[MAX_MUSIC_PATH] = {0};
 static char defaultMusic[MAX_MUSIC_PATH] = {0}; //"data/music/main.ogg";
 static float maxMusicVolume = 1.0;
 static SDL_mutex *mapMutex = NULL;
+static musicTrack selmusicTrack;
 
 std::map<std::string,SDL2MusicPlayer*> mapSDL2Players;
 
@@ -94,7 +95,9 @@ void shutdownMusic()
 	std::map<std::string, SDL2MusicPlayer*>::const_iterator itPlayers = mapSDL2Players.begin();
 	while(itPlayers != mapSDL2Players.end()) {
 		SDL2MusicPlayer* player = itPlayers->second;
-		player->stop();
+		const int ms = 1000;
+		player->pause(ms);
+		GfSleep(ms / 1000.0f);
 		player->rewind();
 		++itPlayers;
 	}
@@ -160,6 +163,22 @@ void playMusic(char* filename)
 	}
 }
 
+void fadeInDefaultMusic()
+{
+	SDL2MusicPlayer* player = getMusicPlayer(currentMusicfile);
+
+	if (player)
+		player->start();
+}
+
+void fadeOutDefaultMusic()
+{
+	SDL2MusicPlayer* player = getMusicPlayer(currentMusicfile);
+
+	if (player)
+		player->pause();
+}
+
 void setDefaultMusic(const char* filename)
 {
 	if(0 != filename){
@@ -175,6 +194,36 @@ void setDefaultMusic(const char* filename)
 		defaultMusic[0] = 0;
 		GfLogInfo("Default Music changing to: %s \n", "NULL");
 	}
+}
+
+static std::vector<musicTrack> getTracks(void *paramHandle)
+{
+	static const char section[] = SND_SCT_MUSIC "/" SND_SCT_TRACKS;
+	std::vector<musicTrack> tracks;
+
+	for (int i = 1; i <= GfParmGetEltNb(paramHandle, section); i++)
+	{
+		std::string tracksec = section + std::string("/") + std::to_string(i);
+		const char *ctracksec = tracksec.c_str();
+		const char *path = GfParmGetStr(paramHandle, ctracksec,
+			SND_ATT_MUSIC_PATH, nullptr);
+
+		if (!path)
+			continue;
+
+		musicTrack track;
+
+		track.path = path;
+		track.author = GfParmGetStr(paramHandle, ctracksec,
+			SND_ATT_MUSIC_AUTHOR, "Unknown artist");
+		track.name = GfParmGetStr(paramHandle, ctracksec,
+			SND_ATT_MUSIC_NAME, "Unknown title");
+		track.license = GfParmGetStr(paramHandle, ctracksec,
+			SND_ATT_MUSIC_LICENSE, "Unknown license");
+		tracks.push_back(track);
+	}
+
+	return tracks;
 }
 
 static void readConfig()
@@ -197,8 +246,32 @@ static void readConfig()
 	} else {
 		enabled = false;
 	}
-	const char* defmusic = GfParmGetStr(paramHandle, SND_SCT_MUSIC, SND_ATT_MUSIC_DEFAULT_MUSIC, "data/music/main.ogg");
-	setDefaultMusic(defmusic);
+
+	std::vector<musicTrack> tracks = getTracks(paramHandle);
+
+	if (tracks.empty())
+	{
+		const char* defmusic = GfParmGetStr(paramHandle, SND_SCT_MUSIC,
+			SND_ATT_MUSIC_DEFAULT_MUSIC, "data/music/main.ogg");
+		setDefaultMusic(defmusic);
+	}
+	else
+	{
+		size_t index;
+
+		if (portability::rand(&index, sizeof index))
+		{
+			GfLogError("Failed to calculate random index\n");
+			index = 0;
+		}
+
+		index %= tracks.size();
+
+		const musicTrack &selTrack = tracks.at(index);
+
+		setDefaultMusic(selTrack.path.c_str());
+		selmusicTrack = selTrack;
+	}
 
 	//TODO: Remove this hack after plib is deprecated
 	// Using plib for the sound effects sometimes crashes when OpenAL already has the sound device
@@ -211,6 +284,11 @@ static void readConfig()
 
 	GfParmReleaseHandle(paramHandle);
 	paramHandle = NULL;
+}
+
+const musicTrack &getMusicTrack()
+{
+	return selmusicTrack;
 }
 
 void setMusicVolume(float vol /* 100.0f */)

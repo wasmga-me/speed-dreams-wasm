@@ -413,7 +413,7 @@ TGF_API void *GfParmReadFileLocal(const std::string &file, int mode, bool needed
 TGF_API void *GfParmReadFileBoth(const char *file, int mode);
 TGF_API void *GfParmReadFileBoth(const std::string &file, int mode);
 /* last optional parameter allows usage without logger be available */
-TGF_API void *GfParmReadFile(const char *file, int mode, bool neededFile = true, bool trace = true);
+TGF_API void *GfParmReadFile(const char *file, int mode, bool neededFile = true, bool trace = true, bool reuse = true);
 TGF_API void *GfParmReadFile(const std::string &file, int mode, bool neededFile = true, bool trace = true);
 
 TGF_API void *GfParmReadBuf(char *buffer);

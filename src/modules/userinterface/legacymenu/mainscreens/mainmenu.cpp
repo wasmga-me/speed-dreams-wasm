@@ -17,6 +17,9 @@
  ***************************************************************************/
 
 #include <tgfclient.h>
+#include <musicplayer.h>
+#include <notification.h>
+#include <translation.h>
 
 #include <racescreens.h>
 #include <playerconfig.h>
@@ -27,8 +30,10 @@
 #include "optionsmenu.h"
 #include "creditsmenu.h"
 
+#define TRACK_METADATA_SECT "track metadata"
 
 static void *MenuHandle = 0;
+static NotificationManager notifications;
 
 
 static void
@@ -77,9 +82,17 @@ onExitMenuActivate(void * /*dummy*/)
     GfuiScreenActivate(ExitMenuInit(MenuHandle));
 }
 
+static void recompute(unsigned ms, void *args)
+{
+    notifications.updateStatus();
+}
+
 static void
 onMainMenuActivate(void * /* dummy */)
 {
+    // This must be done after GfuiScreenActivate because this function
+    // overwrites the recompute callback to a null pointer.
+    GfuiApp().eventLoop().setRecomputeCB(::recompute, nullptr);
 }
 
 /*
@@ -125,11 +138,23 @@ MainMenuInit(bool SupportsHumanDrivers)
     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "downloads", NULL, onDownloadsMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "quit", NULL, onExitMenuActivate);
 
-    GfParmReleaseHandle(menuDescHdle);
-
     GfuiMenuDefaultKeysAdd(MenuHandle);
     GfuiAddKey(MenuHandle, GFUIK_ESCAPE, "Quit the game", NULL, onExitMenuActivate, NULL);
 
+    const musicTrack &track = getMusicTrack();
+    std::string artist = GfuiGetTranslatedText(menuDescHdle,
+            TRACK_METADATA_SECT "/artist", "text", ""),
+        title = GfuiGetTranslatedText(menuDescHdle,
+            TRACK_METADATA_SECT "/title", "text", ""),
+        license = GfuiGetTranslatedText(menuDescHdle,
+            TRACK_METADATA_SECT "/license", "text", ""),
+        trackinfo;
+
+    trackinfo = artist + ": " + track.author + '\n';
+    trackinfo += title + ": " + track.name + '\n';
+    trackinfo += license + ": " + track.license;
+    notifications.msglist.push_back(trackinfo);
+    GfParmReleaseHandle(menuDescHdle);
     return MenuHandle;
 }
 

@@ -25,7 +25,6 @@
 #include <sstream>
 #include <playerpref.h>
 #include <tgf.h>
-#include "tgfclient.h"
 #include "webserver.h"
 #include <portability.h>
 
@@ -67,15 +66,6 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-//to string (from c++11)
-template <typename T>
-std::string to_string(T value)
-{
-    std::ostringstream os ;
-    os << value ;
-    return os.str() ;
-}
-
 static size_t WriteStringCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -98,301 +88,6 @@ int getUniqueId(){
 }
 
 //
-
-const int WEBSERVER_IDLE = 0;
-const int WEBSERVER_SENDING = 1;
-const int WEBSERVER_RECEIVING = 2;
-int webserverState = WEBSERVER_IDLE;
-
-
-NotificationManager::NotificationManager()
-: screenHandle(NULL),
-  prevScreenHandle(NULL),
-  menuXMLDescHdle(NULL)
-{
-
-    this->busy = false;
-    this->notifyUiIdBg = -1;//the bg image ui id
-    this->notifyUiIdBusyIcon = -1;//the bg image ui id
-
-    this->animationRestTime = 4 ; //how much wes should wait when we a re fully displayed
-    this->totalAnimationDuration = 0.3 ;//how much the animation should take to fully run in one direction
-    this->animationLastExecTime = std::clock(); //the current time
-
-}
-
-NotificationManager::~NotificationManager()
-{
-    if (menuXMLDescHdle)
-        GfParmReleaseHandle(menuXMLDescHdle);
-}
-
-void NotificationManager::updateStatus(){
-
-    //get the current screen
-    this->screenHandle = GfuiGetScreen();
-
-    //get the ui descriptor
-    if (!this->menuXMLDescHdle)
-        this->menuXMLDescHdle = GfuiMenuLoad("notifications.xml");
-
-    //if we are doing nothing and we have some message to display: let's do it
-    if(this->busy==false && !this->msglist.empty()){
-
-        this->startNewNotification();
-
-    }
-
-    //if we are running an animation
-    if(this->busy==true){
-
-        this->runAnimation();
-
-    }
-
-    //update webserver status icon
-    this->updateWebserverStatusUi();
-
-    //remember the current screen for the next run
-    this->prevScreenHandle = this->screenHandle;
-
-}
-
-void NotificationManager::startNewNotification(){
-
-    //we are running an animation
-    this->busy=true;
-
-    //set the animation direction
-    this->animationDirection=1;
-
-    //retrieve the message to display
-    std::string newText = this->msglist.front();
-
-    //divide the current message in lines
-    this->messageLines = split(this->msglist.front(), '\n');
-
-    //reset the start time(s)
-    this->animationStartTime = this->animationLastExecTime = std::clock();
-    this->animationRestStartTime = 0;
-
-    //reset the start property
-    int propertyCurrentValue=(int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "x", "null", 0);
-    this->propertyChangeNeeded=(int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "width", "null", 0);
-    this->propertyFinalValue = propertyCurrentValue + this->propertyChangeNeeded;
-
-    //padding between the text and the bg image
-    this->textPadding = propertyCurrentValue - (int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slidebg", "x", "null", 0);
-
-    //start
-    this->animationDirection = 1;
-    this->runAnimation();
-
-}
-void NotificationManager::runAnimation(){
-
-    //read the initial state of the UI
-    int propertyCurrentValue = (int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "x", "null", 0);
-    // change needed from current status of the animation to the end
-    int remainingChangeNeeded = (this->propertyFinalValue - propertyCurrentValue);
-
-    //log current time
-    std::clock_t currentTime = std::clock();
-
-    //CASE 1
-    //we still need to apply some change to reach the final value
-    if(remainingChangeNeeded != 0){
-
-        //how much time is we are running the animation
-        // float animationRunningTime = (currentTime - this->animationStartTime) / (float) CLOCKS_PER_SEC;
-
-        //how much time is passed from the last run
-        float animationTimeFromLastStep = (currentTime - this->animationLastExecTime) / (float) CLOCKS_PER_SEC;
-        //time remaining for the animation
-        // float animationTimeRemaining = this->totalAnimationDuration - animationRunningTime;
-
-        //
-        //int propertyStepChange = remainingChangeNeeded / animationTimeRemaining * animationTimeFromLastStep;
-        //int propertyStepChange = remainingChangeNeeded / animationTimeRemaining;
-        //if we have not arhieving 30fps slow down the animation
-        if(animationTimeFromLastStep > 0.033333333){
-
-            animationTimeFromLastStep = animationTimeFromLastStep;
-
-        }
-        int propertyStepChange = this->propertyChangeNeeded / this->totalAnimationDuration * this->animationDirection * animationTimeFromLastStep;
-
-        // if the change is too little we round it up to 1 unit at least
-        if((propertyStepChange * this->animationDirection) < 1 ){
-
-            propertyStepChange = 1 * this->animationDirection;
-
-        }
-
-        //new value for the property
-        int propertyNewValue = propertyCurrentValue + propertyStepChange;
-
-        //it he new value with the change applied is greater that the final result we want we correct it to be equal to the final result
-        if (propertyNewValue * this->animationDirection  > propertyFinalValue * this->animationDirection ){
-
-            propertyNewValue = propertyFinalValue;
-
-        }
-
-        //apply the new values
-        GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slide", "x", "null", propertyNewValue);
-        GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slidebg", "x", "null", propertyNewValue - this->textPadding);
-
-        //remember the time we ran the last(this) animation frame
-        this->animationLastExecTime = currentTime;
-
-        /*
-        GfLogInfo("###############################\n");
-        GfLogInfo("StartTime: %d \n",this->animationStartTime);
-        GfLogInfo("CurrentTime: %d \n",currentTime);
-        GfLogInfo("RunningTime: %f \n ",(currentTime - this->animationStartTime) / (float) CLOCKS_PER_SEC);
-        GfLogInfo("RunningTime: %f \n ",(currentTime - this->animationStartTime));
-        GfLogInfo("RunningTime: %f \n ",(float) CLOCKS_PER_SEC);
-
-        GfLogInfo("\n ");
-        GfLogInfo("AnimationDuration: %f \n ",this->totalAnimationDuration);
-        GfLogInfo("TimeRemaining: %f \n ",animationTimeRemaining);
-        GfLogInfo("\n ");
-        GfLogInfo("FinalValue: %i \n ",this->propertyFinalValue);
-        GfLogInfo("CurrentValue: %i \n ",propertyCurrentValue);
-        GfLogInfo("Change Needed: %i \n ",remainingChangeNeeded);
-        GfLogInfo("StepChange: %i \n ",propertyStepChange);
-        GfLogInfo("\n ");
-        GfLogInfo("Direction: %i \n ",this->animationDirection);
-        */
-
-        this->removeOldUi();
-        this->createUi();
-
-    }
-
-
-
-    //CASE 2
-    // no change needed while running the runOutAnimation
-    if(remainingChangeNeeded == 0 && this->animationDirection == -1){
-
-        //delette this message from the queque
-        this->msglist.erase (this->msglist.begin());
-
-        //we are no longer busy
-        this->busy=false;
-
-    }
-
-
-    //CASE 3
-    // no change needed while running the runInAnimation: we have ended the runInAnimation
-    if(remainingChangeNeeded == 0 && this->animationDirection == 1){
-        if(this->animationRestStartTime==0){
-
-            //we are just done runnig the runInAnimation
-            //log the time we start waiting while fully displayed
-            this->animationRestStartTime = std::clock();
-
-        }else{
-
-            //if rest time has expired: start the runOutAnimation
-            if(((currentTime - this->animationRestStartTime) / (float) CLOCKS_PER_SEC) > this->animationRestTime){
-
-                //change the animation direction
-                this->animationDirection = -1;
-
-                //reset the animation start time
-                this->animationStartTime = this->animationLastExecTime = std::clock(); //when the animation started
-
-                //read property info
-                this->propertyChangeNeeded= (int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "width", "null", 0);
-                this->propertyFinalValue = propertyCurrentValue - this->propertyChangeNeeded;
-
-            }
-
-        }
-
-    }
-
-}
-
-void NotificationManager::removeOldUi(){
-
-    //if there is a prev screen
-    if( GfuiScreenIsActive(this->prevScreenHandle) )
-    {
-        //if there is some prev ui around hide it
-        if(this->notifyUiIdBg > 0)
-        {
-            GfuiVisibilitySet(this->prevScreenHandle, this->notifyUiIdBg, GFUI_INVISIBLE);
-        }
-
-        //iterate trougth ui and set them invisible
-        for (size_t i = 0; i < notifyUiId.size(); i++)
-        {
-            GfuiVisibilitySet(this->prevScreenHandle, this->notifyUiId[i], GFUI_INVISIBLE);
-        }
-    }
-
-    //delete the prev ui's
-    this->notifyUiId.clear();
-    this->notifyUiIdBg=-1;
-}
-
-void NotificationManager::createUi()
-{
-    //create the new UI
-    this->notifyUiIdBg = GfuiMenuCreateStaticImageControl(this->screenHandle, this->menuXMLDescHdle, "slidebg");
-    GfuiVisibilitySet(this->screenHandle, this->notifyUiIdBg, GFUI_VISIBLE);
-
-    //get first line vertical position
-    int ypos=(int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "y", "null", 0);
-    // int yposmod= ypos;
-
-    //iterate trougth lines
-    for (size_t i = 0; i < this->messageLines.size(); i++)
-    {
-        int uiId;
-        uiId= GfuiMenuCreateLabelControl(this->screenHandle, this->menuXMLDescHdle, "slide");
-
-        //change the vertical position
-        int yposmod = ypos - (i+1)*(10);
-        GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slide", "y", "null", yposmod);
-
-        GfuiLabelSetText(this->screenHandle, uiId, this->messageLines[i].c_str());
-        GfuiVisibilitySet(this->screenHandle, uiId, GFUI_VISIBLE);
-        this->notifyUiId.push_back(uiId);
-     }
-
-    //reset ypos
-    GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slide", "y", "null", ypos);
-}
-
-void NotificationManager::updateWebserverStatusUi()
-{
-    //todo: this was causing some random crash
-    //if there is some prev ui around hide it
-    if(this->notifyUiIdBusyIcon > 0 && this->screenHandle == this->prevScreenHandle)
-    {
-        GfuiVisibilitySet(this->prevScreenHandle, this->notifyUiIdBusyIcon, GFUI_INVISIBLE);
-        this->notifyUiIdBusyIcon = -1;
-    }
-
-    if(this->screenHandle != NULL)
-    {
-        //if webserver is not IDLE display busy icon (sending or receiving)
-        if(webserverState != WEBSERVER_IDLE)
-        {
-            std::string webServerIcon = "busyicon";
-            webServerIcon.append(to_string(webserverState));
-
-            this->notifyUiIdBusyIcon = GfuiMenuCreateStaticImageControl(this->screenHandle, this->menuXMLDescHdle, webServerIcon.c_str());
-            GfuiVisibilitySet(this->screenHandle, this->notifyUiIdBusyIcon, GFUI_VISIBLE);
-        }
-    }
-}
 
 WebServer::WebServer()
 {
@@ -444,8 +139,8 @@ int WebServer::updateAsyncStatus()
         nextRequest = this->orderedAsyncRequestQueque.front();
 
         //replace the {{tags}} with actual data received from previous requests replies
-        replaceAll(nextRequest.data, "{{race_id}}", to_string(this->raceId));
-        replaceAll(nextRequest.data, "{{user_id}}", to_string(this->userId));
+        replaceAll(nextRequest.data, "{{race_id}}", std::to_string(this->raceId));
+        replaceAll(nextRequest.data, "{{user_id}}", std::to_string(this->userId));
 
         GfLogInfo("WebServer: Adding AsyncRequest from orderedAsyncRequestQueque with id: %i\n", nextRequest.id);
         this->pendingAsyncRequestId = nextRequest.id;
@@ -459,11 +154,11 @@ int WebServer::updateAsyncStatus()
     {
         GfLogDebug("WebServer: Number of async request waiting for a reply from the server: %i\n", this->handle_count);
         //display some UI to the user to inform him we are waiting a reply from the server
-        webserverState=WEBSERVER_RECEIVING;
+        notifications.status = NotificationManager::Receiving;
     }
     else
     {
-        webserverState=WEBSERVER_IDLE;
+        notifications.status = NotificationManager::Idle;
     }
 
     CURLMsg *msg;
@@ -485,7 +180,7 @@ int WebServer::updateAsyncStatus()
                 fprintf(stderr, "CURL error code: %d\n", msg->data.result);
 
                 //something went wrong. anyway we are no more busy
-                webserverState=WEBSERVER_IDLE;
+                notifications.status = NotificationManager::Idle;
 
                 continue;
             }
@@ -534,7 +229,7 @@ int WebServer::updateAsyncStatus()
                         for( int dispatchedMsgs = 0; dispatchedMsgs < msgsCount; dispatchedMsgs = dispatchedMsgs + 1 )
                            {
                             std::string msgTag = "message";
-                            msgTag.append(to_string(dispatchedMsgs));
+                            msgTag.append(std::to_string(dispatchedMsgs));
                             GfLogInfo("WebServer: Adding messagge to be displayed to the NotificationQueque:\n%s\n", msgTag.c_str());
 
                             notifications.msglist.push_back(GfParmGetStr(xmlReply, "content/reply/messages", msgTag.c_str(), "null"));
@@ -643,7 +338,7 @@ int WebServer::addAsyncRequest(const std::string &data)
     curl_multi_add_handle(this->multi_handle, curl);
 
     //pending request
-    webserverState=WEBSERVER_SENDING;
+    notifications.status = NotificationManager::Sending;
 
     return 0;
 }
@@ -656,7 +351,7 @@ int WebServer::addOrderedAsyncRequest(const std::string &data)
     request.id = getUniqueId();
     request.data = data;
 
-    replaceAll(request.data, "{{request_id}}", to_string(request.id));
+    replaceAll(request.data, "{{request_id}}", std::to_string(request.id));
 
     this->orderedAsyncRequestQueque.push_back(request);
 
@@ -803,11 +498,11 @@ int WebServer::sendLap (int race_id, bool valid, double laptime, double fuel,
 
     //replace the {{tags}} with the respecting values
     //The following tags will be replaced later because some other request must be done before: {{race_id}}
-    replaceAll(dataToSend, "{{laptime}}", to_string(laptime));
-    replaceAll(dataToSend, "{{fuel}}", to_string(fuel));
-    replaceAll(dataToSend, "{{position}}", to_string(position));
-    replaceAll(dataToSend, "{{wettness}}", to_string(wettness));
-    replaceAll(dataToSend, "{{valid}}", to_string(valid));
+    replaceAll(dataToSend, "{{laptime}}", std::to_string(laptime));
+    replaceAll(dataToSend, "{{fuel}}", std::to_string(fuel));
+    replaceAll(dataToSend, "{{position}}", std::to_string(position));
+    replaceAll(dataToSend, "{{wettness}}", std::to_string(wettness));
+    replaceAll(dataToSend, "{{valid}}", std::to_string(valid));
 
     this->addOrderedAsyncRequest(dataToSend);
 
@@ -859,13 +554,13 @@ int WebServer::sendRaceStart (tSkillLevel user_skill, const char *track_id, char
 
     //replace the {{tags}} with the respecting values
     //The following tags will be replaced later because some other request must be done before: {{user_id}}
-    replaceAll(dataToSend, "{{user_skill}}", to_string(user_skill));
-    replaceAll(dataToSend, "{{track_id}}", to_string(track_id));
-    replaceAll(dataToSend, "{{car_id}}", to_string(car_id));
-    replaceAll(dataToSend, "{{type}}", to_string(type));
+    replaceAll(dataToSend, "{{user_skill}}", std::to_string(user_skill));
+    replaceAll(dataToSend, "{{track_id}}", std::string(track_id));
+    replaceAll(dataToSend, "{{car_id}}", std::string(car_id));
+    replaceAll(dataToSend, "{{type}}", std::to_string(type));
     replaceAll(dataToSend, "{{setup}}", mysetup);
-    replaceAll(dataToSend, "{{startposition}}", to_string(startposition));
-    replaceAll(dataToSend, "{{sdversion}}", to_string(sdversion));
+    replaceAll(dataToSend, "{{startposition}}", std::to_string(startposition));
+    replaceAll(dataToSend, "{{sdversion}}", std::string(sdversion));
 
     this->addOrderedAsyncRequest(dataToSend);
 
@@ -912,7 +607,7 @@ int WebServer::sendRaceEnd (int race_id, int endposition)
 
     //replace the {{tags}} with the respecting values
     //The following tags will be replaced later because some other request must be done before: {{race_id}}
-    replaceAll(dataToSend, "{{endposition}}", to_string(endposition));
+    replaceAll(dataToSend, "{{endposition}}", std::to_string(endposition));
 
     this->addOrderedAsyncRequest(dataToSend);
 
