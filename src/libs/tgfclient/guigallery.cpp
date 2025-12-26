@@ -240,6 +240,7 @@ int tGfuiGallery::update()
 }
 
 tGfuiGallery::tGfuiGallery(const char *dirname) :
+	state(INIT),
 	dirname(dirname),
 	overscan(30.0f),
 	color(0),
