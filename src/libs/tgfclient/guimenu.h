@@ -46,6 +46,7 @@ extern bool gfuiMenuGetBoolean(const char* pszValue, bool bDefault = false);
 #define GFMNU_TYPE_LABEL "label"
 #define GFMNU_TYPE_STATIC_IMAGE "static image"
 #define GFMNU_TYPE_BACKGROUND_IMAGE "background image"
+#define GFMNU_TYPE_GALLERY "gallery"
 #define GFMNU_TYPE_TEXT_BUTTON "text button"
 #define GFMNU_TYPE_IMAGE_BUTTON "image button"
 #define GFMNU_TYPE_EDIT_BOX "edit box"
@@ -57,6 +58,7 @@ extern bool gfuiMenuGetBoolean(const char* pszValue, bool bDefault = false);
 #define GFMNU_ATTR_TEXT "text"
 #define GFMNU_ATTR_TIP "tip"
 #define GFMNU_ATTR_MAX_LEN "max len"
+#define GFMNU_ATTR_DIR "directory"
 
 #define GFMNU_ATTR_X "x"
 #define GFMNU_ATTR_Y "y"

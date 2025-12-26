@@ -44,6 +44,7 @@
 #include "musicplayer.h"
 #include "guimenusfx.h"
 #include <SDL_mixer.h>
+#include <list>
 
 #ifdef _WIN32
 PFNGLUSEPROGRAMOBJECTARBPROC glUseProgram = NULL;
@@ -356,10 +357,15 @@ GfuiRedraw(void)
 
 		glBegin(GL_QUADS);
 
-		glTexCoord2f(tx1, ty1); glVertex3f(0.0, 0.0, 0.0);
-		glTexCoord2f(tx1, ty2); glVertex3f(0.0, GfuiScreen->height, 0.0);
-		glTexCoord2f(tx2, ty2); glVertex3f(GfuiScreen->width, GfuiScreen->height, 0.0);
-		glTexCoord2f(tx2, ty1); glVertex3f(GfuiScreen->width, 0.0, 0.0);
+		float x1 = GfuiScreen->xoffset - GfuiScreen->overscan,
+			x2 = x1 + GfuiScreen->width + GfuiScreen->overscan,
+			y1 = GfuiScreen->yoffset - GfuiScreen->overscan,
+			y2 = y1 + GfuiScreen->height + GfuiScreen->overscan;
+
+		glTexCoord2f(tx1, ty1); glVertex3f(x1, y1, 0.0);
+		glTexCoord2f(tx1, ty2); glVertex3f(x1, y2, 0.0);
+		glTexCoord2f(tx2, ty2); glVertex3f(x2, y2, 0.0);
+		glTexCoord2f(tx2, ty1); glVertex3f(x2, y1, 0.0);
 
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
@@ -650,6 +656,20 @@ GfuiScreenActivate(void *screen)
 
 	if (GfuiScreen->onlyCallback == 0)
 	{
+		if (GfuiScreen->gallery)
+		{
+			GfuiApp().eventLoop().setPredisplayCB(GfuiGallery);
+		}
+		else
+		{
+			// Reset to default RGB and X/Y/OV values for static background image.
+			gfuiColors[GFUI_BASECOLORBGIMAGE][0] = 1;
+			gfuiColors[GFUI_BASECOLORBGIMAGE][1] = 1;
+			gfuiColors[GFUI_BASECOLORBGIMAGE][2] = 1;
+			GfuiScreen->xoffset = GfuiScreen->yoffset = GfuiScreen->overscan = 0;
+			GfuiApp().eventLoop().setPredisplayCB(NULL);
+		}
+
 		if (GfuiScreen->hasFocus == NULL)
 		{
 			gfuiSelectNext(NULL);
@@ -666,6 +686,7 @@ GfuiScreenActivate(void *screen)
 
 	if (GfuiScreen->onlyCallback == 0)
 	{
+		GfuiApp().eventLoop().predisplay();
 		GfuiDisplay();
 		GfuiApp().eventLoop().postRedisplay();
 	}
@@ -1193,6 +1214,43 @@ GfuiScreenAddBgImg(void *scr, const char *filename)
 	//       and we request this 2^N x 2^P enforcment by passing &pow2Width and &pow2Height.
 	screen->bgImage =
 		GfTexReadTexture(filename, &screen->bgWidth, &screen->bgHeight, &pow2Width, &pow2Height);
+
+	if (screen->bgImage)
+		screen->bgImagePath = filename;
+}
+
+/** Set the path to a gallery directory with one or more images.
+    @ingroup	gui
+    @param	scr		Screen
+    @param	filename	Directory name of the gallery
+    @return	None.
+ */
+void
+GfuiScreenSetGallery(void *scr, const char *dirname)
+{
+	static std::list <tGfuiGallery> galleries;
+	tGfuiScreen	*screen = (tGfuiScreen *)scr;
+
+	for (auto &gallery : galleries)
+	{
+		if (gallery.dir() == dirname)
+		{
+			screen->gallery = &gallery;
+			GfuiScreenAddBgImg(screen, gallery.file().c_str());
+			return;
+		}
+	}
+
+	tGfuiGallery gallery(dirname);
+
+	if (gallery.open())
+	{
+		GfLogError("Failed to open gallery at %s\n", dirname);
+		return;
+	}
+
+	galleries.push_back(gallery);
+	screen->gallery = &galleries.back();
 }
 
 /** Add the background music for the given screen.

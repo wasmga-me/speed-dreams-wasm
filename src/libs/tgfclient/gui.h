@@ -21,6 +21,7 @@
 #include "tgfclient.h"
 #include "glfeatures.h"
 #include "guifont.h"
+#include <string>
 
 // Predefined colors (array and indexes).
 #define GFUI_COLORNB	24
@@ -304,11 +305,40 @@ typedef struct GfuiKey
     struct GfuiKey	*next;
 } tGfuiKey;
 
+typedef class TGFCLIENT_API tGfuiGallery
+{
+public:
+    tGfuiGallery(const char *dirname);
+    const std::string &dir() const;
+    const std::string &file() const;
+    int open();
+    int update();
+
+private:
+    int init();
+    int init_direction();
+    int fadein();
+    int show();
+    int fadeout();
+    void move();
+    void setcolor() const;
+    enum {INIT, FADEIN, SHOW, FADEOUT} state;
+    enum {DIR_LEFT, DIR_RIGHT, DIR_UP, DIR_DOWN, N_DIRECTIONS};
+    unsigned direction;
+    std::string dirname, fullpath;
+    std::vector<std::string> files;
+    const float overscan;
+    float color;
+    float xoffset, yoffset;
+    double time;
+} tGfuiGallery;
+
 /* screen definition */
 typedef struct
 {
     int			ScreenID; /* Identify screen in registration */
     float		width, height; /* in menu/screen objects coordinate system */
+    float       overscan, xoffset, yoffset; /* For moving backgrounds */
     GfuiColor		bgColor; /* RGBA */
     GLuint		bgImage; /* Should always be 2^N x 2^P  (for low-end graphic hardwares) */
     int			bgWidth, bgHeight; /* Original bg image size (may be not 2^N x 2^P) */
@@ -343,9 +373,14 @@ typedef struct
 
     /* Ogg music file to play while screen is displayed */
     char		*musicFilename;
+
+    /* Path to current background image. */
+    std::string bgImagePath;
+
+    /* A valid pointer if the screen cointains an animated gallery,
+     * null otherwise. */
+    tGfuiGallery *gallery;
 } tGfuiScreen;
-
-
 
 extern tGfuiScreen	*GfuiScreen;
 extern tMouseInfo	 GfuiMouse;

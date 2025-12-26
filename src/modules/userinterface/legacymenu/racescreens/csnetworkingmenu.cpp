@@ -329,8 +329,6 @@ UpdateNetworkPlayers()
     sprintf(buf, "%i", laps);
     GfuiLabelSetText(racemanMenuHdle,g_lapsHd,buf);
 
-    GfuiScreenAddBgImg(racemanMenuHdle,
-                       GetTrackPreviewFileName(strCategory.c_str(),strTrackPath.c_str()).c_str());
     GfuiStaticImageSet(racemanMenuHdle, g_OutlineId,
                        GetTrackOutlineFileName(strCategory.c_str(),strTrackPath.c_str()).c_str());
 

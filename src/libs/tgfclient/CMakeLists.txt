@@ -21,6 +21,7 @@ SET(_SOURCES control.cpp glfeatures.cpp guibutton.cpp guifont.cpp
             guilabel.cpp guiobject.cpp guiscrollist.cpp
             guicombobox.cpp guicheckbox.cpp guiprogresbar.cpp
             guiscreen.cpp guieventloop.cpp guiapplication.cpp
+            guigallery.cpp
             notification.cpp notification.h
             musicplayer.cpp musicplayer.h
             sdl2musicplayer.cpp sdl2musicplayer.h
