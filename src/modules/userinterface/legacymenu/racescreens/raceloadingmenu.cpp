@@ -25,7 +25,11 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <portability.h>
+#include <tgf.h>
 #include <tgfclient.h>
+#include <translation.h>
+#include <string>
 
 #include <car.h>
 
@@ -42,7 +46,36 @@ static float** FGColors = 0;
 static int*	TextLineIds = 0;
 static char** TextLines = 0;
 static int CurTextLineIdx;
+static int TipId;
 
+static std::string RmLoadingScreenGetTip(void *hmenu)
+{
+	std::string tip, section = "tips/strings";
+	const char *param = GfuiGetTranslatedText(hmenu, "tips", "text", nullptr);
+	int n = GfParmGetEltNb(hmenu, section.c_str());
+	unsigned index;
+
+	if (!param || !n)
+		return "";
+
+	tip = param;
+
+	if (portability::rand(&index, sizeof index))
+	{
+		GfLogError("portability::rand failed\n");
+		return "";
+	}
+
+	index %= n;
+	section += "/" + std::to_string(index + 1);
+	param = GfuiGetTranslatedText(hmenu, section.c_str(), "text", nullptr);
+
+	if (!param)
+		return "";
+
+	tip += param;
+	return tip;
+}
 
 /**
     @ingroup	racemantools
@@ -106,6 +139,10 @@ RmLoadingScreenStart(const char *title, const char *bgimg)
     // Add background image.
     if (bgimg)
 		GfuiScreenAddBgImg(HScreen, bgimg);
+
+	TipId = GfuiMenuCreateLabelControl(HScreen, hmenu, "tiplabel");
+
+	GfuiLabelSetText(HScreen, TipId, RmLoadingScreenGetTip(hmenu).c_str());
 
     // Close menu XML descriptor.
     GfParmReleaseHandle(hmenu);
