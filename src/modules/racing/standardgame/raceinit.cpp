@@ -451,6 +451,40 @@ initPits(void)
     }
 }
 
+static int reParseDisabledPenalties(const char *disabledpenalties)
+{
+    std::istringstream stream(disabledpenalties);
+    std::string token;
+    int ret = 0;
+
+    while (std::getline(stream, token, ';'))
+    {
+        static const struct penalty
+        {
+            const char *name;
+            int penalty;
+        } penalties[] =
+        {
+            {"drivethrough", RM_PENALTY_DRIVETHROUGH},
+            {"stopandgo", RM_PENALTY_STOPANDGO},
+            {"10secstopandgo", RM_PENALTY_10SEC_STOPANDGO},
+            {"disqualified", RM_PENALTY_DISQUALIFIED},
+            {"slowdown", RM_PENALTY_SLOWDOWN}
+        };
+
+        for (const auto &p : penalties)
+        {
+            if (token == p.name)
+            {
+                ret |= 1 << p.penalty;
+                break;
+            }
+        }
+    }
+
+    return ret;
+}
+
 /**
  * Function to load a car.
  *
@@ -770,6 +804,7 @@ static tCarElt* reLoadSingleCar( int carindex, int listindex, int modindex, int 
         elt->_trackPositionCount = (int)(ReInfo->track->length + 1); // round up
         elt->_currLapTimeAtTrackPosition = (float *)malloc(elt->_trackPositionCount * sizeof(float));
         elt->_bestLapTimeAtTrackPosition = (float *)malloc(elt->_trackPositionCount * sizeof(float));
+        elt->_disabledPenalties = reParseDisabledPenalties(ReInfo->track->disabledpenalties);
 
         return elt;
     }

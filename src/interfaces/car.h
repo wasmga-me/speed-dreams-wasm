@@ -232,6 +232,7 @@ typedef struct
     tdble       penaltyTime;
     tdble		prevFromStartLine;
     double		wrongWayTime;
+    int                 disabledPenalties; /**< Bitmask of per-track disabled penalties */
 } tCarRaceInfo;
 /* structure access */
 #define _bestLapTime	        race.bestLapTime
@@ -268,6 +269,7 @@ typedef struct
 #define _penaltyTime	        race.penaltyTime
 #define _prevFromStartLine	race.prevFromStartLine
 #define _wrongWayTime		race.wrongWayTime
+#define _disabledPenalties      race.disabledPenalties
 
 /** Public info on the cars */
 typedef struct {

@@ -197,6 +197,11 @@ static double penaltyFactor(tCarPenalty *penalty) {
     return 1.0;
 }
 
+static bool reCarsPenaltyEnabled(const tCarElt *car, int penalty)
+{
+    return !(car->_disabledPenalties & (1 << penalty));
+}
+
 /* Compute the race rules and penalties */
 static void
 reCarsApplyRaceRules(tCarElt *car, double deltaTime)
@@ -335,7 +340,7 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
             if (!penalty->thr2 && penalty->accum_thr2 > RM_SLOW_THRESHOLD_2_TIME) {
                 penalty->thr2 = true;
                 penalty->timeToClear = penalty->timeToClear*penaltyFactor(penalty);
-      
+
                 snprintf(msg, sizeof(msg), "%s Slowdown penalty forgiven", car->_name);
                 ReSituation::self().setRaceMessage(msg, 5);
             }
@@ -353,7 +358,7 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
                 snprintf(msg, sizeof(msg), "%s %0.1fs Slowdown penalty", car->_name, penalty->timeToClear);
                 ReSituation::self().setRaceMessage(msg, 5);
             }
-        } else {
+        } else if (reCarsPenaltyEnabled(car, RM_PENALTY_SLOWDOWN)) {
             car->_commitBestLapTime = false;
             reCarsAddPenalty(car, RM_PENALTY_SLOWDOWN);
             GfLogInfo("%s Got a slowdown.\n", car->_name);
@@ -427,7 +432,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     // 2) Check if not too late for the 1st penalty if any.
     if (penalty)
     {
-        if (car->_laps > penalty->lapToClear)
+        if (reCarsPenaltyEnabled(car, RM_PENALTY_DISQUALIFIED)
+            && car->_laps > penalty->lapToClear)
         {
             // The penalty was not "executed" : too late to clear => disqualified (out of race)
             reCarsAddPenalty(car, RM_PENALTY_DISQUALIFIED);
@@ -505,7 +511,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
         } else {
             // 4c) Exiting pit lane the wrong way : add new stop and go penalty if possible.
             //GfLogDebug("%s exiting pit lane by a side (bad).\n", car->_name);
-            if (!(rules->ruleState & RM_PNST_STOPANDGO))
+            if (reCarsPenaltyEnabled(car, RM_PENALTY_STOPANDGO)
+                && !(rules->ruleState & RM_PNST_STOPANDGO))
             {
                 reCarsAddPenalty(car, RM_PENALTY_STOPANDGO);
                 rules->ruleState = RM_PNST_STOPANDGO;
@@ -525,7 +532,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     else if (seg->raceInfo & TR_PIT)
     {
         //GfLogDebug("%s entering pit lane by a side (bad).\n", car->_name);
-        if (!(rules->ruleState & RM_PNST_STOPANDGO))
+        if (reCarsPenaltyEnabled(car, RM_PENALTY_STOPANDGO)
+            && !(rules->ruleState & RM_PNST_STOPANDGO))
         {
             reCarsAddPenalty(car, RM_PENALTY_STOPANDGO);
             rules->ruleState = RM_PNST_STOPANDGO;
@@ -537,7 +545,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     // 7) If too fast in a speed limited section, add new drive-through penalty if possible.
     if (seg->raceInfo & TR_SPEEDLIMIT)
     {
-        if (!(rules->ruleState & (RM_PNST_OVERSPEED | RM_PNST_STOPANDGO))
+        if (reCarsPenaltyEnabled(car, RM_PENALTY_DRIVETHROUGH)
+            && !(rules->ruleState & (RM_PNST_OVERSPEED | RM_PNST_STOPANDGO))
             && car->_speed_x > track->pits.speedLimit)
         {
             rules->ruleState |= RM_PNST_OVERSPEED;
@@ -549,7 +558,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
     // Check for jumping starting lights
     if (ReInfo->s->_raceState & RM_RACE_PRESTART  && car->_speed_x > 1)
     {
-        if (!(rules->ruleState & (RM_PNST_STOPANDGO)))
+        if (reCarsPenaltyEnabled(car, RM_PENALTY_STOPANDGO)
+            && !(rules->ruleState & (RM_PNST_STOPANDGO)))
         {
             reCarsAddPenalty(car, RM_PENALTY_STOPANDGO);
             rules->ruleState = RM_PNST_STOPANDGO;

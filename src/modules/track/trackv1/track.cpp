@@ -142,6 +142,7 @@ GetTrackHeader(void *TrackHandle) {
     theTrack->copyright = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_COPYRIGHT, "none");
     theTrack->category = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_CAT, "road");
     theTrack->subcategory = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_SUBCAT, "none");
+    theTrack->disabledpenalties = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_DISABLED_PENALTIES, "");
 
     // Read Local Info section
     tTrackLocalInfo *local = &theTrack->local;
