@@ -244,7 +244,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
         // Invalidation and message is just shown on the first hit
         if (car->_commitBestLapTime
             && car->_simcollision & SEM_COLLISION_XYSCENE
-            && ReInfo->raceRules.enabled & RmRaceRules::WALL_HIT_TIME_INVALIDATE)
+            && ((ReInfo->raceRules.enabled & RmRaceRules::WALL_HIT_TIME_INVALIDATE)
+                && reCarsPenaltyEnabled(car, RM_PENALTY_WALLHIT_TIME_INVALIDATE)))
         {
             car->_commitBestLapTime = false;
             snprintf(msg, sizeof(msg), "%s Hit Wall, laptime invalidated", car->_name);

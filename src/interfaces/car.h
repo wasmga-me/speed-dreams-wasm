@@ -168,6 +168,7 @@ typedef struct {
 #define RM_PENALTY_10SEC_STOPANDGO  3
 #define RM_PENALTY_DISQUALIFIED     4
 #define RM_PENALTY_SLOWDOWN         5
+#define RM_PENALTY_WALLHIT_TIME_INVALIDATE  6
 
 #define MPS_TO_KPH(x) ((x)*3600.0/1000.0)
 #define KPH_TO_MPS(x) ((x)*1000.0/3600.0)

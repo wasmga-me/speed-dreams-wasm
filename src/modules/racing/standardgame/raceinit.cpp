@@ -469,7 +469,8 @@ static int reParseDisabledPenalties(const char *disabledpenalties)
             {"stopandgo", RM_PENALTY_STOPANDGO},
             {"10secstopandgo", RM_PENALTY_10SEC_STOPANDGO},
             {"disqualified", RM_PENALTY_DISQUALIFIED},
-            {"slowdown", RM_PENALTY_SLOWDOWN}
+            {"slowdown", RM_PENALTY_SLOWDOWN},
+            {"wallhittimeinvalidate", RM_PENALTY_WALLHIT_TIME_INVALIDATE}
         };
 
         for (const auto &p : penalties)
