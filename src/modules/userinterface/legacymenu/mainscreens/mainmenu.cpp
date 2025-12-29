@@ -154,6 +154,12 @@ MainMenuInit(bool SupportsHumanDrivers)
     trackinfo += title + ": " + track.name + '\n';
     trackinfo += license + ": " + track.license;
     notifications.msglist.push_back(trackinfo);
+
+    int version = GfuiMenuCreateLabelControl(MenuHandle, menuDescHdle, "version");
+
+    if (version >= 0)
+        GfuiLabelSetText(MenuHandle, version, GfuiApp().version().c_str());
+
     GfParmReleaseHandle(menuDescHdle);
     return MenuHandle;
 }
