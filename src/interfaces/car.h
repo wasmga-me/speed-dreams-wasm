@@ -168,6 +168,7 @@ typedef struct {
 #define RM_PENALTY_10SEC_STOPANDGO  3
 #define RM_PENALTY_DISQUALIFIED     4
 #define RM_PENALTY_SLOWDOWN         5
+#define RM_PENALTY_WALLHIT_TIME_INVALIDATE  6
 
 #define MPS_TO_KPH(x) ((x)*3600.0/1000.0)
 #define KPH_TO_MPS(x) ((x)*1000.0/3600.0)
@@ -232,6 +233,7 @@ typedef struct
     tdble       penaltyTime;
     tdble		prevFromStartLine;
     double		wrongWayTime;
+    int                 disabledPenalties; /**< Bitmask of per-track disabled penalties */
 } tCarRaceInfo;
 /* structure access */
 #define _bestLapTime	        race.bestLapTime
@@ -268,6 +270,7 @@ typedef struct
 #define _penaltyTime	        race.penaltyTime
 #define _prevFromStartLine	race.prevFromStartLine
 #define _wrongWayTime		race.wrongWayTime
+#define _disabledPenalties      race.disabledPenalties
 
 /** Public info on the cars */
 typedef struct {

@@ -46,6 +46,7 @@
 #define TRK_ATT_DESCR               "description"
 #define TRK_ATT_CAT                 "category"
 #define TRK_ATT_SUBCAT              "subcategory"
+#define TRK_ATT_DISABLED_PENALTIES	"disabled penalties"
 
 #define TRK_ATT_NONE                "none"
 #define TRK_ATT_SHORT               "short"
@@ -728,6 +729,7 @@ typedef struct Track
 	double	*sectors;           /**< sectors[i] is the distance from start where sector i+1 ends and sector i starts */
 
 	tTrackLocalInfo local;      /**< Local info (weather, timeof day ...) */
+	const char    *disabledpenalties; /**< Semicolon-separated list of disabled penalties. */
 } tTrack;
 
 /* For Type 3 tracks (now obsolete) */
