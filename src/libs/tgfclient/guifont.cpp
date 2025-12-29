@@ -97,7 +97,7 @@ void gfuiLoadFonts(void)
 
 	snprintf(buf, sizeof(buf), "%sdata/fonts/%s", GfDataDir(),
 			 GfParmGetStr(param, "Menu Font TrueType", "name",
-				"Jura/Jura.ttf"));
+				"Jura/Jura-DemiBold.ttf"));
 	GfLogTrace("Loading font 'Menu Font' from %s : Sizes", buf);
 	nFontId = GFUI_FONT_BIG;
 	for(i = 0; i < 4; i++, nFontId++) {
