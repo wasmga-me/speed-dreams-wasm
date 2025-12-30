@@ -20,17 +20,6 @@
 
 #MESSAGE(STATUS "Processing ${CMAKE_CURRENT_SOURCE_DIR} ...")
 
-# Setup the install prefix.
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  IF(WIN32)
-    SET(CMAKE_INSTALL_PREFIX "installed-build" CACHE PATH "Prefix prepended to install directories" FORCE)
-  ELSEIF(APPLE)
-    SET(CMAKE_INSTALL_PREFIX "speed-dreams-2.app" CACHE PATH "Prefix prepended to install directories" FORCE)
-  ELSE()
-    SET(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Prefix prepended to install directories" FORCE)
-  ENDIF()
-ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-
 # Macros arg list parsing tools.
 IF(NOT _ALREADY_DONE)
   INCLUDE(${CMAKE_CURRENT_LIST_DIR}/splitargn.cmake)
