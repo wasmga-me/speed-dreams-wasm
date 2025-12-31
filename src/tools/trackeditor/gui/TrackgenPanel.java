@@ -25,6 +25,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -100,49 +101,59 @@ public class TrackgenPanel extends JDialog implements Runnable
 		int result = -1;
 		String path = Editor.getProperties().getPath();
 		String trackName = path.substring(path.lastIndexOf(sep) + 1);
-		String category = " -c " + editorFrame.getTrackData().getHeader().getCategory();
-		String name = " -n " + trackName;
-		String args = category + name;
+		String trackgen = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
+		ArrayList<String> cmd = new ArrayList<String>();
+
+		if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
+		{
+			trackgen = editorFrame.getBinDirectory() + sep + trackgen;
+		}
+
+		cmd.add(trackgen);
+		cmd.add("-c");
+		cmd.add(editorFrame.getTrackData().getHeader().getCategory());
+		cmd.add("-n");
+		cmd.add(trackName);
 
 		if (acc)
 		{
 			if (additionalArgs != null)
 			{
-				args = args + additionalArgs;
+				cmd.add(additionalArgs);
 			}
-			args += " --acc";
+			cmd.add("--acc");
 		}
 		else
 		{
 			if (additionalArgs != null)
 			{
-				args = args + additionalArgs;
+				String addargs[] = additionalArgs.split(" ");
+
+				for (int i = 0; i < addargs.length - 1; i++)
+				{
+					cmd.add(addargs[i]);
+				}
 
 				// don't create everything for race line
-				if (!args.contains("-r"))
+				if (!cmd.contains("-r"))
 				{
-					args += " -a";
+					cmd.add("-a");
 				}
 			}
 			else
 			{
-				args += " -a";
+				cmd.add("-a");
 			}
 		}
 
-		System.out.println(args);
+		System.out.println(cmd);
 
 		try
 		{
 			String ls_str;
 			String tmp = "";
-			String trackgen = editorFrame.getCarsSportsRacing() ? "csr-trackgen" : "sd2-trackgen";
-			if (editorFrame.getBinDirectory() != null && !editorFrame.getBinDirectory().isEmpty())
-			{
-				trackgen = "\"" + editorFrame.getBinDirectory() + sep + trackgen + "\"";
-			}
-
-			Process ls_proc = Runtime.getRuntime().exec(trackgen + args);
+			String cmdarray[] = cmd.toArray(new String[cmd.size()]);
+			Process ls_proc = Runtime.getRuntime().exec(cmdarray);
 			// get its output (your input) stream
 			BufferedReader ls_in = new BufferedReader(new InputStreamReader(ls_proc.getInputStream()));
 			BufferedReader ls_err = new BufferedReader(new InputStreamReader(ls_proc.getErrorStream()));
