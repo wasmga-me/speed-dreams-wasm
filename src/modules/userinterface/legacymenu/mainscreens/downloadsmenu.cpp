@@ -262,7 +262,10 @@ void DownloadsMenu::on_filter()
         GfuiEnable(hscr, category, GFUI_ENABLE);
     }
     else
+    {
+        GfuiComboboxAddText(hscr, category, tr("selectfilter"));
         GfuiEnable(hscr, category, GFUI_DISABLE);
+    }
 
     unsigned d = visible_entries();
 
@@ -1237,6 +1240,7 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
     for (size_t i = 0; i < sizeof filters / sizeof *filters; i++)
         GfuiComboboxAddText(hscr, filter, tr(filters[i]));
 
+    GfuiComboboxAddText(hscr, category, tr("selectfilter"));
     GfuiEnable(hscr, category, GFUI_DISABLE);
 
     for (unsigned i = 0; i < THUMBNAILS; i++)
