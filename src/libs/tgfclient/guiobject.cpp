@@ -532,6 +532,17 @@ GfuiVisibilitySet(void *scr, int id, int visible)
     default:
 	return -1;
     }
+
+    if (curObject->widget == GFUI_CHECKBOX)
+    {
+        const tGfuiCheckbox *checkbox = &curObject->u.checkbox;
+        bool checked = GfuiCheckboxIsChecked(scr, id);
+
+        GfuiVisibilitySet(scr, checkbox->checkId, visible && checked);
+        GfuiVisibilitySet(scr, checkbox->uncheckId, visible && !checked);
+        GfuiVisibilitySet(scr, checkbox->labelId, visible);
+    }
+
     return 0;
 }
 
