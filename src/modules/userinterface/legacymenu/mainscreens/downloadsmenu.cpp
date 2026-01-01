@@ -32,7 +32,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <istream>
 #include <memory>
 #include <stdexcept>
 
