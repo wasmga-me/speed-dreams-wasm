@@ -78,6 +78,7 @@ private:
     int fetch_thumbnail(entry *e);
     int check(CURLcode result, CURL *h, std::string &e) const;
     int assets_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
+    int push_entries(const Assets *a);
     int asset_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
     int thumbnail_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
     int dispatch(const struct CURLMsg *m);
@@ -89,9 +90,10 @@ private:
     int extract(const entry *e, const std::string &src, std::string &err) const;
     int save(entry *e, const std::string &path, std::string &err) const;
     unsigned visible_entries() const;
+    const char *tr(const char *s) const;
 
     typedef std::pair<thumbnail *, entry *> barg;
-    void *const hscr, *const prev;
+    void *const hscr, *const prev, *const param;
     CURLM *const multi;
     std::list<transfer> transfers;
     std::vector<Assets *> assets;
