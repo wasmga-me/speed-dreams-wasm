@@ -15,6 +15,7 @@
 #include <tracks.h>
 #include <racemanagers.h>
 #include <drivers.h>
+#include <translation.h>
 #include "assets.h"
 #include "confirmmenu.h"
 #include "downloadsmenu.h"
@@ -139,6 +140,13 @@ static int tmppath(std::string &path)
     return 0;
 }
 
+const char *DownloadsMenu::tr(const char *s) const
+{
+    std::string section = std::string("translatable/") + s;
+
+    return GfuiGetTranslatedText(param, section.c_str(), "text", "");
+}
+
 bool DownloadsMenu::pending() const
 {
     for (const entry *e : entries)
@@ -231,11 +239,11 @@ void DownloadsMenu::on_filter()
 {
     GfuiComboboxClear(hscr, category);
 
-    if (strcmp(GfuiComboboxGetText(hscr, filter), "All types"))
+    if (strcmp(GfuiComboboxGetText(hscr, filter), tr("alltypes")))
     {
         std::vector<std::string> categories;
 
-        GfuiComboboxAddText(hscr, category, "All categories");
+        GfuiComboboxAddText(hscr, category, tr("allcategories"));
 
         for (const entry *e : entries)
         {
@@ -272,7 +280,7 @@ void DownloadsMenu::on_category()
     while (offset && offset >= d)
         offset -= THUMBNAILS;
 
-    bool all = !strcmp(GfuiComboboxGetText(hscr, category), "All categories");
+    bool all = !strcmp(GfuiComboboxGetText(hscr, category), tr("allcategories"));
 
     GfuiEnable(hscr, download_all, all ? GFUI_DISABLE : GFUI_ENABLE);
     update_ui();
@@ -290,7 +298,7 @@ int DownloadsMenu::check(CURLcode result, CURL *h, std::string &error) const
     {
         const char *e = curl_easy_strerror(code);
 
-        error = "Failed to retrieve response code: ";
+        error = tr("failedresp") + std::string(": ");
         error += e;
     }
     else if ((code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url))
@@ -298,20 +306,20 @@ int DownloadsMenu::check(CURLcode result, CURL *h, std::string &error) const
     {
         const char *e = curl_easy_strerror(code);
 
-        error = "Failed to retrieve effective URL: ";
+        error = tr("failedurl") + std::string(": ");
         error += e;
     }
     else if (response != 200)
     {
         error = url;
-        error += ": unexpected HTTP status ";
+        error += std::string(": ") + tr("unexpectedhttp") + " ";
         error += std::to_string(response);
     }
     else if (result != CURLE_OK)
     {
         const char *e = curl_easy_strerror(result);
 
-        error = "Fetch failed: ";
+        error = tr("failedfetch") + std::string(": ");
         error += e;
     }
     else
@@ -539,7 +547,7 @@ bool DownloadsMenu::visible(const Asset &a) const
     const char *s = GfuiComboboxGetText(hscr, filter),
         *cat = GfuiComboboxGetText(hscr, category);
 
-    if (!strcmp(s, "All types"))
+    if (!strcmp(s, tr("alltypes")))
         return true;
 
     bool matched = false;
@@ -547,20 +555,20 @@ bool DownloadsMenu::visible(const Asset &a) const
     switch (a.type)
     {
         case Asset::car:
-            matched = !strcmp(s, "Cars");
+            matched = !strcmp(s, tr("cars"));
             break;
 
         case Asset::track:
-            matched = !strcmp(s, "Tracks");
+            matched = !strcmp(s, tr("tracks"));
             break;
 
         case Asset::driver:
-            matched = !strcmp(s, "Drivers");
+            matched = !strcmp(s, tr("drivers"));
             break;
     }
 
     if (matched)
-        return cat == a.category || !strcmp(cat, "All categories");
+        return cat == a.category || !strcmp(cat, tr("allcategories"));
 
     return false;
 }
@@ -682,20 +690,20 @@ int DownloadsMenu::check_hash(const entry *e, const std::string &path,
 
     if (!h)
     {
-        error = "Unsupported hash type ";
+        error = tr("unsupportedhashtype") + std::string(" ");
         error += type;
         GfLogError("%s\n", error.c_str());
         return -1;
     }
     else if (h->run(path, hash))
     {
-        error = "Failed to calculate hash";
+        error = tr("failedhash");
         GfLogError("%s\n", error.c_str());
         return -1;
     }
     else if (hash != exp)
     {
-        error = "Hash mismatch";
+        error = tr("hashmismatch");
         GfLogError("%s: %s, expected=%s, got=%s\n",
             error.c_str(), path.c_str(), exp.c_str(), hash.c_str());
         return -1;
@@ -720,7 +728,7 @@ int DownloadsMenu::extract(const entry *e, const std::string &src,
 
     if (randname(name))
     {
-        error = "Failed to generate random directory name";
+        error = tr("failedranddir");
         GfLogError("randname failed\n");
         return -1;
     }
@@ -733,7 +741,7 @@ int DownloadsMenu::extract(const entry *e, const std::string &src,
 
     if (u.run())
     {
-        const char exc[] = "Failed to extract file";
+        const char *exc = tr("failedextract");
 
         error = exc;
         GfLogError("%s %s\n", exc, src.c_str());
@@ -741,13 +749,13 @@ int DownloadsMenu::extract(const entry *e, const std::string &src,
     }
     else if (write_revision(a, tmpd))
     {
-        error = "Failed to write revision";
+        error = tr("failedrevision");
         GfLogError("write_revision failed\n");
         goto end;
     }
     else if (portability::rmdir_r(dst.c_str()))
     {
-        error = "Failed to remove directory";
+        error = tr("failedrmdir");
         GfLogError("rmdir_r %s failed\n", dst.c_str());
         goto end;
     }
@@ -755,7 +763,7 @@ int DownloadsMenu::extract(const entry *e, const std::string &src,
     {
         const char *e = strerror(errno);
 
-        error = "Failed to rename directory: ";
+        error = tr("failedrename") + std::string(": ");
         error += e;
         GfLogError("rename(3) %s -> %s: %s\n", tmpd.c_str(), dst.c_str(), e);
         goto end;
@@ -766,7 +774,7 @@ int DownloadsMenu::extract(const entry *e, const std::string &src,
 end:
     if (portability::rmdir_r(tmp.c_str()))
     {
-        error = "Failed to remove directory";
+        error = tr("failedrmdir");
         GfLogError("rmdir_r %s failed\n", tmp.c_str());
         ret = -1;
     }
@@ -794,7 +802,7 @@ failure:
     {
         std::string s = strerror(errno);
 
-        error = "Failed to remove file: ";
+        error = tr("failedrm") + std::string(": ");
         error += s;
         GfLogError("remove(3) %s: %s\n", e->data.c_str(),
             s.c_str());
@@ -897,7 +905,7 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
     }
     else if (!ct)
     {
-        static const char e[] = "Missing Content-Type";
+        const char *e = tr("missingcontenttype");
 
         GfLogError("%s\n", e);
         error = e;
@@ -906,7 +914,7 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
     else if (strcmp(ct, exp_ct))
     {
         error = "Expected Content-Type ";
-        error += exp_ct;
+        error += tr("expectedcontenttype");
         error += ", got ";
         error += ct;
 
@@ -934,7 +942,7 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
 
     if (a->parse(static_cast<char *>(w->data()), w->size()))
     {
-        static const char e[] = "Failed to parse assets list";
+        const char *e = tr("failedparse");
 
         GfLogError("%s\n", e);
         error = e;
@@ -1175,15 +1183,13 @@ static void next_page(void *arg)
 DownloadsMenu::DownloadsMenu(void *prevMenu) :
     hscr(GfuiScreenCreate()),
     prev(prevMenu),
+    param(GfuiMenuLoad("downloadsmenu.xml")),
     multi(curl_multi_init()),
     offset(0)
 {
     if (!hscr)
         throw std::runtime_error("GfuiScreenCreate failed");
-
-    void *param = GfuiMenuLoad("downloadsmenu.xml");
-
-    if (!param)
+    else if (!param)
         throw std::runtime_error("GfuiMenuLoad failed");
     else if (!hscr)
         throw std::runtime_error("GfuiScreenCreate failed");
@@ -1222,14 +1228,14 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
 
     const char *filters[] =
     {
-        "All types",
-        "Cars",
-        "Tracks",
-        "Drivers"
+        "alltypes",
+        "cars",
+        "tracks",
+        "drivers"
     };
 
     for (size_t i = 0; i < sizeof filters / sizeof *filters; i++)
-        GfuiComboboxAddText(hscr, filter, filters[i]);
+        GfuiComboboxAddText(hscr, filter, tr(filters[i]));
 
     GfuiEnable(hscr, category, GFUI_DISABLE);
 
@@ -1242,7 +1248,6 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
             ::on_delete, ::on_info, this));
     }
 
-    GfParmReleaseHandle(param);
     GfuiMenuDefaultKeysAdd(hscr);
     GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this,
         ::confirm_exit, NULL);
@@ -1275,6 +1280,7 @@ DownloadsMenu::~DownloadsMenu()
     }
 
     curl_multi_cleanup(multi);
+    GfParmReleaseHandle(param);
     GfCars::reload();
     GfTracks::reload();
     GfRaceManagers::reload();
