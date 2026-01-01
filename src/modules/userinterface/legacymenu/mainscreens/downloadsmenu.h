@@ -78,6 +78,7 @@ private:
     int fetch_thumbnail(entry *e);
     int check(CURLcode result, CURL *h, std::string &e) const;
     int assets_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
+    int push_entries(const Assets *a);
     int asset_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
     int thumbnail_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
     int dispatch(const struct CURLMsg *m);

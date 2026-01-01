@@ -890,6 +890,41 @@ int DownloadsMenu::fetch_thumbnail(entry *e)
     return 0;
 }
 
+int DownloadsMenu::push_entries(const Assets *a)
+{
+    size_t entry_i[3] = {0}, sel_i[3] = {0}, done = 0, type = Asset::car;
+    const std::vector<Asset > &assets = a->get();
+
+    while (done < assets.size())
+    {
+        bool any = false;
+
+        for (const auto &asset : assets)
+            if (asset.type == type)
+            {
+                if (entry_i[type]++ >= sel_i[type])
+                {
+                    any = true;
+                    done++;
+                    entry_i[type] = 0;
+                    sel_i[type]++;
+                    entries.push_back(new entry(asset));
+
+                    if (++type >= sizeof sel_i / sizeof *sel_i)
+                        type = 0;
+                }
+            }
+
+        if (!any && ++type >= sizeof sel_i / sizeof *sel_i)
+            type = 0;
+
+        for (size_t i = 0; i < sizeof entry_i / sizeof *entry_i; i++)
+            entry_i[i] = 0;
+    }
+
+    return 0;
+}
+
 int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
     std::string &error)
 {
@@ -954,10 +989,7 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
     }
 
     assets.push_back(a);
-
-    for (const auto &asset : a->get())
-        entries.push_back(new entry(asset));
-
+    push_entries(a);
     update_ui();
     return 0;
 }
