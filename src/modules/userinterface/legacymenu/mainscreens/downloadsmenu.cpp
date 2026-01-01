@@ -552,6 +552,17 @@ bool DownloadsMenu::visible(const Asset &a) const
 
     if (!strcmp(s, tr("alltypes")))
         return true;
+    else if (!strcmp(s, tr("updates")))
+    {
+        bool update;
+
+        if (a.needs_update(update))
+            return false;
+        else if (update)
+            return cat == a.category || !strcmp(cat, tr("allcategories"));
+
+        return update;
+    }
 
     bool matched = false;
 
@@ -1264,6 +1275,7 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
     const char *filters[] =
     {
         "alltypes",
+        "updates",
         "cars",
         "tracks",
         "drivers"
