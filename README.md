@@ -154,7 +154,7 @@ sudo apt install git cmake build-essential libopenscenegraph-dev libcurl4-gnutls
 #### Fedora
 
 ```sh
-sudo dnf install SDL2_mixer SDL2_mixer-devel expat-devel OpenSceneGraph-devel plib-devel libcurl-devel openal-soft-devel enet-devel minizip-devel rhash-devel mesa-libGL-devel mesa-libGLU-devel
+sudo dnf install SDL2_mixer SDL2_mixer-devel expat-devel OpenSceneGraph-devel plib-devel libcurl-devel openal-soft-devel enet-devel minizip-devel rhash-devel mesa-libGL-devel mesa-libGLU-devel SDL2_ttf-devel
 ```
 
 ## License
