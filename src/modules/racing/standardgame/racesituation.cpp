@@ -29,6 +29,7 @@
 #endif
 
 #include <portability.h>
+#include <translation.h>
 #ifdef CLIENT_SERVER
 #include <csnetwork.h>
 #else
@@ -146,6 +147,13 @@ void ReSituation::accelerateTime(double fMultFactor)
     std::ostringstream ossTimeMult;
     ossTimeMult << "Time x" << std::setprecision(2) << 1.0 / _pReInfo->_reTimeMult;
     ReRaceMsgSet(_pReInfo, ossTimeMult.str().c_str(), 5);
+}
+
+const char *ReSituation::tr(const char *key) const
+{
+    std::string s = std::string("Translatable/") + key;
+
+    return GfuiGetTranslatedText(_pReInfo->_reParam, s.c_str(), "text", "");
 }
 
 void ReSituation::setRaceMessage(const std::string& strMsg, double fLifeTime, bool bBig)

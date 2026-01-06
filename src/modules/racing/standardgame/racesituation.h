@@ -49,6 +49,7 @@ public:
     void setDisplayMode(unsigned bfDispMode);
     void accelerateTime(double fMultFactor);
     void setRaceMessage(const std::string& strMsg, double fLifeTime = -1, bool bBig = false);
+    const char *tr(const char *key) const;
 
     //! Set pit command for the given car (back from a pit menu or so).
     void setPitCommand(int nCarIndex, const tCarPitCmd *pPitCmd);
