@@ -90,7 +90,7 @@ class cGrBoard
     bool grGetSplitTime(const tSituation *s, bool gap_inrace,
                         double &time, int *laps_different, float **color);
     void grGetLapsTime(const tSituation *s, char* result,
-                        char const** label) const;
+                        std::string *label) const;
     void grSetupDrawingArea(int xl, int yb, int xr, int yt) const;
 
 private:
@@ -105,8 +105,10 @@ private:
     float *behind_color_;
     float *arcade_color_;
     float *background_color_;
+    void *param;
 
     void ReadDashColor(void *hdle, const std::string &color_name, float **color);
+    const char *tr(const char *key) const;
 
  public:
     explicit cGrBoard(int myid);
