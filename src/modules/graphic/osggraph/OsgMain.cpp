@@ -28,7 +28,6 @@
 #include <graphic.h>
 
 #include "OsgMain.h"
-//#include "OsgOptions.h"
 #include "OsgCar.h"
 #include "OsgCarLight.h"
 #include "OsgScenery.h"
@@ -596,6 +595,12 @@ void shutdownTrack(void)
         delete scenery;
         scenery = NULL;
         GfLogInfo("Delete scenery in OsgMain\n");
+    }
+
+    if (grHandle)
+    {
+        GfParmReleaseHandle(grHandle);
+        grHandle = 0;
     }
 }
 
