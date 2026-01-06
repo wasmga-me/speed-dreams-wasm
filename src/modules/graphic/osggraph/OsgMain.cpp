@@ -596,6 +596,12 @@ void shutdownTrack(void)
         scenery = NULL;
         GfLogInfo("Delete scenery in OsgMain\n");
     }
+
+    if (grHandle)
+    {
+        GfParmReleaseHandle(grHandle);
+        grHandle = 0;
+    }
 }
 
 void shutdownView(void)
