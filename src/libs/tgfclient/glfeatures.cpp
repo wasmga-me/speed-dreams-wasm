@@ -86,7 +86,7 @@ void GfglFeatures::detectStandardSupport()
 
 	// 4) Max texture size.
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &nValue);
- 	if (nValue > 16384) // Max in-game supported value (must be consistent with openglconfig.cpp)
+ 	if (nValue > 16384) // Max in-game supported value (must be consistent with graphicsconfig.cpp)
  		nValue = 16384;
 	_mapSupportedInt[TextureMaxSize] = nValue;
 

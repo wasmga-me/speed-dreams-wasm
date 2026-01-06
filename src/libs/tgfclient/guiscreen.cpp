@@ -1163,7 +1163,7 @@ void gfScrOpenGlFeatures()
     }
     int maxTex = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTex);
-    if (maxTex > 16384) // Max in-game supported value (must be consistent with openglconfig.cpp)
+    if (maxTex > 16384) // Max in-game supported value (must be consistent with graphicsconfig.cpp)
         maxTex = 16384;
     GfglFeatures::self().select(GfglFeatures::TextureMaxSize, maxTex);
 }

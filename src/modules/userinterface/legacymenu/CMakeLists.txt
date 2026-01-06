@@ -44,17 +44,25 @@ SET(CS confscreens)
 SET(CONFSCREENS_SOURCES ${CS}/playerconfig.cpp ${CS}/controlconfig.cpp
                         ${CS}/joystickconfig.cpp ${CS}/mouseconfig.cpp
                         ${CS}/joy2butconfig.cpp
-                        ${CS}/displayconfig.cpp ${CS}/graphconfig.cpp ${CS}/openglconfig.cpp
-                        ${CS}/monitorconfig.cpp ${CS}/advancedgraphconfig.cpp
+                        ${CS}/displayconfig.cpp
+                        ${CS}/graphicsconfig.cpp
+                        ${CS}/graphinfo.cpp
+                        ${CS}/monitorconfig.cpp
+                        ${CS}/osggraphinfo.cpp
                         ${CS}/simuconfig.cpp ${CS}/soundconfig.cpp
+                        ${CS}/ssggraphinfo.cpp
                         ${CS}/hostsettingsmenu.cpp ${CS}/forcefeedbackconfig.cpp
                         ${CS}/languageconfig.cpp)
-SET(CONFSCREENS_HEADERS ${CS}/confscreens.h ${CS}/advancedgraphconfig.h
+SET(CONFSCREENS_HEADERS ${CS}/confscreens.h
                         ${CS}/playerconfig.h ${CS}/controlconfig.h
                         ${CS}/joystickconfig.h ${CS}/mouseconfig.h
                         ${CS}/joy2butconfig.h ${CS}/monitorconfig.h
-                        ${CS}/displayconfig.h ${CS}/graphconfig.h ${CS}/openglconfig.h
+                        ${CS}/displayconfig.h
+                        ${CS}/graphicsconfig.h
+                        ${CS}/graphinfo.h
+                        ${CS}/osggraphinfo.h
                         ${CS}/simuconfig.h ${CS}/soundconfig.h
+                        ${CS}/ssggraphinfo.h
                         ${CS}/hostsettingsmenu.h ${CS}/forcefeedbackconfig.h
                         ${CS}/languageconfig.h)
 
