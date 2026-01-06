@@ -295,6 +295,16 @@ GfuiComboboxGetText(void *scr, int id)
 	return pszText;
 }
 
+const std::vector<std::string> *GfuiComboboxGetChoices(void* scr, int id)
+{
+	tGfuiCombobox* combo = gfuiGetCombobox(scr, id);
+
+	if (combo)
+		return &combo->pInfo->vecChoices;
+
+	return nullptr;
+}
+
 unsigned
 GfuiComboboxGetNumberOfChoices(void *scr, int id)
 {
