@@ -145,7 +145,8 @@ void ReSituation::accelerateTime(double fMultFactor)
         _pReInfo->_reTimeMult = 0.0625;
 
     std::ostringstream ossTimeMult;
-    ossTimeMult << "Time x" << std::setprecision(2) << 1.0 / _pReInfo->_reTimeMult;
+    const char *text = ReSituation::self().tr("time");
+    ossTimeMult << text << " x" << std::setprecision(2) << 1.0 / _pReInfo->_reTimeMult;
     ReRaceMsgSet(_pReInfo, ossTimeMult.str().c_str(), 5);
 }
 
@@ -215,19 +216,24 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
     if (s->currentTime < -2.0)
     {
         std::ostringstream ossMsg;
-        ossMsg << "Race will start in " << -(int)s->currentTime << " seconds";
+        ossMsg << ReSituation::self().tr("racestart");
+        ossMsg << ' ' << -(int)s->currentTime << ' ';
+        ossMsg << ReSituation::self().tr("seconds");
         ReRaceMsgSetBig(pCurrReInfo, ossMsg.str().c_str());
     }
 
     //GfLogDebug("ReSituationUpdater::runOneStep: currTime=%.3f\n", s->currentTime);
     if (s->currentTime >= -2.0 && s->currentTime < deltaTimeIncrement - 2.0) {
-        ReRaceMsgSetBig(pCurrReInfo, "Ready", 1.0);
+        const char *text = ReSituation::self().tr("ready");
+        ReRaceMsgSetBig(pCurrReInfo, text, 1.0);
         GfLogInfo("Ready.\n");
     } else if (s->currentTime >= -1.0 && s->currentTime < deltaTimeIncrement - 1.0) {
-        ReRaceMsgSetBig(pCurrReInfo, "Set", 1.0);
+        const char *text = ReSituation::self().tr("set");
+        ReRaceMsgSetBig(pCurrReInfo, text, 1.0);
         GfLogInfo("Set.\n");
     } else if (s->currentTime >= 0.0 && s->currentTime < deltaTimeIncrement) {
-        ReRaceMsgSetBig(pCurrReInfo, "Go", 1.0);
+        const char *text = ReSituation::self().tr("go");
+        ReRaceMsgSetBig(pCurrReInfo, text, 1.0);
         GfLogInfo("Go.\n");
     }
 

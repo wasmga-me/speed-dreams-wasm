@@ -730,9 +730,10 @@ RePreRacePause(void)
         // check if there is a human player AND if PreRacePause is enabled through the config
         if ((ReSessionHasHuman()) && (true == ReUI().onRaceStartingPaused()))
         {
+            const char *text = ReSituation::self().tr("hitenter");
             mode = RM_ASYNC | RM_NEXT_STEP;
             //ReStop();
-            ReSituation::self().setRaceMessage("Hit <Enter> or any joystick button to Start",-1/*always*/, /*big=*/true);
+            ReSituation::self().setRaceMessage(text,-1/*always*/, /*big=*/true);
             ReStop();
         }
     }
