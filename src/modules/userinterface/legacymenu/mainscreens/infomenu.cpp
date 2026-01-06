@@ -94,10 +94,12 @@ InfoMenu::InfoMenu(void *prevMenu, void (*recompute)(unsigned, void *),
         throw std::runtime_error("GfuiMenuCreateStaticImageControl img failed");
 
     const Asset &a = e->a;
+    std::string thumbnail = e->thumbnail_fetched ?
+        e->thumbnail : "data/img/nocarpreview.png";
 
     GfuiMenuDefaultKeysAdd(hscr);
     GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, ::deinit, NULL);
-    GfuiStaticImageSet(hscr, img, e->thumbnail.c_str());
+    GfuiStaticImageSet(hscr, img, thumbnail.c_str());
     set_info(param, a);
     GfParmReleaseHandle(param);
     GfuiScreenActivate(hscr);
