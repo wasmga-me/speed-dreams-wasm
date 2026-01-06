@@ -73,7 +73,7 @@ static std::string RmLoadingScreenGetTip(void *hmenu)
     if (!param)
         return "";
 
-    tip += param;
+    tip += std::string(": ") + param;
     return tip;
 }
 
