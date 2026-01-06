@@ -28,7 +28,6 @@
 #include <graphic.h>
 
 #include "OsgMain.h"
-//#include "OsgOptions.h"
 #include "OsgCar.h"
 #include "OsgCarLight.h"
 #include "OsgScenery.h"

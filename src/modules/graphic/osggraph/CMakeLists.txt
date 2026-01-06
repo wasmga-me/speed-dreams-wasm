@@ -7,7 +7,6 @@ SET(OSGGRAPH_HEADERS Utils/OsgVectorArrayAdapter.h
                      Utils/OsgNodeMask.h
                      Utils/OsgLightTransform.h
                      #Utils/OsgPrecipitation.h
-                     #Utils/OsgOptions.h
 
                      Sky/OsgSphere.h
                      Sky/OsgSun.h
@@ -48,7 +47,6 @@ SET(OSGGRAPH_HEADERS Utils/OsgVectorArrayAdapter.h
 SET(OSGGRAPH_SOURCES Utils/OsgMath.cpp
                      Utils/OsgLightTransform.cpp
                      #Utils/OsgPrecipitation.cpp
-                     #Utils/OsgOptions.cpp
 
                      Sky/OsgSphere.cpp
                      Sky/OsgSun.cpp
