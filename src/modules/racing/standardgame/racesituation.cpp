@@ -394,62 +394,6 @@ int ReSituationUpdater::terminate()
     return status;
 }
 
-tRmInfo* ReSituationUpdater::initSituation(const tRmInfo* pSource)
-{
-    tRmInfo* pTarget;
-
-    // Allocate main structure (level 0).
-    pTarget = (tRmInfo *)calloc(1, sizeof(tRmInfo));
-
-    // Allocate variable level 1 structures.
-    pTarget->carList = (tCarElt*)calloc(_nInitDrivers, sizeof(tCarElt));
-    pTarget->s = (tSituation *)calloc(1, sizeof(tSituation));
-    pTarget->rules = (tRmCarRules*)calloc(_nInitDrivers, sizeof(tRmCarRules));
-
-    // Assign level 1 constants.
-    pTarget->track = pSource->track; // Only read during race.
-    pTarget->params = pSource->params; // Never read/written during race.
-    pTarget->mainParams = pSource->mainParams; // Never read/written during race.
-    pTarget->results = pSource->results; // Never read/written during race.
-    pTarget->mainResults = pSource->mainResults; // Never read/written during race.
-    pTarget->robModList = pSource->robModList; // Not used / written by updater.
-
-    // Assign level 2 constants and initialize lists in carList field.
-    for (int nCarInd = 0; nCarInd < _nInitDrivers; nCarInd++)
-    {
-        tCarElt* pTgtCar = &pTarget->carList[nCarInd];
-        tCarElt* pSrcCar = &pSource->carList[nCarInd];
-
-        pTgtCar->_nbSectors = pSource->track->numberOfSectors;
-        pTgtCar->_trackLength = pSource->track->length;
-        pTgtCar->_curSplitTime = (double*)malloc(sizeof(double) * (pTgtCar->_nbSectors - 1));
-        pTgtCar->_bestSplitTime = (double*)malloc(sizeof(double) * (pTgtCar->_nbSectors - 1));
-    pTgtCar->_trackPositionCount = pSrcCar->_trackPositionCount;
-        pTgtCar->_currLapTimeAtTrackPosition = (float *)malloc(pTgtCar->_trackPositionCount * sizeof(float));
-        pTgtCar->_bestLapTimeAtTrackPosition = (float *)malloc(pTgtCar->_trackPositionCount * sizeof(float));
-
-        GF_TAILQ_INIT(&(pTgtCar->_penaltyList)); // Not used by the graphics engine.
-
-        memcpy(&pTgtCar->info, &pSrcCar->info, sizeof(tInitCar)); // Not changed + only read during race.
-        memcpy(&pTgtCar->priv, &pSrcCar->priv, sizeof(tPrivCar)); // Partly only read during race ; other copied in vars below.
-        pTgtCar->robot = pSrcCar->robot; // Not changed + only read during race.
-    }
-
-    // Allocate level 2 structures in s field.
-    pTarget->s->cars = (tCarElt **)calloc(_nInitDrivers, sizeof(tCarElt *));
-
-    // Allocate level 2 structures in raceEngineInfo field.
-    pTarget->_reCarInfo = (tReCarInfo*)calloc(_nInitDrivers, sizeof(tReCarInfo));
-
-    // Assign level 2 constants in raceEngineInfo field.
-    pTarget->_reParam = pSource->_reParam; // Not used / written by updater.
-    pTarget->_reFilename = pSource->_reFilename; // Not used during race.
-    pTarget->_reName = pSource->_reName; // Not changed + only read during race.
-    pTarget->_reRaceName = pSource->_reRaceName; // Not changed + only read during race.
-
-    return pTarget;
-}
-
 tRmInfo* ReSituationUpdater::copySituation(tRmInfo*& pTarget, const tRmInfo* pSource)
 {
     tCarElt* pTgtCar;

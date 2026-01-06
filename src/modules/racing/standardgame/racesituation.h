@@ -112,9 +112,6 @@ private:
     //! Acknowledge the situation events (simu / graphics synchronization).
     void acknowledgeEvents();
 
-    //! Allocate and initialize a situation (set constants from source).
-    struct RmInfo* initSituation(const struct RmInfo* pSource);
-
     //! (Deep) Copy the given situation.
     struct RmInfo* copySituation(struct RmInfo*& pTarget, const struct RmInfo* pSource);
 
