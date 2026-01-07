@@ -30,12 +30,14 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include <stdexcept>
 
 #include "tgfclient.h"
 #include "translation.h"
 #include "gui.h"
 #include "guimenu.h"
 
+static void *langParam;
 
 void
 gfuiInitMenu(void)
@@ -301,20 +303,32 @@ GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName)
     return createStaticImage(hscr, hparm, strControlPath.c_str());
 }
 
+void
+gfuiInitLanguage()
+{
+    const char *path = "config/language" PARAMEXT;
+
+    if (!(langParam = GfParmReadFileLocal(path, GFPARM_RMODE_STD)))
+    {
+        GfLogError("GfParmReadFileLocal failed: %s\n", path);
+        throw std::runtime_error("Could not open language config");
+    }
+}
+
+void
+gfuiShutdownLanguage()
+{
+    if (langParam)
+        GfParmReleaseHandle(langParam);
+}
+
 const char *GfuiGetTranslatedText(void* hparm, const char* pszPath,
     const char* pszKey, const char* pszDefault)
 {
-    const char *ret = pszDefault, *path = "config/language" PARAMEXT, *lang;
-    void *h = GfParmReadFileLocal(path, GFPARM_RMODE_STD);
+    const char *ret = pszDefault, *lang;
     std::string key;
 
-    if (!h)
-    {
-        GfLogError("GfParmReadFileLocal failed: %s\n", path);
-        goto end;
-    }
-
-    lang = GfParmGetStr(h, "Language", "language", nullptr);
+    lang = GfParmGetStr(langParam, "Language", "language", nullptr);
     key = pszKey;
 
     if (lang)
@@ -325,10 +339,6 @@ const char *GfuiGetTranslatedText(void* hparm, const char* pszPath,
 
     if (!(ret = GfParmGetStr(hparm, pszPath, key.c_str(), nullptr)))
         ret = GfParmGetStr(hparm, pszPath, pszKey, pszDefault);
-
-end:
-    if (h)
-        GfParmReleaseHandle(h);
 
     return ret;
 }
