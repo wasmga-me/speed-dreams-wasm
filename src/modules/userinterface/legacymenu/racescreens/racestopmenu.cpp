@@ -279,7 +279,7 @@ rmStopRaceMenu(const tButtonDesc aButtons[], int nButtons, int nCancelIndex)
     // Register keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(hscreen);
     GfuiAddKey(hscreen, GFUIK_ESCAPE, pszCancelTip,
-               aButtons[nCancelIndex].screen, GfuiScreenActivate, NULL);
+               aButtons[0].screen, GfuiScreenActivate, NULL);
 
     // Close menu XML descriptor.
     GfParmReleaseHandle(hmenu);
