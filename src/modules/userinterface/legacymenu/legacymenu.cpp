@@ -36,6 +36,7 @@
 #include "splash.h"
 #include "mainmenu.h"
 #include "exitmenu.h"
+#include "welcomemenu.h"
 #include "racescreens.h"
 
 #include "legacymenu.h"
@@ -112,6 +113,17 @@ bool LegacyMenu::activateMainMenu()
     return MainMenuRun() == 0;
 }
 
+bool LegacyMenu::runMainMenu()
+{
+    return backLoad() && MainMenuRun() == 0;
+}
+
+bool LegacyMenu::activateWelcomeMenu()
+{
+    new WelcomeMenu(runMainMenu);
+    return true;
+}
+
 bool LegacyMenu::startRace()
 {
     // Get the race to start.
@@ -170,6 +182,10 @@ bool LegacyMenu::activate()
     bool (*fnSplashBackWork)(void) = LegacyMenu::backLoad;
     bool (*fnOnSplashClosed)(void) = 0;
     bool bInteractive = true;
+    bool runWelcome = WelcomeMenu::shouldRun();
+
+    if (runWelcome)
+        fnSplashBackWork = nullptr;
 
     // Get the race to start if specified, and check if it's an available one.
     std::string strRaceToStart;
@@ -186,9 +202,12 @@ bool LegacyMenu::activate()
 	// and finally open the main menu.
 	if (strRaceToStart.empty())
 	{
-        // If not specified, simply open the splash screen, load the menus in the background
-        // and finally open the main menu.
-        fnOnSplashClosed = LegacyMenu::activateMainMenu;
+        if (runWelcome)
+            fnOnSplashClosed = LegacyMenu::activateWelcomeMenu;
+        else
+            // If not specified, simply open the splash screen, load the menus
+            // in the background and finally open the main menu.
+            fnOnSplashClosed = LegacyMenu::activateMainMenu;
     }
 
 	// Otherwise, run the selected race.
