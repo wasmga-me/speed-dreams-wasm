@@ -41,7 +41,9 @@
 static void	*rmScreenHandle = 0;
 static int	rmPauseId;
 static int	rmMsgId;
+static int	rmMsgBgId;
 static int	rmBigMsgId;
+static int	rmBigMsgBgId;
 
 static float black[4] = { 0.0, 0.0, 0.0, 0.0 };
 
@@ -260,8 +262,12 @@ rmUpdateRaceMessages()
 	const char *pszMsg = LmRaceEngine().outData()->_reMessage;
 	if ((pszMsg && rmStrCurMsg != pszMsg) || (!pszMsg && !rmStrCurMsg.empty()))
 	{
+		int visible;
+
 		rmStrCurMsg = pszMsg ? pszMsg : "";
+		visible = rmStrCurMsg.empty() ?  GFUI_INVISIBLE : GFUI_VISIBLE;
 		GfuiLabelSetText(rmScreenHandle, rmMsgId, rmStrCurMsg.c_str());
+		GfuiVisibilitySet(rmScreenHandle, rmMsgBgId, visible);
 
 		// The menu changed.
 		rmbMenuChanged = true;
@@ -271,8 +277,12 @@ rmUpdateRaceMessages()
 	const char *pszBigMsg = LmRaceEngine().outData()->_reBigMessage;
 	if ((pszBigMsg && rmStrCurBigMsg != pszBigMsg) || (!pszBigMsg && !rmStrCurBigMsg.empty()))
 	{
+		int visible;
+
 		rmStrCurBigMsg = pszBigMsg ? pszBigMsg : "";
+		visible = rmStrCurBigMsg.empty() ?  GFUI_INVISIBLE : GFUI_VISIBLE;
 		GfuiLabelSetText(rmScreenHandle, rmBigMsgId, rmStrCurBigMsg.c_str());
+		GfuiVisibilitySet(rmScreenHandle, rmBigMsgBgId, visible);
 
 		// The menu changed.
 		rmbMenuChanged = true;
@@ -658,9 +668,15 @@ RmScreenInit()
     GfuiMenuCreateStaticControls(rmScreenHandle, menuXMLDescHdle);
 
     // Create Message, BigMessage and Pause labels.
+    rmMsgBgId = GfuiMenuCreateStaticImageControl(rmScreenHandle, menuXMLDescHdle, "message-bg");
     rmMsgId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "message");
+    rmBigMsgBgId = GfuiMenuCreateStaticImageControl(rmScreenHandle, menuXMLDescHdle, "bigmessage-bg");
     rmBigMsgId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "bigmessage");
     rmPauseId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "pause");
+
+    // Hide message background by default.
+    GfuiVisibilitySet(rmScreenHandle, rmMsgBgId, GFUI_INVISIBLE);
+    GfuiVisibilitySet(rmScreenHandle, rmBigMsgBgId, GFUI_INVISIBLE);
 
     // Close menu XML descriptor.
     GfParmReleaseHandle(menuXMLDescHdle);

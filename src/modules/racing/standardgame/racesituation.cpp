@@ -29,6 +29,7 @@
 #endif
 
 #include <portability.h>
+#include <translation.h>
 #ifdef CLIENT_SERVER
 #include <csnetwork.h>
 #else
@@ -144,8 +145,16 @@ void ReSituation::accelerateTime(double fMultFactor)
         _pReInfo->_reTimeMult = 0.0625;
 
     std::ostringstream ossTimeMult;
-    ossTimeMult << "Time x" << std::setprecision(2) << 1.0 / _pReInfo->_reTimeMult;
+    const char *text = ReSituation::self().tr("time");
+    ossTimeMult << text << " x" << std::setprecision(2) << 1.0 / _pReInfo->_reTimeMult;
     ReRaceMsgSet(_pReInfo, ossTimeMult.str().c_str(), 5);
+}
+
+const char *ReSituation::tr(const char *key) const
+{
+    std::string s = std::string("Translatable/") + key;
+
+    return GfuiGetTranslatedText(_pReInfo->_reParam, s.c_str(), "text", "");
 }
 
 void ReSituation::setRaceMessage(const std::string& strMsg, double fLifeTime, bool bBig)
@@ -207,19 +216,24 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
     if (s->currentTime < -2.0)
     {
         std::ostringstream ossMsg;
-        ossMsg << "Race will start in " << -(int)s->currentTime << " seconds";
+        ossMsg << ReSituation::self().tr("racestart");
+        ossMsg << ' ' << -(int)s->currentTime << ' ';
+        ossMsg << ReSituation::self().tr("seconds");
         ReRaceMsgSetBig(pCurrReInfo, ossMsg.str().c_str());
     }
 
     //GfLogDebug("ReSituationUpdater::runOneStep: currTime=%.3f\n", s->currentTime);
     if (s->currentTime >= -2.0 && s->currentTime < deltaTimeIncrement - 2.0) {
-        ReRaceMsgSetBig(pCurrReInfo, "Ready", 1.0);
+        const char *text = ReSituation::self().tr("ready");
+        ReRaceMsgSetBig(pCurrReInfo, text, 1.0);
         GfLogInfo("Ready.\n");
     } else if (s->currentTime >= -1.0 && s->currentTime < deltaTimeIncrement - 1.0) {
-        ReRaceMsgSetBig(pCurrReInfo, "Set", 1.0);
+        const char *text = ReSituation::self().tr("set");
+        ReRaceMsgSetBig(pCurrReInfo, text, 1.0);
         GfLogInfo("Set.\n");
     } else if (s->currentTime >= 0.0 && s->currentTime < deltaTimeIncrement) {
-        ReRaceMsgSetBig(pCurrReInfo, "Go", 1.0);
+        const char *text = ReSituation::self().tr("go");
+        ReRaceMsgSetBig(pCurrReInfo, text, 1.0);
         GfLogInfo("Go.\n");
     }
 
@@ -392,233 +406,6 @@ int ReSituationUpdater::terminate()
     }
 
     return status;
-}
-
-tRmInfo* ReSituationUpdater::initSituation(const tRmInfo* pSource)
-{
-    tRmInfo* pTarget;
-
-    // Allocate main structure (level 0).
-    pTarget = (tRmInfo *)calloc(1, sizeof(tRmInfo));
-
-    // Allocate variable level 1 structures.
-    pTarget->carList = (tCarElt*)calloc(_nInitDrivers, sizeof(tCarElt));
-    pTarget->s = (tSituation *)calloc(1, sizeof(tSituation));
-    pTarget->rules = (tRmCarRules*)calloc(_nInitDrivers, sizeof(tRmCarRules));
-
-    // Assign level 1 constants.
-    pTarget->track = pSource->track; // Only read during race.
-    pTarget->params = pSource->params; // Never read/written during race.
-    pTarget->mainParams = pSource->mainParams; // Never read/written during race.
-    pTarget->results = pSource->results; // Never read/written during race.
-    pTarget->mainResults = pSource->mainResults; // Never read/written during race.
-    pTarget->robModList = pSource->robModList; // Not used / written by updater.
-
-    // Assign level 2 constants and initialize lists in carList field.
-    for (int nCarInd = 0; nCarInd < _nInitDrivers; nCarInd++)
-    {
-        tCarElt* pTgtCar = &pTarget->carList[nCarInd];
-        tCarElt* pSrcCar = &pSource->carList[nCarInd];
-
-        pTgtCar->_nbSectors = pSource->track->numberOfSectors;
-        pTgtCar->_trackLength = pSource->track->length;
-        pTgtCar->_curSplitTime = (double*)malloc(sizeof(double) * (pTgtCar->_nbSectors - 1));
-        pTgtCar->_bestSplitTime = (double*)malloc(sizeof(double) * (pTgtCar->_nbSectors - 1));
-    pTgtCar->_trackPositionCount = pSrcCar->_trackPositionCount;
-        pTgtCar->_currLapTimeAtTrackPosition = (float *)malloc(pTgtCar->_trackPositionCount * sizeof(float));
-        pTgtCar->_bestLapTimeAtTrackPosition = (float *)malloc(pTgtCar->_trackPositionCount * sizeof(float));
-
-        GF_TAILQ_INIT(&(pTgtCar->_penaltyList)); // Not used by the graphics engine.
-
-        memcpy(&pTgtCar->info, &pSrcCar->info, sizeof(tInitCar)); // Not changed + only read during race.
-        memcpy(&pTgtCar->priv, &pSrcCar->priv, sizeof(tPrivCar)); // Partly only read during race ; other copied in vars below.
-        pTgtCar->robot = pSrcCar->robot; // Not changed + only read during race.
-    }
-
-    // Allocate level 2 structures in s field.
-    pTarget->s->cars = (tCarElt **)calloc(_nInitDrivers, sizeof(tCarElt *));
-
-    // Allocate level 2 structures in raceEngineInfo field.
-    pTarget->_reCarInfo = (tReCarInfo*)calloc(_nInitDrivers, sizeof(tReCarInfo));
-
-    // Assign level 2 constants in raceEngineInfo field.
-    pTarget->_reParam = pSource->_reParam; // Not used / written by updater.
-    pTarget->_reFilename = pSource->_reFilename; // Not used during race.
-    pTarget->_reName = pSource->_reName; // Not changed + only read during race.
-    pTarget->_reRaceName = pSource->_reRaceName; // Not changed + only read during race.
-
-    return pTarget;
-}
-
-tRmInfo* ReSituationUpdater::copySituation(tRmInfo*& pTarget, const tRmInfo* pSource)
-{
-    tCarElt* pTgtCar;
-    tCarElt* pSrcCar;
-
-    // Copy variable data from source to target.
-    // I) pSource->carList
-    for (int nCarInd = 0; nCarInd < _nInitDrivers; nCarInd++)
-    {
-        pTgtCar = &pTarget->carList[nCarInd];
-        pSrcCar = &pSource->carList[nCarInd];
-
-        // 1) index
-        pTgtCar->index = pSrcCar->index;
-
-        // 2) pub (raw mem copy)
-        memcpy(&pTgtCar->pub, &pSrcCar->pub, sizeof(tPublicCar));
-
-        // 3) race (field by field copy)
-        // 3a) all fields except _penaltyList and _pit.
-        pTgtCar->_bestLapTime = pSrcCar->_bestLapTime;
-        memcpy(pTgtCar->_bestSplitTime, pSrcCar->_bestSplitTime,
-               sizeof(double) * (pSource->track->numberOfSectors - 1));
-        pTgtCar->_deltaBestLapTime = pSrcCar->_deltaBestLapTime;
-        pTgtCar->_curLapTime = pSrcCar->_curLapTime;
-        memcpy(pTgtCar->_curSplitTime, pSrcCar->_curSplitTime,
-               sizeof(double) * (pSource->track->numberOfSectors - 1));
-        pTgtCar->_lastLapTime = pSrcCar->_lastLapTime;
-        pTgtCar->_curTime = pSrcCar->_curTime;
-    pTgtCar->_trackPositionCount = pSrcCar->_trackPositionCount;
-        memcpy(pTgtCar->_bestLapTimeAtTrackPosition, pSrcCar->_bestLapTimeAtTrackPosition,
-            pSrcCar->_trackPositionCount * sizeof(float));
-        memcpy(pTgtCar->_currLapTimeAtTrackPosition, pSrcCar->_currLapTimeAtTrackPosition,
-            pSrcCar->_trackPositionCount * sizeof(float));
-        pTgtCar->_topSpeed = pSrcCar->_topSpeed;
-        pTgtCar->_laps = pSrcCar->_laps;
-        pTgtCar->_bestLap = pSrcCar->_bestLap;
-        pTgtCar->_nbPitStops = pSrcCar->_nbPitStops;
-        pTgtCar->_remainingLaps = pSrcCar->_remainingLaps;
-        pTgtCar->_pos = pSrcCar->_pos;
-        pTgtCar->_timeBehindLeader = pSrcCar->_timeBehindLeader;
-        pTgtCar->_lapsBehindLeader = pSrcCar->_lapsBehindLeader;
-        pTgtCar->_timeBehindPrev = pSrcCar->_timeBehindPrev;
-        pTgtCar->_timeBeforeNext = pSrcCar->_timeBeforeNext;
-        pTgtCar->_distRaced = pSrcCar->_distRaced;
-        pTgtCar->_distFromStartLine = pSrcCar->_distFromStartLine;
-        pTgtCar->_currentSector = pSrcCar->_currentSector;
-        pTgtCar->_scheduledEventTime = pSrcCar->_scheduledEventTime;
-        //pTgtCar->_pit ... // Not used by the graphics engine (robots and situ. updater only).
-        pTgtCar->_event = pSrcCar->_event;
-
-        // Note: Commented-out because not used by the graphics engine (situ. updater only).
-        // 3b) Clear target penalty list, and then copy the source one into it.
-        //     TODO if profiling shows its usefull : optimize (reuse already allocated entries
-        //       to minimize mallocs / frees).
-        //tCarPenalty *penalty;
-        //while ((penalty = GF_TAILQ_FIRST(&(pTgtCar->_penaltyList))))
-        //{
-        //	GfLogDebug("ReSituationCopy(car #%d) : Clearing penalty %p\n",
-        //			   pSrcCar->index, penalty);
-        //	GF_TAILQ_REMOVE (&(pTgtCar->_penaltyList), penalty, link);
-        //	free(penalty);
-        //}
-        //GF_TAILQ_INIT(&(pTgtCar->_penaltyList));
-        //penalty = GF_TAILQ_FIRST(&(pSrcCar->_penaltyList));
-        //while (penalty)
-        //{
-        //	tCarPenalty *newPenalty = (tCarPenalty*)malloc(sizeof(tCarPenalty));
-        //	newPenalty->penalty = penalty->penalty;
-        //      newPenalty->lapToClear = penalty->lapToClear;
-        //      GfLogDebug("ReSituationCopy(car #%d) : Copying penalty %p to %p\n",
-        //                         pSrcCar->index, penalty, newPenalty);
-        //	GF_TAILQ_INSERT_TAIL(&(pTgtCar->_penaltyList), newPenalty, link);
-        //	penalty = GF_TAILQ_NEXT(penalty, link);
-        //}
-
-        // 4) priv (field by field copy)
-        memcpy(&pTgtCar->priv.wheel[0], &pSrcCar->priv.wheel[0], 4*sizeof(tWheelState));
-        memcpy(&pTgtCar->priv.corner[0], &pSrcCar->priv.corner[0], 4*sizeof(tPosd));
-        pTgtCar->_gear = pSrcCar->_gear;
-        pTgtCar->_fuel = pSrcCar->_fuel;
-        pTgtCar->_fuelTotal = pSrcCar->_fuelTotal;
-        pTgtCar->_fuelInstant = pSrcCar->_fuelInstant;
-        pTgtCar->_enginerpm = pSrcCar->_enginerpm;
-        memcpy(&pTgtCar->priv.skid[0], &pSrcCar->priv.skid[0], 4*sizeof(tdble));
-        memcpy(&pTgtCar->priv.reaction[0], &pSrcCar->priv.reaction[0], 4*sizeof(tdble));
-        pTgtCar->_airtemp = pSrcCar->_airtemp;
-        pTgtCar->_collision = pSrcCar->_collision;
-        pTgtCar->_smoke = pSrcCar->_smoke;
-        pTgtCar->_normal = pSrcCar->_normal;
-        pTgtCar->_coll2Pos = pSrcCar->_coll2Pos;
-        pTgtCar->_dammage = pSrcCar->_dammage;
-        //pTgtCar->_debug = pSrcCar->_debug; // Ever used anywhere ?
-        pTgtCar->priv.collision_state = pSrcCar->priv.collision_state;
-        //pTgtCar->_memoryPool ...; // ???? Memory pool copy ??????
-        pTgtCar->_dashboardActiveItem = pSrcCar->_dashboardActiveItem;
-        /* NOTE: dashboardInstant, dashboardInstantNb, dashboardRequest, dashboardRequestNb
-         * are not copied, because they are initialized once and never changed again.
-         * An dashboardInstant and dashboardRequest's tCarSetupItem pointers
-         * are not updated, so they always point to the targets setup field.
-         * This is safe until the graphics engine does not start to change car setups.
-         */
-
-        // 5) ctrl (raw mem copy)
-        memcpy(&pTgtCar->ctrl, &pSrcCar->ctrl, sizeof(tCarCtrl));
-
-        // 6) pitcmd (raw mem copy)
-        memcpy(&pTgtCar->pitcmd, &pSrcCar->pitcmd, sizeof(tCarPitCmd));
-
-        // 7) next : ever used anywhere ? Seems not.
-        //struct CarElt	*next;
-    }
-
-    // II) pSource->s
-    pTarget->s->raceInfo = pSource->s->raceInfo;
-    pTarget->s->deltaTime = pSource->s->deltaTime;
-    pTarget->s->currentTime = pSource->s->currentTime;
-    pTarget->s->accelTime = pSource->s->accelTime;
-    pTarget->s->nbPlayers = pSource->s->nbPlayers;
-    for (int nCarInd = 0; nCarInd < _nInitDrivers; nCarInd++)
-        pTarget->s->cars[nCarInd] =
-            pTarget->carList + (pSource->s->cars[nCarInd] - pSource->carList);
-
-    // III) pSource->rules (1 int per driver) // Not used by the graphics engine (situ. updater only).
-    //memcpy(pTarget->rules, pSource->rules, _nInitDrivers*sizeof(tRmCarRules));
-
-    // IV) pSource->raceEngineInfo
-    //     TODO: Make _reMessage and _reBigMessage inline arrays inside raceEngineInfo
-    //           to avoid strdups (optimization) ?
-    pTarget->_reState = pSource->_reState;
-    memcpy(pTarget->_reCarInfo, pSource->_reCarInfo, _nInitDrivers*sizeof(tReCarInfo));
-    pTarget->_reCurTime = pSource->_reCurTime;
-    pTarget->_reTimeMult = pSource->_reTimeMult;
-    pTarget->_reRunning = pSource->_reRunning;
-    pTarget->_reLastRobTime = pSource->_reLastRobTime;
-    pTarget->_displayMode = pSource->_displayMode;
-    if (pTarget->_reMessage)
-    {
-        free(pTarget->_reMessage);
-        pTarget->_reMessage = 0;
-    }
-    if (pSource->_reMessage)
-    {
-        free(pTarget->_reMessage);
-        pTarget->_reMessage = strdup(pSource->_reMessage);
-    }
-    pTarget->_reMessageEnd = pSource->_reMessageEnd;
-    if (pTarget->_reBigMessage)
-    {
-        free(pTarget->_reBigMessage);
-        pTarget->_reBigMessage = 0;
-    }
-    if (pSource->_reBigMessage)
-    {
-        free(pTarget->_reBigMessage);
-        pTarget->_reBigMessage = strdup(pSource->_reBigMessage);
-    }
-    pTarget->_reBigMessageEnd = pSource->_reBigMessageEnd;
-
-    if (pSource->_rePitRequester)
-    {
-        //GfLogDebug("ReSituationCopy: Pit menu request forwarded.\n");
-        pTarget->_rePitRequester =
-            pTarget->carList + (pSource->_rePitRequester - pSource->carList);
-    }
-    else
-        pTarget->_rePitRequester = 0;
-
-    return pTarget;
 }
 
 void ReSituationUpdater::replaySituation(tRmInfo*& pSource)

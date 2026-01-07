@@ -8,4 +8,7 @@ TGFCLIENT_API const char *GfuiGetTranslatedText(void *hparm,
                                                 const char *pszKey,
                                                 const char *pszDefault);
 
+TGFCLIENT_API void gfuiInitLanguage();
+TGFCLIENT_API void gfuiShutdownLanguage();
+
 #endif

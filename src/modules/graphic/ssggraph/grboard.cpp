@@ -17,6 +17,7 @@
  ***************************************************************************/
 
 #include <portability.h>    // snprintf
+#include <translation.h>
 
 #include "grboard.h"
 
@@ -32,6 +33,8 @@
 #include "grutil.h"       // grWriteTime
 #include "grloadac.h"     // grssgSetCurrentOptions
 #include "grscreen.h"
+
+#include <stdexcept>
 
 namespace ssggraph {
 
@@ -53,31 +56,17 @@ static const int DEFAULT_WIDTH = 800;
 
 static const int BUFSIZE = 256;
 
-//string constants for dashboard
-const char strBrakeRep[] = "F/R Brake Rep.";
-const char strFrontARB[] = "Front ARB";
-const char strRearARB[] = "Rear ARB";
-const char strFDiffMSB[] = "F Pow Max Slip";
-const char strFDiffCMSB[] = "F Coa Max Slip";
-const char strRDiffMSB[] = "R Pow Max Slip";
-const char strRDiffCMSB[] = "R Coa Max Slip";
-const char strCDiffMSB[] = "C Pow Max Slip";
-const char strCDiffCMSB[] = "C Coa Max Slip";
-const char strFuel[] = "Fuel";
-const char strRepair[] = "Repair";
-const char strTireSet[] = "New tires";
-const char strTireCompounds[] = "Compounds";
-const char strFrontWing[] = "Front wing";
-const char strRearWing[] = "Rear wing";
-const char strPenalty[] = "Next pit type";
-
 
 cGrBoard::cGrBoard(int myid) :
     normal_color_(NULL), danger_color_(NULL), ok_color_(NULL),
     error_color_(NULL), inactive_color_(NULL), emphasized_color_(NULL),
     ahead_color_(NULL), behind_color_(NULL), arcade_color_(NULL),
-    background_color_(NULL)
+    background_color_(NULL),
+    param(GfuiMenuLoad("grboard.xml"))
 {
+    if (!param)
+        throw std::runtime_error("Could not open grboardmenu.xml");
+
     id = myid;
     trackMap = NULL;
 
@@ -90,6 +79,7 @@ cGrBoard::cGrBoard(int myid) :
 
 cGrBoard::~cGrBoard()
 {
+    GfParmReleaseHandle(param);
     delete trackMap;
     trackMap = 0;
 
@@ -275,23 +265,23 @@ cGrBoard::grDispDebug(const tSituation *s, const cGrFrameInfo* frame)
         }
 
         // Display simulation time in 2nd row, 2nd column
-        snprintf(buf, sizeof(buf),  "Time: %.f", s->currentTime);
+        snprintf(buf, sizeof(buf),  "%s: %.f", tr("time"), s->currentTime);
         GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x2, y);
     } else if (debugFlag == 3) {
         // Only display detailed information in Debug Mode > 1
         // Display segment name in 2nd column
-        snprintf(buf, sizeof(buf),  "Seg: %s", car_->_trkPos.seg->name);
+        snprintf(buf, sizeof(buf),  "%s: %s", tr("seg"), car_->_trkPos.seg->name);
         GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x2, y);
 
         // Display distance from start in 2nd row, 1st column
         y -= dy;
-        snprintf(buf, sizeof(buf), "DfS: %5.0f", car_->_distFromStartLine);
+        snprintf(buf, sizeof(buf), "%s: %5.0f", tr("dfs"), car_->_distFromStartLine);
         GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
 
         // Display current camera in 2nd row, 2nd column
         tRoadCam *curCam = car_->_trkPos.seg->cam;
         if (curCam) {
-            snprintf(buf, sizeof(buf), "Cam: %s", curCam->name);
+            snprintf(buf, sizeof(buf), "%s: %s", tr("cam"), curCam->name);
             GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x2, y);
         }
     } else if (debugFlag == 4) {
@@ -646,7 +636,7 @@ cGrBoard::grDispGGraph()
         GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, X1 + 10.00, Y1 - 15.0);
         snprintf(buf, sizeof(buf), "P: %3.2f", car_->_tyreCurrentPressure(3) / 6894.76f);
         GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, X1 + 10.00, Y1 - 25.0);
-        snprintf(buf, sizeof(buf), "Air Temperature: %3.2f", K2C(car_->_airtemp));
+        snprintf(buf, sizeof(buf), "%s: %3.2f", tr("airtemp"), K2C(car_->_airtemp));
         GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, X1 - 50.00, Y1 - 65.0);
         //GfLogInfo("~grboard air temp temperature = %3.8f\n", K2C(car_->_airtemp));
 
@@ -776,7 +766,7 @@ cGrBoard::grDispDeltaBestLap(const tSituation *s)
     // Font sizes
     static const int dxc = 60; // this should depend on the text size
     static const int barCenterX = 540; // this should depend on the (split) window width
-    static const int barBottomY = 540; // this should depend on the (split) window height
+    static const int barBottomY = 560; // this should depend on the (split) window height
     static const int barHeight = 25; // this should depend on the text size
     static const int halfTextWidth = dxc / 2;
     // Display, in real time, diff of best and current lap (starting after the first valid lap)
@@ -846,7 +836,7 @@ cGrBoard::grDispDeltaBestLap(const tSituation *s)
     }
     else
     {
-        const char *text = "Waiting for valid lap";
+        const char *text = tr("waitingvalidlap");
         int font = GFUI_FONT_BIG, width = GfuiFontWidth(font, text),
             x = barCenterX - width / 2;
 
@@ -896,7 +886,8 @@ cGrBoard::grDispCarBoard1(const tSituation *s)
     dy = GfuiFontHeight(GFUI_FONT_SMALL_C);
 
     // Display fuel
-    GfuiDrawString("Fuel:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("fuel"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     float *color = (car_->_fuel < 5.0) ? danger_color_ : normal_color_;  // Display low fuel in red
     snprintf(buf, sizeof(buf), "%.1f l", car_->_fuel);
     GfuiDrawString(buf, color, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
@@ -904,40 +895,46 @@ cGrBoard::grDispCarBoard1(const tSituation *s)
 
     // Display damage
     color = (car_->_state & RM_CAR_STATE_BROKEN) ? danger_color_: normal_color_;    //red/white
-    GfuiDrawString("Damage:", color, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("damage"));
+    GfuiDrawString(buf, color, GFUI_FONT_SMALL_C, x, y);
     snprintf(buf, sizeof(buf),  "%d", car_->_dammage);
     GfuiDrawString(buf, color, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
     y -= dy;
 
     // Display lap counter
-    char const* lapsTimeLabel;
+    std::string lapsTimeLabel;
     grGetLapsTime(s, buf, &lapsTimeLabel);
-    GfuiDrawString(lapsTimeLabel, normal_color_, GFUI_FONT_SMALL_C, x, y);
+    GfuiDrawString(lapsTimeLabel.c_str(), normal_color_, GFUI_FONT_SMALL_C, x, y);
     GfuiDrawString(buf, color, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
     y -= dy;
 
     // Display total race time
-    GfuiDrawString("Total:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("total"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(color, GFUI_FONT_SMALL_C, x2, y, dxc, s->currentTime, 0);
     y -= dy;
 
     // Display current lap time
-    GfuiDrawString("Curr:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("curr"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(color, GFUI_FONT_SMALL_C, x2, y, dxc, car_->_curLapTime, 0);
     y -= dy;
 
     // Display last lap time
-    GfuiDrawString("Last:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("last"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(color, GFUI_FONT_SMALL_C, x2, y, dxc, car_->_lastLapTime, 0);
     y -= dy;
 
     // Display best lap time
-    GfuiDrawString("Best:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("best"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(color, GFUI_FONT_SMALL_C, x2, y, dxc, car_->_bestLapTime, 0);
     y -= dy;
 
     // Display top speed
-    GfuiDrawString("Top Speed:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("topspeed"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     snprintf(buf, sizeof(buf), "%d", (int)(car_->_topSpeed * 3.6));
     GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
     y -= dy;
@@ -985,27 +982,30 @@ cGrBoard::grDispCarBoard2(const tSituation *s)
     dy = GfuiFontHeight(GFUI_FONT_SMALL_C);
 
     // Display fuel
-    GfuiDrawString("Fuel:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("fuel"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     float *color = (car_->_fuel < 5.0) ? danger_color_ : normal_color_;    //red/white
     snprintf(buf, sizeof(buf),  "%.1f l", car_->_fuel);
     GfuiDrawString(buf, color, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
     y -= dy;
 
     // Display lap counter
-    char const *lapsTimeLabel;
+    std::string lapsTimeLabel;
     grGetLapsTime(s, buf, &lapsTimeLabel);
-    GfuiDrawString(lapsTimeLabel, normal_color_, GFUI_FONT_SMALL_C, x, y);
+    GfuiDrawString(lapsTimeLabel.c_str(), normal_color_, GFUI_FONT_SMALL_C, x, y);
     GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
     y -= dy;
 
     // Display best lap time and diff of last and best lap
-    GfuiDrawString("Best:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("best"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(normal_color_, GFUI_FONT_SMALL_C, x2, y, dxc, car_->_bestLapTime, 0);
     grWriteTime(normal_color_, GFUI_FONT_SMALL_C, x3, y, dxc, car_->_deltaBestLapTime, 1);
     y -= dy;
 
     // Display current lap time and split times
-    GfuiDrawString("Time:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("time"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(normal_color_, GFUI_FONT_SMALL_C, x2, y, dxc, car_->_curLapTime, 0);
     double time;
     if (grGetSplitTime(s, false, time, NULL, &color))
@@ -1121,26 +1121,29 @@ cGrBoard::grDispCarBoard3(const tSituation *s)
     dy = GfuiFontHeight(GFUI_FONT_SMALL_C);
 
     // Display fuel
-    GfuiDrawString("Fuel:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("fuel"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     float *color = (car_->_fuel < 5.0) ? danger_color_ : normal_color_;    //red/white
     snprintf(buf, sizeof(buf),  "%.1f l", car_->_fuel);
     GfuiDrawString(buf, color, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
     y -= dy;
 
     // Display lap counter
-    char const *lapsTimeLabel;
+    std::string lapsTimeLabel;
     grGetLapsTime(s, buf, &lapsTimeLabel);
-    GfuiDrawString(lapsTimeLabel, normal_color_, GFUI_FONT_SMALL_C, x, y);
+    GfuiDrawString(lapsTimeLabel.c_str(), normal_color_, GFUI_FONT_SMALL_C, x, y);
     GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x2, y, dxc, GFUI_ALIGN_HR);
     y -= dy;
 
     // Display best lap time and diff of last and best lap
-    GfuiDrawString("Best:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("best"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(normal_color_, GFUI_FONT_SMALL_C, x2, y, dxc, car_->_bestLapTime, 0);
     y -= dy;
 
     // Display current lap time and split times
-    GfuiDrawString("Time:", normal_color_, GFUI_FONT_SMALL_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("time"));
+    GfuiDrawString(buf, normal_color_, GFUI_FONT_SMALL_C, x, y);
     grWriteTime(normal_color_, GFUI_FONT_SMALL_C, x2, y, dxc, car_->_curLapTime, 0);
     double time;
 
@@ -1566,10 +1569,12 @@ cGrBoard::grDispLeaderBoard(const tSituation *s)
         if (drawLaps) {
             if (s->_raceType == RM_TYPE_RACE) {
                 if (s->_totTime > s->currentTime) {
-                    GfuiDrawString(" Laps:", emphasized_color_, GFUI_FONT_SMALL_C, x, y);
+                    snprintf(buf, sizeof(buf), " %s:", tr("laps"));
+                    GfuiDrawString(buf, emphasized_color_, GFUI_FONT_SMALL_C, x, y);
                     snprintf(buf, sizeof(buf), "%d", MAX(s->cars[0]->_laps-1, 0));
                 } else {
-                    GfuiDrawString(" Lap:", emphasized_color_, GFUI_FONT_SMALL_C, x, y);  //yellow
+                    snprintf(buf, sizeof(buf), " %s:", tr("lap"));
+                    GfuiDrawString(buf, emphasized_color_, GFUI_FONT_SMALL_C, x, y);  //yellow
                     snprintf(buf, sizeof(buf), "%d / %d", s->cars[0]->_laps, s->_totLaps);
                 }
                 GfuiDrawString(buf, emphasized_color_, GFUI_FONT_SMALL_C, x2, y, dxc,
@@ -1577,13 +1582,15 @@ cGrBoard::grDispLeaderBoard(const tSituation *s)
             } else {
                 if (s->_totTime > 0.0f) {
                     time_left = MAX(MIN(s->_totTime, s->_totTime - s->currentTime), 0);
-                    GfuiDrawString(" Time left:", emphasized_color_, GFUI_FONT_SMALL_C, x, y);
+                    snprintf(buf, sizeof(buf), "%s:", tr("timeleft"));
+                    GfuiDrawString(buf, emphasized_color_, GFUI_FONT_SMALL_C, x, y);
                     snprintf(buf, sizeof(buf), "%d:%02d:%02d",
                              (int)floor(time_left / 3600.0f),
                              (int)floor(time_left/60.0f) % 60,
                              (int)floor(time_left) % 60);
                 } else {
-                    GfuiDrawString(" Lap:", emphasized_color_, GFUI_FONT_SMALL_C, x, y);
+                    snprintf(buf, sizeof(buf), " %s:", tr("lap"));
+                    GfuiDrawString(buf, emphasized_color_, GFUI_FONT_SMALL_C, x, y);
                     snprintf(buf, sizeof(buf), "%d / %d", s->cars[0]->_laps, s->_totLaps);
                 }
                 GfuiDrawString(buf, emphasized_color_, GFUI_FONT_SMALL_C, x2, y, dxc,
@@ -1747,7 +1754,8 @@ cGrBoard::grDispArcade(const tSituation *s)
     y -= dy;
 
     // Display best lap time
-    GfuiDrawString("Best:", arcade_color_, GFUI_FONT_LARGE_C, x, y);
+    snprintf(buf, sizeof(buf), "%s:", tr("best"));
+    GfuiDrawString(buf, arcade_color_, GFUI_FONT_LARGE_C, x, y);
     grWriteTime(arcade_color_, GFUI_FONT_LARGE_C, x2, y, dxc,
                 car_->_bestLapTime, 0);
 
@@ -1916,22 +1924,26 @@ bool cGrBoard::grGetSplitTime(const tSituation *s, bool gap_inrace, double &time
  * @param label[out] The label (Lap: or Time: ) If zero, then the label is added to @p result.
  */
 void cGrBoard::grGetLapsTime(const tSituation *s, char* result,
-                             char const **label) const
+                             std::string *label) const
 {
     bool time = true;
     double cur_left;
     char const *loc_label;
+    const char *laptime;
 
     // Don't show time data if race haven't started yet or is already finished
     if (s->_totTime < 0.0f
             || (s->_totTime < s->currentTime && s->_extraLaps > 0))
         time = false;
 
+    laptime = tr(time ? "time" : "lap");
+
     if (label) {
-        *label = time ? "Time: " : "Lap: ";
+        *label = laptime;
+        *label += ": ";
         loc_label = "";
     } else {
-        loc_label = time ? "Time: " : "Lap: ";
+        loc_label = laptime;
     }
 
     // Show only lap counts before start or after race
@@ -2403,12 +2415,12 @@ cGrBoard::grGenerateLeaderBoardEntry(const tCarElt *car, const tSituation* s,
 
     // Display driver time / time behind leader / laps behind leader
     if (car->_state & RM_CAR_STATE_DNF)  {
-        snprintf(buf, sizeof(buf), "       out");
+        snprintf(buf, sizeof(buf), "       %s", tr("out"));
         return buf;
     }
 
     if (car->_state & RM_CAR_STATE_PIT) {
-        snprintf(buf, sizeof(buf), "       PIT");
+        snprintf(buf, sizeof(buf), "       %s", tr("pit"));
         return buf;
     }
 
@@ -2447,11 +2459,11 @@ cGrBoard::grGenerateLeaderBoardEntry(const tCarElt *car, const tSituation* s,
         break;
 
     case 1:  // 1 lap behind leader
-        snprintf(buf, sizeof(buf), "+%3d Lap", lapsBehindLeader);
+        snprintf(buf, sizeof(buf), "+%3d %s", lapsBehindLeader, tr("lap"));
         break;
 
     default:  // N laps behind leader
-        snprintf(buf, sizeof(buf), "+%3d Laps", lapsBehindLeader);
+        snprintf(buf, sizeof(buf), "+%3d %s", lapsBehindLeader, tr("laps"));
         break;
     }
 
@@ -2481,39 +2493,39 @@ cGrBoard::grDispDashboard()
         item = &(car_->_dashboardInstant[car_->_dashboardActiveItem]);
         switch (item->type) {
         case DI_BRAKE_REPARTITION:
-            buf1 = strBrakeRep;
+            buf1 = tr("brakerep");
             snprintf(buf2, sizeof(buf2), "%.1f %%", 100.0*item->setup->value);
             break;
         case DI_FRONT_ANTIROLLBAR:
-            buf1 = strFrontARB;
+            buf1 = tr("frontARB");
             snprintf(buf2, sizeof(buf2), "%.0f kN/m", item->setup->value/1000.0);
             break;
         case DI_REAR_ANTIROLLBAR:
-            buf1 = strRearARB;
+            buf1 = tr("rearARB");
             snprintf(buf2, sizeof(buf2), "%.0f kN/m", item->setup->value/1000.0);
             break;
         case DI_FRONT_DIFF_MAX_SLIP_BIAS:
-            buf1 = strFDiffMSB;
+            buf1 = tr("FdiffMSB");
             snprintf(buf2, sizeof(buf2), "%.0f %%", 100.0*item->setup->value);
             break;
         case DI_FRONT_DIFF_COAST_MAX_SLIP_BIAS:
-            buf1 = strFDiffCMSB;
+            buf1 = tr("FdiffCMSB");
             snprintf(buf2, sizeof(buf2), "%.0f %%", 100.0*item->setup->value);
             break;
         case DI_REAR_DIFF_MAX_SLIP_BIAS:
-            buf1 = strRDiffMSB;
+            buf1 = tr("RdiffMSB");
             snprintf(buf2, sizeof(buf2), "%.0f %%", 100.0*item->setup->value);
             break;
         case DI_REAR_DIFF_COAST_MAX_SLIP_BIAS:
-            buf1 = strRDiffCMSB;
+            buf1 = tr("RdiffCMSB");
             snprintf(buf2, sizeof(buf2), "%.0f %%", 100.0*item->setup->value);
             break;
         case DI_CENTRAL_DIFF_MAX_SLIP_BIAS:
-            buf1 = strCDiffMSB;
+            buf1 = tr("CdiffMSB");
             snprintf(buf2, sizeof(buf2), "%.0f %%", 100.0*item->setup->value);
             break;
         case DI_CENTRAL_DIFF_COAST_MAX_SLIP_BIAS:
-            buf1 = strCDiffCMSB;
+            buf1 = tr("CdiffCMSB");
             snprintf(buf2, sizeof(buf2), "%.0f %%", 100.0*item->setup->value);
             break;
         }
@@ -2524,68 +2536,68 @@ cGrBoard::grDispDashboard()
         switch (item->type)
         {
         case DI_FUEL:
-            buf1 = strFuel;
+            buf1 = tr("fuel");
             snprintf(buf2, sizeof(buf2), "%.1f l", item->setup->desired_value);
             snprintf(buf3, sizeof(buf3), "%.1f l", car_->_fuel);
             break;
         case DI_REPAIR:
-            buf1 =strRepair;
+            buf1 = tr("repair");
             snprintf(buf2, sizeof(buf2), "%.0f", item->setup->desired_value);
             snprintf(buf3, sizeof(buf3), "%d", car_->_dammage);
             break;
         case DI_TYRE_SET:
-            buf1 = strTireSet;
+            buf1 = tr("tireset");
             if (item->setup->desired_value > 0.9)
             {
-                snprintf(buf2, sizeof(buf2), "%s", "YES");
+                snprintf(buf2, sizeof(buf2), "%s", tr("yes"));
             } else {
-                snprintf(buf2, sizeof(buf2), "%s", "NO");
+                snprintf(buf2, sizeof(buf2), "%s", tr("no"));
             }
             snprintf(buf3, sizeof(buf3), "%s", "");
             break;
         case DI_COMPOUND_SET:
-            buf1 = strTireCompounds;
+            buf1 = tr("compounds");
             //if (item->setup->desired_value > 0)
         {
             if(item->setup->desired_value == 1)
             {
-                snprintf(buf2, sizeof(buf2), "%s", "SOFT");
+                snprintf(buf2, sizeof(buf2), "%s", tr("compounds/soft"));
             }
             else if (item->setup->desired_value == 2)
             {
-                snprintf(buf2, sizeof(buf2), "%s", "MEDIUM");
+                snprintf(buf2, sizeof(buf2), "%s", tr("compounds/medium"));
             }
             else if (item->setup->desired_value == 3)
             {
-                snprintf(buf2, sizeof(buf2), "%s", "HARD");
+                snprintf(buf2, sizeof(buf2), "%s", tr("compounds/hard"));
             }
             else if (item->setup->desired_value == 4)
             {
-                snprintf(buf2, sizeof(buf2), "%s", "WET");
+                snprintf(buf2, sizeof(buf2), "%s", tr("compounds/wet"));
             }
             else if (item->setup->desired_value == 5)
             {
-                snprintf(buf2, sizeof(buf2), "%s", "EXT WET");
+                snprintf(buf2, sizeof(buf2), "%s", tr("compounds/extwet"));
             }
         }
             snprintf(buf3, sizeof(buf3), "%s", "");
             break;
         case DI_FRONT_WING_ANGLE:
-            buf1 = strFrontWing;
+            buf1 = tr("frontwing");
             snprintf(buf2, sizeof(buf2), "%.1f", RAD2DEG(item->setup->desired_value));
             snprintf(buf3, sizeof(buf3), "%.1f", RAD2DEG(item->setup->value));
             break;
         case DI_REAR_WING_ANGLE:
-            buf1 = strRearWing;
+            buf1 = tr("rearwing");
             snprintf(buf2, sizeof(buf2), "%.1f", RAD2DEG(item->setup->desired_value));
             snprintf(buf3, sizeof(buf3), "%.1f", RAD2DEG(item->setup->value));
             break;
         case DI_PENALTY:
-            buf1 = strPenalty;
+            buf1 = tr("boxtype");
             if (item->setup->desired_value > 0.9) {
-                snprintf(buf2, sizeof(buf2), "%s", "PENALTY");
+                snprintf(buf2, sizeof(buf2), "%s", tr("boxtype/penalty"));
             } else {
-                snprintf(buf2, sizeof(buf2), "%s", "REPAIR");
+                snprintf(buf2, sizeof(buf2), "%s", tr("boxtype/repair"));
             }
             snprintf(buf3, sizeof(buf3), "%s", "");
             break;
@@ -2723,6 +2735,13 @@ cGrBoard::grDispIndicators(const bool arcade)
         y -= dy;
     }  // if human
 }  // grDispIndicators
+
+const char *cGrBoard::tr(const char *key) const
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(param, s.c_str(), "text", "");
+}
 
 void cGrBoard::ReadDashColor(void *hdle, const string &color_name, float **color) {
     char buf[1024];

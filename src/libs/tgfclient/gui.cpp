@@ -39,6 +39,7 @@
 #include <tgf.hpp>
 
 #include "tgfclient.h"
+#include "translation.h"
 #include "gui.h"
 #include "guimenu.h"
 #include "musicplayer.h"
@@ -126,6 +127,7 @@ gfuiInit(void)
 	gfuiInitLabel();
 	gfuiInitHelp();
 	gfuiInitMenu();
+	gfuiInitLanguage();
 	gfuiInitMenuSfx();
 	initMusic();
 	gfuiInitWebStats();
@@ -143,6 +145,7 @@ gfuiShutdown(void)
 	gfctrlJoyShutdown();
 	gfuiFreeFonts();
 	gfuiShutdownMenuSfx();
+	gfuiShutdownLanguage();
 	shutdownMusic();
 	Mix_Quit();
 	gfuiShutdownWebStats();
