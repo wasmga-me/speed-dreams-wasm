@@ -80,8 +80,10 @@ void LanguageConfig::deinit(void *args)
     delete static_cast<LanguageConfig *>(args);
 }
 
-void LanguageConfig::get_languages(void *param)
+std::vector<LanguageConfig::lang> LanguageConfig::get_languages(void *param)
 {
+    std::vector<lang> ret;
+
     for (int i = 1; i <= GfParmGetEltNb(param, "Languages"); i++)
     {
         const char *code, *name, *cpath;
@@ -100,17 +102,34 @@ void LanguageConfig::get_languages(void *param)
 
         l.code = code;
         l.name = name;
-        languages.push_back(l);
+        ret.push_back(l);
     }
 
-    if (languages.empty())
+    if (ret.empty())
     {
         lang l;
 
         l.code = "en";
         l.name = "English";
-        languages.push_back(l);
+        ret.push_back(l);
     }
+
+    return ret;
+}
+
+int LanguageConfig::get_languages(std::vector<LanguageConfig::lang> &langs)
+{
+    void *h = GfuiMenuLoad("languagemenu.xml");
+
+    if (!h)
+    {
+        GfLogError("GfParmReadFileLocal failed: %s\n", path);
+        return -1;
+    }
+
+    langs = get_languages(h);
+    GfParmReleaseHandle(h);
+    return 0;
 }
 
 void LanguageConfig::set_active()
@@ -171,7 +190,7 @@ LanguageConfig::LanguageConfig(void *prevMenu) :
     GfuiMenuDefaultKeysAdd(hscr);
     GfuiAddKey(hscr, GFUIK_RETURN, "Apply changes", this, apply, NULL);
     GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, deinit, NULL);
-    get_languages(param);
+    languages = get_languages(param);
 
     for (const auto &l : languages)
         GfuiComboboxAddText(hscr, combo, l.name.c_str());

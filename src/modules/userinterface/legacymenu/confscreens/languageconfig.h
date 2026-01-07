@@ -16,19 +16,21 @@
 class LanguageConfig
 {
 public:
-    LanguageConfig(void *prevMenu);
-
-private:
-    ~LanguageConfig();
-    void get_languages(void *param);
-    void set_active();
-    static void on_change(tComboBoxInfo *args);
-    static void apply(void *args);
-    static void deinit(void *args);
     struct lang
     {
         std::string code, name;
     };
+
+    LanguageConfig(void *prevMenu);
+    static int get_languages(std::vector<lang> &langs);
+    static std::vector<lang> get_languages(void *param);
+
+private:
+    ~LanguageConfig();
+    void set_active();
+    static void on_change(tComboBoxInfo *args);
+    static void apply(void *args);
+    static void deinit(void *args);
 
     void *const hscr, *const prev;
     std::vector<lang> languages;
