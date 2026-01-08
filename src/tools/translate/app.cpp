@@ -473,7 +473,7 @@ int Application::ensure_target() const
 
     n = GfParmGetEltNb(h, "Languages");
 
-    for (int i = 1; i < n; i++)
+    for (int i = 1; i <= n; i++)
     {
         std::string section = "Languages/" + std::to_string(i);
         const char *code = GfParmGetStr(h, section.c_str(), "code", "");
