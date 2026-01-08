@@ -84,6 +84,7 @@ static int    yday   = 0;
 static int    north  = 0;
 static int    timeofday = 0;
 static int    hour = 0;
+static int    clouds = 0;
 
 static double latitude = 0.0;
 static double longitude = 0.0;
@@ -97,7 +98,7 @@ static double elevation = 0.0;
 static double wind_dir = 0.0;
 static double wind_speed = 0.0;
 static double pressure = 0.0;
-static double clouds = 0.0;
+
 //static double clouds1 = 0.0;
 //static double clouds2 = 0.0;
 
@@ -926,19 +927,19 @@ void  reTrackUpdatePrecipitation(void)
     if (clouds == TR_CLOUDS_RANDOM)
     {
         if (h <= 65.00)
-            clouds = 0.0;
+            clouds = TR_CLOUDS_NONE;
         else if (h >65.00 && h < 75.00)
-            clouds = 1.0;
+            clouds = TR_CLOUDS_CIRRUS;
         else if (h > 75.00 && h <= 80.00)
-            clouds = 2.0;
+            clouds = TR_CLOUDS_FEW;
         else if (h > 80.00 && h <= 85.00)
-            clouds = 3.0;
+            clouds = TR_CLOUDS_MANY;
         else if (h > 85.00 && h <= 90.00)
-            clouds = 4.0;
+            clouds = TR_CLOUDS_CUMULUS;
         else if (h > 90.00 && h <= 95.00)
-            clouds = 6.0;
+            clouds = TR_CLOUDS_BROKEN;
         else
-            clouds = 7.0;
+            clouds = TR_CLOUDS_FULL;
     }
 
     if (precipitation < 60.0)
@@ -960,19 +961,19 @@ void  reTrackUpdatePrecipitation(void)
          else if (precipitation > 100.00 && precipitation <= 120.00)
          {
              precipitation = 2.0;
-             clouds = 7.0;
+             clouds = TR_CLOUDS_FULL;
          }
          else
          {
              precipitation = 3.0;
-             clouds = 7.0;
+             clouds = TR_CLOUDS_FULL;
          }
      }
 
     if (rain > 3)
         rain = (int)precipitation;
 
-    GfLogInfo(" ### Update precipitation : Precipitation =%.2f - Rain = %i - Clouds = %.2f - H = %.2f - Humidity = %.2f\n",
+    GfLogInfo(" ### Update precipitation : Precipitation =%.2f - Rain = %i - Clouds = %d - H = %.2f - Humidity = %.2f\n",
               precipitation, rain, clouds, h, humidity);
 
 }

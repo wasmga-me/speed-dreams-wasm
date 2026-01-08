@@ -23,6 +23,7 @@
 #include <string>
 using std::string;
 
+#include <track.h>
 #include <osg/ref_ptr>
 #include <osg/Array>
 #include <osg/Geode>
@@ -40,14 +41,14 @@ public:
 
     enum Coverage
     {
-        SD_CLOUD_CLEAR = 0,
-        SD_CLOUD_CIRRUS,
-        SD_CLOUD_FEW,
-        SD_CLOUD_MANY,
-        SD_CLOUD_CUMULUS,
-        SD_CLOUD_SCATTERED,
-        SD_CLOUD_BROKEN,
-        SD_CLOUD_OVERCAST,
+        SD_CLOUD_CLEAR = TR_CLOUDS_NONE,
+        SD_CLOUD_CIRRUS = TR_CLOUDS_CIRRUS,
+        SD_CLOUD_FEW = TR_CLOUDS_FEW,
+        SD_CLOUD_MANY = TR_CLOUDS_MANY,
+        SD_CLOUD_CUMULUS = TR_CLOUDS_CUMULUS,
+        SD_CLOUD_SCATTERED = TR_CLOUDS_SCARCE,
+        SD_CLOUD_BROKEN = TR_CLOUDS_BROKEN,
+        SD_CLOUD_OVERCAST = TR_CLOUDS_FULL,
         SD_MAX_CLOUD_COVERAGES
     };
 
