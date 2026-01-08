@@ -162,6 +162,12 @@ public:
 	//! Activate the main menu.
 	static bool activateMainMenu();
 
+	//! Load and activate the main menu.
+	static bool runMainMenu();
+
+	//! Activate the welcome menu.
+	static bool activateWelcomeMenu();
+
 	//! Direct race startup (race specified in command line args).
 	static bool startRace();
 

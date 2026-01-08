@@ -282,7 +282,7 @@ bool SplashScreen(bool (*fnBackWork)(void), bool (*fnOnClosed)(void), bool bInte
 
     // Prevent fnOnClosed being called (by splashClose)
     // before fnBackWork (called by splashIdle) is done.
-    splBackgroundWorkDone = false;
+    splBackgroundWorkDone = !splBackgroundWork;
 
     // Setup event loop callbacks.
     GfuiApp().eventLoop().setRedisplayCB(splashDisplay);

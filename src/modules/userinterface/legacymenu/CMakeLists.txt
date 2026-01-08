@@ -15,6 +15,7 @@ SET(MAINSCREENS_SOURCES ${MS}/splash.cpp ${MS}/mainmenu.cpp
                         ${MS}/sink.cpp
                         ${MS}/thumbnail.cpp
                         ${MS}/unzip.cpp
+                        ${MS}/welcomemenu.cpp
                         ${MS}/writebuf.cpp
                         ${MS}/writefile.cpp)
 SET(MAINSCREENS_HEADERS ${MS}/splash.h ${MS}/mainmenu.h
@@ -31,6 +32,7 @@ SET(MAINSCREENS_HEADERS ${MS}/splash.h ${MS}/mainmenu.h
                         ${MS}/sink.h
                         ${MS}/thumbnail.h
                         ${MS}/unzip.h
+                        ${MS}/welcomemenu.h
                         ${MS}/writebuf.h
                         ${MS}/writefile.h)
 
