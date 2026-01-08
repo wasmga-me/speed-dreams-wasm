@@ -29,6 +29,7 @@
 
 #include <portability.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <track.h>
 #include <car.h>
@@ -53,6 +54,7 @@ static const char *SeasonsValues[GfRace::nSeasonSpecNumber]  = RM_VALS_SEASONS;
 // Global variables.
 static void		*ScrHandle;
 static tRmRaceParam	*MenuData;
+static void     *menuXMLDescHdle;
 
 // Menu control ids
 static int		rmrpDistEditId;
@@ -85,11 +87,25 @@ static int      rmrpExtraLaps;
 static void
 rmrpDeactivate(void *screen)
 {
+    if (menuXMLDescHdle) {
+        // Close menu XML descriptor.
+        GfParmReleaseHandle(menuXMLDescHdle);
+        menuXMLDescHdle = NULL;
+    }
+
     GfuiScreenRelease(ScrHandle);
 
     if (screen) {
         GfuiScreenActivate(screen);
     }
+}
+
+static const char *
+tr(const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(menuXMLDescHdle, s.c_str(), "text", "");
 }
 
 static void
@@ -252,7 +268,7 @@ rmChangeTimeOfDay(int delta)
     rmrpTimeOfDay =
             (GfRace::ETimeOfDaySpec)
             ((rmrpTimeOfDay + GfRace::nTimeSpecNumber + delta) % GfRace::nTimeSpecNumber);
-    GfuiLabelSetText(ScrHandle, rmrpTimeOfDayEditId, TimeOfDayValues[rmrpTimeOfDay]);
+    GfuiLabelSetText(ScrHandle, rmrpTimeOfDayEditId, tr(TimeOfDayValues[rmrpTimeOfDay]));
 }
 
 static void
@@ -273,7 +289,7 @@ rmChangeClouds(int delta)
     rmrpClouds =
             (GfRace::ECloudsSpec)
             ((rmrpClouds + GfRace::nCloudsSpecNumber + delta) % GfRace::nCloudsSpecNumber);
-    GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, CloudsValues[rmrpClouds]);
+    GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, tr(CloudsValues[rmrpClouds]));
 }
 
 static void
@@ -294,7 +310,7 @@ rmChangeSeason(int delta)
     rmrpSeason =
             (GfRace::ESeasonSpec)
             ((rmrpSeason + GfRace::nSeasonSpecNumber + delta) % GfRace::nSeasonSpecNumber);
-    GfuiLabelSetText(ScrHandle, rmrpSeasonEditId, SeasonsValues[rmrpSeason]);
+    GfuiLabelSetText(ScrHandle, rmrpSeasonEditId, tr(SeasonsValues[rmrpSeason]));
 }
 
 static void
@@ -313,7 +329,7 @@ static void
 rmChangeWeather(int delta)
 {
     rmrpWeather = (GfRace::EWeatherSpec)((rmrpWeather + GfRace::nWeatherSpecNumber + delta) % GfRace::nWeatherSpecNumber);
-    GfuiLabelSetText(ScrHandle, rmrpWeatherEditId, WeatherValues[rmrpWeather]);
+    GfuiLabelSetText(ScrHandle, rmrpWeatherEditId, tr(WeatherValues[rmrpWeather]));
 
     if (rmrpConfMask & RM_CONF_CLOUD_COVER)
     {
@@ -331,7 +347,7 @@ rmChangeWeather(int delta)
             //rmrpClouds = GfRace::eCloudsNone;
         }
 
-        GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, CloudsValues[rmrpClouds]);
+        GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, tr(CloudsValues[rmrpClouds]));
         // Show / hide clouds combo arrow buttons (any rain => no sky choice).
         GfuiEnable(ScrHandle, rmrpCloudsLeftArrowId, cloudsComboEnabled);
         GfuiEnable(ScrHandle, rmrpCloudsRightArrowId, cloudsComboEnabled);
@@ -352,7 +368,7 @@ rmChangeWeather(int delta)
             //rmrpRain = GfRace::eRainNone;
         }
 
-        GfuiLabelSetText(ScrHandle, rmrpRainEditId, RainValues[rmrpRain]);
+        GfuiLabelSetText(ScrHandle, rmrpRainEditId, tr(RainValues[rmrpRain]));
         // Show / hide clouds combo arrow buttons (any rain => no sky choice).
         GfuiEnable(ScrHandle, rmrpRainLeftArrowId, rainComboEnabled);
         GfuiEnable(ScrHandle, rmrpRainRightArrowId, rainComboEnabled);
@@ -373,7 +389,7 @@ rmChangeWeather(int delta)
             //rmrpRain = GfRace::eRainNone;
         }
 
-        GfuiLabelSetText(ScrHandle, rmrpSeasonEditId, SeasonsValues[rmrpSeason]);
+        GfuiLabelSetText(ScrHandle, rmrpSeasonEditId, tr(SeasonsValues[rmrpSeason]));
         GfuiEnable(ScrHandle, rmrpSeasonLeftArrowId, SeasonComboEnabled);
         GfuiEnable(ScrHandle, rmrpSeasonRightArrowId, SeasonComboEnabled);
     }
@@ -397,7 +413,7 @@ rmChangeRain(int delta)
     rmrpRain =
             (GfRace::ERainSpec)
             ((rmrpRain + GfRace::nRainSpecNumber + delta) % GfRace::nRainSpecNumber);
-    GfuiLabelSetText(ScrHandle, rmrpRainEditId, RainValues[rmrpRain]);
+    GfuiLabelSetText(ScrHandle, rmrpRainEditId, tr(RainValues[rmrpRain]));
 
     if (rmrpConfMask & RM_CONF_CLOUD_COVER)
     {
@@ -419,7 +435,7 @@ rmChangeRain(int delta)
             rmrpClouds = GfRace::eCloudsFull; // Rain => Heavy clouds.
         }
 
-        GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, CloudsValues[rmrpClouds]);
+        GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, tr(CloudsValues[rmrpClouds]));
 
         // Show / hide clouds combo arrow buttons (any rain => no sky choice).
         GfuiEnable(ScrHandle, rmrpCloudsLeftArrowId, cloudsComboEnabled);
@@ -556,7 +572,7 @@ RmRaceParamsMenu(void *vrp)
 
     // Create the screen, load menu XML descriptor and create static controls.
     ScrHandle = GfuiScreenCreate((float*)NULL, NULL, NULL, NULL, (tfuiCallback)NULL, 1);
-    void *menuXMLDescHdle = GfuiMenuLoad("raceparamsmenu.xml");
+    menuXMLDescHdle = GfuiMenuLoad("raceparamsmenu.xml");
     GfuiMenuCreateStaticControls(ScrHandle, menuXMLDescHdle);
 
     // Create the variable title label.
@@ -688,7 +704,7 @@ RmRaceParamsMenu(void *vrp)
                                     NULL, rmChangeTimeOfDayRight);
 
         rmrpTimeOfDayEditId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "timeofdayedit");
-        GfuiLabelSetText(ScrHandle, rmrpTimeOfDayEditId, TimeOfDayValues[rmrpTimeOfDay]);
+        GfuiLabelSetText(ScrHandle, rmrpTimeOfDayEditId, tr(TimeOfDayValues[rmrpTimeOfDay]));
     }
 
     // Create and initialize Clouds combo box (2 arrow buttons and a variable label).
@@ -711,7 +727,7 @@ RmRaceParamsMenu(void *vrp)
                                             NULL, rmChangeCloudsRight);
 
         rmrpCloudsEditId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "cloudsedit");
-        GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, CloudsValues[rmrpClouds]);
+        GfuiLabelSetText(ScrHandle, rmrpCloudsEditId, tr(CloudsValues[rmrpClouds]));
     }
 
     // Create and initialize Rain combo box (2 arrow buttons and a variable label).
@@ -730,7 +746,7 @@ RmRaceParamsMenu(void *vrp)
         rmrpRainRightArrowId = GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "rainrightarrow", NULL, rmChangeRainRight);
 
         rmrpRainEditId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "rainedit");
-        GfuiLabelSetText(ScrHandle, rmrpRainEditId, RainValues[rmrpRain]);
+        GfuiLabelSetText(ScrHandle, rmrpRainEditId, tr(RainValues[rmrpRain]));
 
         rmChangeRain(0); // Make cloud cover settings compatible if needed.
     }
@@ -753,7 +769,7 @@ RmRaceParamsMenu(void *vrp)
                                     NULL, rmChangeSeasonRight);
 
         rmrpSeasonEditId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "seasonedit");
-        GfuiLabelSetText(ScrHandle, rmrpSeasonEditId, SeasonsValues[rmrpSeason]);
+        GfuiLabelSetText(ScrHandle, rmrpSeasonEditId, tr(SeasonsValues[rmrpSeason]));
 
         rmChangeSeason(0);
     }
@@ -776,7 +792,7 @@ RmRaceParamsMenu(void *vrp)
                                     NULL, rmChangeWeatherRight);
 
         rmrpWeatherEditId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "weatheredit");
-        GfuiLabelSetText(ScrHandle, rmrpWeatherEditId, WeatherValues[rmrpWeather]);
+        GfuiLabelSetText(ScrHandle, rmrpWeatherEditId, tr(WeatherValues[rmrpWeather]));
         rmChangeWeather(0); // Make cloud cover settings compatible if needed.
     }
 
@@ -804,9 +820,6 @@ RmRaceParamsMenu(void *vrp)
     GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "nextbutton", NULL, rmrpValidate);
     GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "backbutton",
                                 MenuData->prevScreen, rmrpDeactivate);
-
-    // Close menu XML descriptor.
-    GfParmReleaseHandle(menuXMLDescHdle);
 
     // Register keyboard shortcuts.
     rmrpAddKeys();
