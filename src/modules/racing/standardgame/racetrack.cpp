@@ -924,23 +924,23 @@ double reTrackMonsoonal(double val, double min, double max)
 void  reTrackUpdatePrecipitation(void)
 {
     double h = humidity + (yday / 20);
-    if (clouds == TR_CLOUDS_RANDOM)
-    {
-        if (h <= 65.00)
-            clouds = TR_CLOUDS_NONE;
-        else if (h >65.00 && h < 75.00)
-            clouds = TR_CLOUDS_CIRRUS;
-        else if (h > 75.00 && h <= 80.00)
-            clouds = TR_CLOUDS_FEW;
-        else if (h > 80.00 && h <= 85.00)
-            clouds = TR_CLOUDS_MANY;
-        else if (h > 85.00 && h <= 90.00)
-            clouds = TR_CLOUDS_CUMULUS;
-        else if (h > 90.00 && h <= 95.00)
-            clouds = TR_CLOUDS_BROKEN;
-        else
-            clouds = TR_CLOUDS_FULL;
-    }
+    if (clouds != TR_CLOUDS_RANDOM)
+        return;
+
+    if (h <= 65.00)
+        clouds = TR_CLOUDS_NONE;
+    else if (h >65.00 && h < 75.00)
+        clouds = TR_CLOUDS_CIRRUS;
+    else if (h > 75.00 && h <= 80.00)
+        clouds = TR_CLOUDS_FEW;
+    else if (h > 80.00 && h <= 85.00)
+        clouds = TR_CLOUDS_MANY;
+    else if (h > 85.00 && h <= 90.00)
+        clouds = TR_CLOUDS_CUMULUS;
+    else if (h > 90.00 && h <= 95.00)
+        clouds = TR_CLOUDS_BROKEN;
+    else
+        clouds = TR_CLOUDS_FULL;
 
     if (precipitation < 60.0)
     {
