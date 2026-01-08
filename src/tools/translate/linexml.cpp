@@ -293,6 +293,11 @@ static int parse(const std::string &line, int lineno,
             p.line = lineno;
             params = p;
         }
+        else
+        {
+            GfLogError("Invalid params line:\n%s\n", s);
+            return -1;
+        }
     }
     else if (!strncmp(s, "<section", strlen("<section")))
     {
