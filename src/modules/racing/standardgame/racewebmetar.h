@@ -18,6 +18,7 @@
 #ifndef __SD_REWEBMETAR_H__
 #define __SD_REWEBMETAR_H__
 
+#include <track.h>
 #include <vector>
 #include <string>
 #include <map>
@@ -128,14 +129,14 @@ public:
     enum Coverage
     {
         COVERAGE_NIL = -1,
-        COVERAGE_CLEAR = 0,
-        COVERAGE_CIRRUS = 1,
-        COVERAGE_FEW = 2,
-        COVERAGE_MANY = 3,
-        COVERAGE_CUMULUS = 4,
-        COVERAGE_SCATTERED = 5,
-        COVERAGE_BROKEN = 6,
-        COVERAGE_OVERCAST = 7
+        COVERAGE_CLEAR = TR_CLOUDS_NONE,
+        COVERAGE_CIRRUS = TR_CLOUDS_CIRRUS,
+        COVERAGE_FEW = TR_CLOUDS_FEW,
+        COVERAGE_MANY = TR_CLOUDS_MANY,
+        COVERAGE_CUMULUS = TR_CLOUDS_CUMULUS,
+        COVERAGE_SCATTERED = TR_CLOUDS_SCARCE,
+        COVERAGE_BROKEN = TR_CLOUDS_BROKEN,
+        COVERAGE_OVERCAST = TR_CLOUDS_FULL
     };
 
     static const char * COVERAGE_NIL_STRING;

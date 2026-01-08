@@ -706,6 +706,9 @@ RmScreenShutdown()
 		GfuiScreenRelease(rmScreenHandle);
 		rmScreenHandle = 0;
     }
+
+	rmStrCurMsg.clear();
+	rmStrCurBigMsg.clear();
 }
 
 
