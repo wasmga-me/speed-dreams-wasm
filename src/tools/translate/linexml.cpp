@@ -204,7 +204,7 @@ static int parse(const std::string &line, lxml::params &params)
             return -1;
     }
 
-    return params.name.empty();
+    return 0;
 }
 
 static int parse(const std::string &line, const std::string &section,
