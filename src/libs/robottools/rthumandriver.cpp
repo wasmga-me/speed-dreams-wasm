@@ -977,7 +977,12 @@ static void common_drive(const int index, tCarElt* car, tSituation *s)
     {
         if (cmd[dummy].type == GFCTRL_TYPE_JOY_ATOB)
         {
-            if (joyInfo->ax[cmd[dummy].val] >= cmd[dummy].min && joyInfo->ax[cmd[dummy].val] <= cmd[dummy].max)
+            float ax = joyInfo->ax[cmd[dummy].val],
+                min = cmd[dummy].min,
+                max = cmd[dummy].max;
+
+            if ((ax >= min && ax <= max)
+                || (ax <= min && ax >= max))
             {
                 // Abuse deadZone to store state; 1=just pressed, 2=held
                 if (cmd[dummy].deadZone < 2)
