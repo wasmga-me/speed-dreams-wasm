@@ -134,7 +134,9 @@
 #define HM_ATT_R_GLANCE_MIN     "right glance min"
 #define HM_ATT_R_GLANCE_MAX     "right glance max"
 
-#define HM_ATT_CAM_LOOKBACK   "camera look back"
+#define HM_ATT_CAM_LOOKBACK     "camera look back"
+#define HM_ATT_CAM_LOOKBACK_MIN "camera look back min"
+#define HM_ATT_CAM_LOOKBACK_MAX "camera look back max"
 
 #define HM_ATT_DASHB_NEXT       "dashboard next item"
 #define HM_ATT_DASHB_NEXT_MIN   "dashboard next item min"
