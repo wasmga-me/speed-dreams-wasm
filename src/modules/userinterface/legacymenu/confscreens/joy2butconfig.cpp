@@ -25,9 +25,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 #include <tgf.hpp>
 #include <tgfclient.h>
+#include <translation.h>
 #include <playerpref.h>
 
 #include "controlconfig.h"
@@ -42,11 +44,11 @@ static const int CmdOffset = -1;
 
 // TODO: Put these strings in joystickconfigmenu.xml for translation.
 static const char *Instructions[] = {
-    "Select the NULL position then press a button",
-    "Select the 'Command' position then press a button",
-    "Select the 'Command' position then press a button",
-    "Joy-to-button calibration is complete",
-    "Calibration failed"
+    "centerpos",
+    "apply",
+    "apply",
+    "complete",
+    "failed"
 };
 
 // Current calibration step
@@ -66,6 +68,9 @@ static void *ScrHandle = NULL;
 // Next menu screen handle.
 static void* NextMenuHandle = NULL;
 static void* PrevMenuHandle = NULL;
+
+// XML parameter handle.
+static void* menuXMLDescHdle = NULL;
 
 // Screen controls Ids
 static int InstId;
@@ -92,11 +97,24 @@ onNext(void * /* dummy */)
     /* Release up and running joysticks */
     //GfctrlJoyRelease(joyInfo);
 
+    GfuiScreenRelease(ScrHandle);
+
+    // Close menu XML descriptor.
+    GfParmReleaseHandle(menuXMLDescHdle);
+
     /* Back to previous screen */
     if (CalState == NbCalSteps && NextMenuHandle != NULL)
 	GfuiScreenActivate(NextMenuHandle);
     else
 	GfuiScreenActivate(PrevMenuHandle);
+}
+
+static const char *
+tr(const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(menuXMLDescHdle, s.c_str(), "text", "");
 }
 
 static void advanceStep (void)
@@ -223,7 +241,10 @@ JoyCalAutomaton(void)
 	   while (AtobList != NULL) {
 		item_in_list = AtobList;
 		if (item_in_list->command != -1)
+        {
 		   Cmd[item_in_list->command].min = last_max;
+           GfLogInfo("Setting min for Cmd[%d]=%f\n", item_in_list->command, last_max);
+        }
 
 		/* Split difference between current and next */
 		if (item_in_list->next != NULL)
@@ -232,7 +253,10 @@ JoyCalAutomaton(void)
 		   last_max = 1.0;
 
 		if (item_in_list->command != -1)
+        {
+            GfLogInfo("Setting max for Cmd[%d]=%f\n", item_in_list->command, last_max);
 		    Cmd[item_in_list->command].max = last_max;
+        }
 
 		AtobList = item_in_list->next;
 		free(item_in_list);
@@ -243,7 +267,7 @@ JoyCalAutomaton(void)
 
 	break;
     }
-    GfuiLabelSetText(ScrHandle, InstId, Instructions[CalState]);
+    GfuiLabelSetText(ScrHandle, InstId, tr(Instructions[CalState]));
 
     /* Change button appearance when done */
     if (CalState == 3) {
@@ -305,7 +329,7 @@ onActivate(void * /* dummy */)
     GfuiLabelSetText(ScrHandle, AtobAxisID, GfctrlGetNameByRef(GFCTRL_TYPE_JOY_ATOB, AtobAxis));
     GfuiLabelSetText(ScrHandle, AtobCommandID, "---");
 
-    GfuiLabelSetText(ScrHandle, InstId, Instructions[CalState]);
+    GfuiLabelSetText(ScrHandle, InstId, tr(Instructions[CalState]));
     GfuiApp().eventLoop().setRecomputeCB(Idle2);
     GfuiApp().eventLoop().postRedisplay();
 
@@ -325,14 +349,10 @@ Joy2butCalMenuInit(void *prevMenu, void *nextMenu, tCmdInfo *cmd, int maxcmd)
     PrevMenuHandle = prevMenu;
     NextMenuHandle = nextMenu;
 
-    if (ScrHandle) {
-	return ScrHandle;
-    }
-
     // Create screen, load menu XML descriptor and create static controls.
     ScrHandle = GfuiScreenCreate(NULL, NULL, onActivate, NULL, NULL, 1);
 
-    void *menuXMLDescHdle = GfuiMenuLoad("joy2butconfigmenu.xml");
+    menuXMLDescHdle = GfuiMenuLoad("joy2butconfigmenu.xml");
 
     GfuiMenuCreateStaticControls(ScrHandle, menuXMLDescHdle);
 
@@ -354,9 +374,6 @@ Joy2butCalMenuInit(void *prevMenu, void *nextMenu, tCmdInfo *cmd, int maxcmd)
     }
 
     CancelBut = GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "cancelbutton", NULL, onNext);
-
-    // Close menu XML descriptor.
-    GfParmReleaseHandle(menuXMLDescHdle);
 
     // Register keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(ScrHandle);
