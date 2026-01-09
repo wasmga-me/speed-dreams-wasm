@@ -1365,7 +1365,7 @@ static void common_drive(const int index, tCarElt* car, tSituation *s)
     if ((cmd[CMD_DASHB_NEXT].type == GFCTRL_TYPE_JOY_BUT && joyInfo->edgeup[cmd[CMD_DASHB_NEXT].val])
             || (cmd[CMD_DASHB_NEXT].type == GFCTRL_TYPE_MOUSE_BUT && mouseInfo->edgedn[cmd[CMD_DASHB_NEXT].val])
             || (cmd[CMD_DASHB_NEXT].type == GFCTRL_TYPE_KEYBOARD && keyInfo[lookUpKeyMap(cmd[CMD_DASHB_NEXT].val)].edgeDn)
-            || (cmd[CMD_DASHB_NEXT].type == GFCTRL_TYPE_JOY_ATOB && cmd[CMD_DASHB_NEXT].deadZone != 0))
+            || (cmd[CMD_DASHB_NEXT].type == GFCTRL_TYPE_JOY_ATOB && (int)cmd[CMD_DASHB_NEXT].deadZone == 1))
     {
         car->_dashboardActiveItem++;
         if (car->_dashboardActiveItem >= car->_dashboardInstantNb + car->_dashboardRequestNb)
@@ -1375,7 +1375,7 @@ static void common_drive(const int index, tCarElt* car, tSituation *s)
     if ((cmd[CMD_DASHB_PREV].type == GFCTRL_TYPE_JOY_BUT && joyInfo->edgeup[cmd[CMD_DASHB_PREV].val])
             || (cmd[CMD_DASHB_PREV].type == GFCTRL_TYPE_MOUSE_BUT && mouseInfo->edgedn[cmd[CMD_DASHB_PREV].val])
             || (cmd[CMD_DASHB_PREV].type == GFCTRL_TYPE_KEYBOARD && keyInfo[lookUpKeyMap(cmd[CMD_DASHB_PREV].val)].edgeDn)
-            || (cmd[CMD_DASHB_PREV].type == GFCTRL_TYPE_JOY_ATOB && cmd[CMD_DASHB_PREV].deadZone != 0))
+            || (cmd[CMD_DASHB_PREV].type == GFCTRL_TYPE_JOY_ATOB && (int)cmd[CMD_DASHB_PREV].deadZone == 1))
     {
         car->_dashboardActiveItem--;
         if (car->_dashboardActiveItem < 0)
@@ -1391,7 +1391,7 @@ static void common_drive(const int index, tCarElt* car, tSituation *s)
     if ((cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_JOY_BUT && joyInfo->edgeup[cmd[CMD_DASHB_INC].val])
             || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_MOUSE_BUT && mouseInfo->edgedn[cmd[CMD_DASHB_INC].val])
             || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_KEYBOARD && keyInfo[lookUpKeyMap(cmd[CMD_DASHB_INC].val)].edgeDn)
-            || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_JOY_ATOB && cmd[CMD_DASHB_INC].deadZone != 0))
+            || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_JOY_ATOB && (int)cmd[CMD_DASHB_INC].deadZone == 1))
     {
         HCtx[idx]->dashboardCounter = (int)(1.0/RCM_MAX_DT_ROBOTS);
         item->setup->desired_value += item->setup->stepsize;
@@ -1402,7 +1402,7 @@ static void common_drive(const int index, tCarElt* car, tSituation *s)
     if ((cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_JOY_BUT && joyInfo->levelup[cmd[CMD_DASHB_INC].val])
             || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_MOUSE_BUT && mouseInfo->button[cmd[CMD_DASHB_INC].val])
             || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_KEYBOARD && keyInfo[lookUpKeyMap(cmd[CMD_DASHB_INC].val)].state)
-            || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_JOY_ATOB && cmd[CMD_DASHB_INC].deadZone != 0))
+            || (cmd[CMD_DASHB_INC].type == GFCTRL_TYPE_JOY_ATOB && (int)cmd[CMD_DASHB_INC].deadZone == 1))
     {
         if (HCtx[idx]->dashboardCounter > 0)
         {
@@ -1420,7 +1420,7 @@ static void common_drive(const int index, tCarElt* car, tSituation *s)
     if ((cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_JOY_BUT && joyInfo->edgeup[cmd[CMD_DASHB_DEC].val])
             || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_MOUSE_BUT && mouseInfo->edgedn[cmd[CMD_DASHB_DEC].val])
             || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_KEYBOARD && keyInfo[lookUpKeyMap(cmd[CMD_DASHB_DEC].val)].edgeDn)
-            || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_JOY_ATOB && cmd[CMD_DASHB_DEC].deadZone != 0))
+            || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_JOY_ATOB && (int)cmd[CMD_DASHB_DEC].deadZone == 1))
     {
         HCtx[idx]->dashboardCounter = (int)(1.0/RCM_MAX_DT_ROBOTS);
         item->setup->desired_value -= item->setup->stepsize;
@@ -1432,7 +1432,7 @@ static void common_drive(const int index, tCarElt* car, tSituation *s)
     if ((cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_JOY_BUT && joyInfo->levelup[cmd[CMD_DASHB_DEC].val])
             || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_MOUSE_BUT && mouseInfo->button[cmd[CMD_DASHB_DEC].val])
             || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_KEYBOARD && keyInfo[lookUpKeyMap(cmd[CMD_DASHB_DEC].val)].state)
-            || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_JOY_ATOB && cmd[CMD_DASHB_DEC].deadZone != 0))
+            || (cmd[CMD_DASHB_DEC].type == GFCTRL_TYPE_JOY_ATOB && (int)cmd[CMD_DASHB_DEC].deadZone == 1))
     {
         if (HCtx[idx]->dashboardCounter > 0)
         {
