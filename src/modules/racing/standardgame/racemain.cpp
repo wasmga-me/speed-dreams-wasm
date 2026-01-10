@@ -1259,7 +1259,9 @@ ReRaceCooldown()
         // check if there is a human player AND if cooldown is enabled through the UI
         if ((ReSessionHasHuman()) && (true == ReUI().onRaceCooldownStarting()))
         {
-            ReSituation::self().setRaceMessage("Hit <Enter> for Results", -1, /*big=*/true);
+            const char *text = ReSituation::self().tr("showresults");
+
+            ReSituation::self().setRaceMessage(text, -1, /*big=*/true);
             // enable cooldown
             mode = RM_ASYNC;
         }

@@ -60,6 +60,8 @@ protected:
 	const GfDriverSkin& getSelectedSkin() const;
 	void setSelectedSkinIndex(int nSkinIndex);
 
+	const char *tr(const char *key) const;
+
 	// Control callback functions (have to be static, as used as tgfclient controls callbacks).
 	static void onActivateCB(void *pGarageMenu);
 	static void onChangeCategory(tComboBoxInfo *pInfo);

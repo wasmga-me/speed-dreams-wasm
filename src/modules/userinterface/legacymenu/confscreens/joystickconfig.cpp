@@ -28,6 +28,7 @@
 
 #include <tgf.hpp>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include "controlconfig.h"
 #include "joystickconfig.h"
@@ -44,14 +45,14 @@ static const char *LabName[] = { "steer", "throttle", "brake", "clutch" };
 
 // TODO: Put these strings in joystickconfigmenu.xml for translation.
 static const char *Instructions[] = {
-    "Center the joystick then press a button",
-    "Hold steer left and press a button",
-    "Hold steer right and press a button",
-    "Apply full throttle and press a button",
-    "Apply full brake and press a button",
-    "Apply full clutch then press a button",
-    "Joystick calibration completed",
-    "Calibration failed"
+    "centerpos",
+    "steerleft",
+    "steerright",
+    "fullthrottle",
+    "fullbrake",
+    "fullclutch",
+    "completed",
+    "failed"
 };
 
 // Current calibration step
@@ -72,6 +73,9 @@ static void *ScrHandle = NULL;
 static void* NextMenuHandle = NULL;
 static void* PrevMenuHandle = NULL;
 
+// Parameter handle.
+static void* menuXMLDescHdle = NULL;
+
 // Screen controls Ids
 static int InstId;
 
@@ -88,11 +92,24 @@ onNext(void * /* dummy */)
 {
 //   GfctrlJoyRelease(joyInfo);
 
+    GfuiScreenRelease(ScrHandle);
+
+    // Close menu XML descriptor.
+    GfParmReleaseHandle(menuXMLDescHdle);
+
     /* Back to previous screen */
     if (CalState == NbCalSteps && NextMenuHandle != NULL)
 	GfuiScreenActivate(NextMenuHandle);
     else
 	GfuiScreenActivate(PrevMenuHandle);
+}
+
+static const char *
+tr(const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(menuXMLDescHdle, s.c_str(), "text", "");
 }
 
 static void advanceStep (void)
@@ -159,7 +176,7 @@ JoyCalAutomaton(void)
 
 	break;
     }
-    GfuiLabelSetText(ScrHandle, InstId, Instructions[CalState]);
+    GfuiLabelSetText(ScrHandle, InstId, tr(Instructions[CalState]));
 
     /* Change button appearance when done */
     if (CalState == NbCalSteps) {
@@ -205,7 +222,7 @@ onActivate(void * /* dummy */)
     GfctrlJoyGetCurrentStates(&joyInfo);
 
     CalState = 0;
-    GfuiLabelSetText(ScrHandle, InstId, Instructions[CalState]);
+    GfuiLabelSetText(ScrHandle, InstId, tr(Instructions[CalState]));
     GfuiApp().eventLoop().setRecomputeCB(Idle2);
     GfuiApp().eventLoop().postRedisplay();
 
@@ -243,14 +260,10 @@ JoyCalMenuInit(void *prevMenu, void *nextMenu, tCmdInfo *cmd, int maxcmd)
     PrevMenuHandle = prevMenu;
     NextMenuHandle = nextMenu;
 
-    if (ScrHandle) {
-	return ScrHandle;
-    }
-
     // Create screen, load menu XML descriptor and create static controls.
     ScrHandle = GfuiScreenCreate(NULL, NULL, onActivate, NULL, NULL, 1);
 
-    void *menuXMLDescHdle = GfuiMenuLoad("joystickconfigmenu.xml");
+    menuXMLDescHdle = GfuiMenuLoad("joystickconfigmenu.xml");
 
     GfuiMenuCreateStaticControls(ScrHandle, menuXMLDescHdle);
 
@@ -279,9 +292,6 @@ JoyCalMenuInit(void *prevMenu, void *nextMenu, tCmdInfo *cmd, int maxcmd)
     }
 
     CancelBut = GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "cancelbutton", NULL, onNext);
-
-    // Close menu XML descriptor.
-    GfParmReleaseHandle(menuXMLDescHdle);
 
     // Register keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(ScrHandle);

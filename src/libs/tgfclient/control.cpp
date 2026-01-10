@@ -489,6 +489,55 @@ GfctrlJoyNumber(void)
     return gfctrlJoyPresent;
 }
 
+static void
+gfctrlGetHats(tCtrlJoyInfo *joyInfo, int used_axes, int ind)
+{
+    int n = SDL_JoystickNumHats(Joysticks[ind]);
+
+    // Two axes are used for each hat.
+    n *= 2;
+
+    if (n > GFCTRL_JOY_MAX_AXES || n >= GFCTRL_JOY_MAX_AXES - used_axes)
+        // No space left for more axes.
+        return;
+
+    for (int i = used_axes, hat = 0; i < n + used_axes; i += 2, hat++)
+    {
+        static const struct map
+        {
+            int state;
+            float x, y;
+        } map[] =
+        {
+            {SDL_HAT_CENTERED, 0, 0 },
+            {SDL_HAT_UP, 0, -1.0f },
+            {SDL_HAT_RIGHT, 1.0f, 0 },
+            {SDL_HAT_DOWN, 0, 1.0f },
+            {SDL_HAT_LEFT, -1.0f, 0},
+            {SDL_HAT_RIGHTUP, 1.0f, -1.0f},
+            {SDL_HAT_RIGHTDOWN, 1.0f, 1.0f},
+            {SDL_HAT_LEFTUP, -1.0f, -1.0f},
+            {SDL_HAT_LEFTDOWN, -1.0f, 1.0f}
+        };
+
+        Uint8 state = SDL_JoystickGetHat(Joysticks[ind], hat);
+
+        for (size_t j = 0; j < sizeof map / sizeof *map; j++)
+        {
+            const struct map &m = map[j];
+
+            if (state != m.state)
+                continue;
+
+            float x = m.x, y = m.y;
+            size_t idx = GFCTRL_JOY_MAX_AXES * ind + i;
+
+            joyInfo->ax[idx] = x;
+            joyInfo->ax[idx + 1] = y;
+        }
+    }
+}
+
 /** Get the current state of the joysticks
     @ingroup	ctrl
     @param	joyInfo	Target joystick structure
@@ -517,6 +566,8 @@ GfctrlJoyGetCurrentStates(tCtrlJoyInfo *joyInfo)
 
             for (i=0; i < j;i++)
                joyInfo->ax[GFCTRL_JOY_MAX_AXES * ind + i] = ((float) SDL_JoystickGetAxis(Joysticks[ind],i)) / 32768;
+
+            gfctrlGetHats(joyInfo, j, ind);
 
             j = SDL_JoystickNumButtons(Joysticks[ind]);
             if (j > GFCTRL_JOY_MAX_BUTTONS)

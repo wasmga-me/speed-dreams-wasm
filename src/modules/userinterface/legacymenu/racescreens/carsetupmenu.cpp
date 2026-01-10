@@ -170,6 +170,9 @@ void CarSetupMenu::onReset()
         else if (att.type == "combo")
         {
             att.strValue = att.defaultStrValue;
+
+            if (att.section == "Tires Set")
+                att.value = att.defaultValue;
         }
     }
 
@@ -220,7 +223,7 @@ void CarSetupMenu::onCombo(tComboBoxInfo *pInfo)
 
     if (att.section == "Tires Set")
         for (unsigned i = 0; i < sizeof sets / sizeof *sets; i++)
-            if (sets[i] == att.strValue)
+            if (tr(sets[i]) == att.strValue)
             {
                 att.value = i;
                 break;
@@ -306,19 +309,19 @@ void CarSetupMenu::updateControls()
                 if (att.minValue == att.maxValue)
                 {
                     ossLabel << std::fixed << std::setprecision(att.precision)
-                             << "Default: " << att.defaultValue;
+                             << tr("default") << ": " << att.defaultValue;
                 }
                 else
                 {
                     ossLabel << std::fixed << std::setprecision(att.precision)
-                             << "Min: " << att.minValue
-                             << "  Default: " << att.defaultValue
-                             << "  Max: " << att.maxValue;
+                             << tr("min") << ": " << att.minValue
+                             << "  " << tr("default") << ": " << att.defaultValue
+                             << "  " << tr("max") << ": " << att.maxValue;
                 }
             }
             else if (att.type == "combo")
             {
-                ossLabel << "Default: " << att.defaultStrValue;
+                ossLabel << tr("default") << ": " << att.defaultStrValue;
             }
         }
         GfuiLabelSetText(getMenuHandle(),
@@ -384,8 +387,8 @@ void CarSetupMenu::updateControls()
                     size_t selected = 0;
                     for (size_t i = 0; i < att.in.size(); ++i)
                     {
-                        GfuiComboboxAddText(getMenuHandle(), att.comboId, att.in[i].c_str());
-                        if (att.in[i] == att.strValue)
+                        GfuiComboboxAddText(getMenuHandle(), att.comboId, att.tr_in[i].c_str());
+                        if (att.tr_in[i] == att.strValue)
                             selected = i;
                     }
                     GfuiComboboxSetSelectedIndex(getMenuHandle(), att.comboId, selected);
@@ -409,11 +412,22 @@ void CarSetupMenu::updateControls()
     }
 }
 
+const char *CarSetupMenu::tr(const char *key) const
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(getXMLDescriptor(), s.c_str(), "text", "");
+}
+
 void CarSetupMenu::loadSettings()
 {
+    const char *fmt = tr("carsetup");
+    char buf[256];
+
+    snprintf(buf, sizeof(buf), fmt, getCar()->getName().c_str());
     GfuiLabelSetText(getMenuHandle(),
                      getDynamicControlId("CarNameLabel"),
-                     getCar()->getName().c_str());
+                     buf);
 
     // Open the XML file of the car.
     std::ostringstream ossCarFileName;
@@ -518,26 +532,35 @@ void CarSetupMenu::loadSettings()
 
                     for (unsigned i = att.minValue; i <= att.maxValue
                         && i < sz; i++)
-                        att.in.push_back(sets[i]);
+                    {
+                        att.in.push_back(tr(sets[i]));
+                        att.tr_in.push_back(tr(sets[i]));
+                    }
 
                     unsigned defvalue = att.defaultValue, value = att.value;
 
                     if (value < sz)
-                        att.strValue = sets[value];
+                        att.strValue = tr(sets[value]);
 
                     if (att.defaultValue < sz)
-                        att.defaultStrValue = sets[defvalue];
+                        att.defaultStrValue = tr(sets[defvalue]);
                 }
             }
             else if (att.type == "combo")
             {
-                att.defaultStrValue = GfParmGetStr(hparmCar, att.section.c_str(), att.param.c_str(), "");
-                att.exists = !att.defaultStrValue.empty();
+                std::string defaultStrValue = GfParmGetStr(hparmCar,
+                    att.section.c_str(), att.param.c_str(), "");
+
+                att.defaultStrValue = tr(defaultStrValue.c_str());
+                att.exists = !defaultStrValue.empty();
                 att.in = GfParmGetStrIn(hparmCar, att.section.c_str(), att.param.c_str());
 
+                for (const auto &in : att.in)
+                    att.tr_in.push_back(tr(in.c_str()));
+
                 if (hparmCarSetup)
-                    att.strValue = GfParmGetStr(hparmCarSetup, att.section.c_str(), att.param.c_str(),
-                                                att.defaultStrValue.c_str());
+                    att.strValue = tr(GfParmGetStr(hparmCarSetup, att.section.c_str(), att.param.c_str(),
+                                                defaultStrValue.c_str()));
                 else
                     att.strValue = att.defaultStrValue;
 
@@ -546,7 +569,7 @@ void CarSetupMenu::loadSettings()
                            "exists: %d, in: %zu default: \"%s\" value: \"%s\"\n",
                            att.section.c_str(), att.param.c_str(), att.label.c_str(),
                            page, index, att.labelId, att.comboId, att.defaultLabelId,
-                           att.exists, att.in.size(), att.defaultStrValue.c_str(),
+                           att.exists, att.in.size(), defaultStrValue.c_str(),
                            att.strValue.c_str());
             }
         }
@@ -645,6 +668,14 @@ void CarSetupMenu::storeSettings()
                 {
                     if (att.strValue != att.defaultStrValue)
                     {
+                        // Replace translated text with non-translated text
+                        for (size_t i = 0; i < att.in.size(); i++)
+                            if (att.strValue == att.tr_in.at(i))
+                            {
+                                att.strValue = att.in.at(i);
+                                break;
+                            }
+
                         GfParmSetStrAndIn(hparmCarSetup, att.section.c_str(), att.param.c_str(),
                                           att.strValue.c_str(), att.in);
                     }

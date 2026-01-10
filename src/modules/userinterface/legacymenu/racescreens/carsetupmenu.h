@@ -61,7 +61,7 @@ public:
         std::string label;
         std::string strValue;
         std::string defaultStrValue;
-        std::vector<std::string> in;
+        std::vector<std::string> in, tr_in;
         int         precision;
 
         attribute() :
@@ -97,6 +97,7 @@ private:
 
     const GfCar *getCar() const { return _pDriver->getCar(); }
     const GfTrack *getTrack() const { return _pRace->getTrack(); }
+    const char *tr(const char *key) const;
 
     void onActivate();
     void onAccept();

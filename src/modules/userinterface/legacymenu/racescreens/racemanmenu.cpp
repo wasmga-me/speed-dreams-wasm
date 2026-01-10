@@ -27,6 +27,7 @@
 
 #include <portability.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <raceman.h>
 
@@ -50,6 +51,9 @@
 // Raceman menu.
 static void	*ScrHandle = 0;
 
+// XML parameters handle.
+static void *menuXMLDescHdle;
+
 // Data for the race configuration menus.
 static tRmFileSelect FileSelectData;
 
@@ -57,7 +61,7 @@ static tRmFileSelect FileSelectData;
 static bool PlayerConfigOpen = false;
 
 // Menu control Ids
-static int TrackTitleLabelId;
+static int RaceModeTitleLabelId;
 static int SaveRaceConfigButtonId;
 static int LoadRaceConfigButtonId;
 static int LoadRaceResultsButtonId;
@@ -86,6 +90,14 @@ void
 RmConfigureRace(void * /* dummy */)
 {
 	RmConfigRunState(/*bStart=*/true);
+}
+
+static const char *
+tr(const char *key)
+{
+	std::string s = std::string("translatable/") + key;
+
+	return GfuiGetTranslatedText(menuXMLDescHdle, s.c_str(), "text", "");
 }
 
 // Callbacks for the File Select menu --------------------------------------------------------
@@ -275,10 +287,14 @@ rmOnRaceDataChanged()
 	// Get the currently selected track for the race (should never fail, unless no track at all).
 	const GfTrack* pTrack = pRace->getTrack();
 
+	const char *fmt = tr("modecircuit");
+	char buf[256];
+
+	snprintf(buf, sizeof(buf), fmt, tr(pRaceMan->getName().c_str()),
+		pTrack->getName().c_str());
+
 	// Set title (race type + track name).
-	std::ostringstream ossText;
-	ossText << "at " << pTrack->getName();
-	GfuiLabelSetText(ScrHandle, TrackTitleLabelId, ossText.str().c_str());
+	GfuiLabelSetText(ScrHandle, RaceModeTitleLabelId, buf);
 
 	// Display track name, outline image and preview image
 	GfuiScreenAddBgImg(ScrHandle, pTrack->getPreviewFile().c_str());
@@ -325,13 +341,11 @@ rmOnRaceDataChanged()
 	if ((0 == strcmp(racID.c_str(), "netclient")) || (0 == strcmp(racID.c_str(), "netwatcher")))
 	{
 		GfuiVisibilitySet(ScrHandle, TrackOutlineImageId, GFUI_INVISIBLE);
-		GfuiVisibilitySet(ScrHandle, TrackTitleLabelId, GFUI_INVISIBLE);
 
 	}
 	else
 	{
 		GfuiVisibilitySet(ScrHandle, TrackOutlineImageId, GFUI_VISIBLE);
-		GfuiVisibilitySet(ScrHandle, TrackTitleLabelId, GFUI_VISIBLE);
 	}
 
 	// Re-load competitors scroll list from the race.
@@ -341,7 +355,8 @@ rmOnRaceDataChanged()
     for (int nCompIndex = 0; nCompIndex < (int)vecCompetitors.size(); nCompIndex++)
 	{
 		const GfDriver* pComp = vecCompetitors[nCompIndex];
-		ossText.str("");
+		std::ostringstream ossText;
+
 		ossText << pComp->getName();
 		ossText << " (" << pComp->getCar()->getName() << ')';
 		VecCompetitorsInfo.push_back(ossText.str());
@@ -446,14 +461,31 @@ rmOnSaveRaceToConfigFile(void *pPrevMenu)
 }
 
 static void
+shutdown()
+{
+	// Close menu XML descriptor.
+	GfParmReleaseHandle(menuXMLDescHdle);
+	GfuiScreenRelease(ScrHandle);
+}
+
+static void
+rmBack(void *)
+{
+	shutdown();
+	GfuiScreenActivate(RmRaceSelectMenuHandle);
+}
+
+static void
 rmStartNewRace(void * /* dummy */)
 {
+	shutdown();
 	LmRaceEngine().startNewRace();
 }
 
 static void
 rmResumeRace(void * /* dummy */)
 {
+	shutdown();
 	LmRaceEngine().resumeRace();
 }
 
@@ -522,9 +554,8 @@ RmRacemanMenu()
 	GfuiMenuCreateStaticControls(ScrHandle, menuXMLDescHdle);
 
 	// Create and initialize static title label (race mode name).
-	const int nRaceModeTitleLabelId =
+	RaceModeTitleLabelId =
 		GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "RaceModeTitleLabel");
-	GfuiLabelSetText(ScrHandle, nRaceModeTitleLabelId, pRaceMan->getName().c_str());
 
 	// Create variable title label (track name).
 	TrackTitleLabelId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "TrackTitleLabel");
@@ -590,10 +621,6 @@ RmRacemanMenu()
 void
 RmRacemanMenu()
 {
-	// Don't do this twice.
-	if (ScrHandle)
-		GfuiScreenRelease(ScrHandle);
-
 	const GfRaceManager* pRaceMan = LmRaceEngine().race()->getManager();
 
 	// Ask the RaceEngine what types of races should be allowed here
@@ -617,17 +644,13 @@ RmRacemanMenu()
 	// Create screen, load menu XML descriptor and create static controls.
 	ScrHandle = GfuiScreenCreate(NULL, NULL, rmOnActivate,
 										 NULL, (tfuiCallback)NULL, 1);
-	void *menuXMLDescHdle = GfuiMenuLoad("racemanmenu.xml");
+	menuXMLDescHdle = GfuiMenuLoad("racemanmenu.xml");
 
 	GfuiMenuCreateStaticControls(ScrHandle, menuXMLDescHdle);
 
 	// Create and initialize static title label (race mode name).
-	const int nRaceModeTitleLabelId =
+	RaceModeTitleLabelId =
 		GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "RaceModeTitleLabel");
-	GfuiLabelSetText(ScrHandle, nRaceModeTitleLabelId, pRaceMan->getName().c_str());
-
-	// Create variable title label (track name).
-	TrackTitleLabelId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "TrackTitleLabel");
 
 	// Create Configure race, Configure players and Back buttons.
 	GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "ConfigureRaceButton",
@@ -637,7 +660,7 @@ RmRacemanMenu()
 								NULL, rmOnPlayerConfig);
 
 	GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "BackButton",
-								RmRaceSelectMenuHandle, GfuiScreenActivate);
+								NULL, rmBack);
 
 	if (SupportsHumanDrivers)
 	{
@@ -688,15 +711,12 @@ RmRacemanMenu()
 		GfuiMenuCreateScrollListControl(ScrHandle, menuXMLDescHdle, "CompetitorsScrollList",
 								NULL, rmOnSelectCompetitor);
 
-	// Close menu XML descriptor.
-	GfParmReleaseHandle(menuXMLDescHdle);
-
 	// Register keyboard shortcuts.
 	GfuiMenuDefaultKeysAdd(ScrHandle);
 	GfuiAddKey(ScrHandle, GFUIK_RETURN, "Start the race",
 			   NULL, rmStartNewRace, NULL);
 	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Back to the Main menu",
-			   RmRaceSelectMenuHandle, GfuiScreenActivate, NULL);
+			   NULL, rmBack, NULL);
 
 	// Activate screen.
 	GfuiScreenActivate(ScrHandle);
