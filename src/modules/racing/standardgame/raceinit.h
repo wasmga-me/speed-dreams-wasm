@@ -47,6 +47,8 @@ extern char *ReGetCurrentRaceName(void);
 
 extern char *ReGetPrevRaceName(bool bLoop);
 
+extern const char *ReTr(const char *key);
+
 extern tModList *ReRacingRobotsModList;
 
 // The race situation data structure.

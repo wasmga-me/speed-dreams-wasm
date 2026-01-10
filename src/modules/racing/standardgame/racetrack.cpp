@@ -30,6 +30,7 @@
 #include <raceman.h>
 #include <track.h>
 #include <tracks.h>
+#include <translation.h>
 
 #include "standardgame.h"
 #include "racesituation.h"
@@ -128,7 +129,9 @@ ReTrackInit(void)
     snprintf(buf, sizeof(buf), "tracks/%s/%s/%s.%s", catName, trackName, trackName, TRKEXT);
     ReInfo->track = ReTrackLoader().load(buf);
 
-    snprintf(buf, sizeof(buf), "Loading %s track", ReInfo->track->name);
+    const char *fmt = ReTr("loading/track");
+
+    snprintf(buf, sizeof(buf), fmt, ReInfo->track->name);
     ReUI().addLoadingMessage(buf);
 
     reTrackInitTimeOfDay();
@@ -158,8 +161,9 @@ static void
 reTrackDump(const tTrack *track, int verbose)
 {
     char buf[128];
+    const char *fmt = ReTr("loading/trackinfo");
 
-    snprintf(buf, sizeof(buf), "  by %s (%.0f m long, %.0f m wide) ...",
+    snprintf(buf, sizeof(buf), fmt,
              track->authors, track->length, track->width);
     ReUI().addLoadingMessage(buf);
 

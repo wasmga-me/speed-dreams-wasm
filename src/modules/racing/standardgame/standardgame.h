@@ -132,6 +132,9 @@ protected:
 	friend int openGfModule(const char* pszShLibName, void* hShLibHandle);
 	friend int closeGfModule();
 
+	// Get translated string.
+	const char *tr(const char *key) const;
+
 protected:
 
 	// The singleton.

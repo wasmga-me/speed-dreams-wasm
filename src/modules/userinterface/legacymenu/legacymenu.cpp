@@ -29,6 +29,7 @@
 #include <tgf.hpp>
 #include <portability.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <race.h>
 #include <racemanagers.h>
@@ -122,6 +123,14 @@ bool LegacyMenu::activateWelcomeMenu()
 {
     new WelcomeMenu(runMainMenu);
     return true;
+}
+
+const char *LegacyMenu::tr(const char *key) const
+{
+    void *param = LmRaceEngine().inData()->raceEngineInfo.param;
+    std::string s = std::string("Translatable/") + key;
+
+    return GfuiGetTranslatedText(param, s.c_str(), "text", "");
 }
 
 bool LegacyMenu::startRace()
@@ -249,11 +258,9 @@ void LegacyMenu::shutdown()
 void LegacyMenu::activateLoadingScreen()
 {
     tRmInfo* pReInfo = _piRaceEngine->inData();
+    std::string key = std::string("racemode/") + pReInfo->_reName;
 
-    char pszTitle[128];
-
-    snprintf(pszTitle, sizeof (pszTitle), "%s", pReInfo->_reName);
-	::RmLoadingScreenStart(pszTitle, "data/img/splash-raceload.jpg");
+	::RmLoadingScreenStart(tr(key.c_str()), "data/img/splash-raceload.jpg");
 }
 
 void LegacyMenu::addLoadingMessage(const char* pszText)
@@ -403,7 +410,8 @@ int LegacyMenu::onRaceDriversLoaded()
         if (initializeGraphics() && initializeSound())
 		{
             char buf[128];
-            snprintf(buf, sizeof (buf), "Loading graphics for %s track ...",
+            const char *fmt = tr("loading/graphicstrack");
+            snprintf(buf, sizeof (buf), fmt,
                     _piRaceEngine->inData()->track->name);
             addLoadingMessage(buf);
 
@@ -424,10 +432,10 @@ void LegacyMenu::onRaceSimulationReady()
         setupGraphicsView();
 
         // Initialize cars graphics.
-        addLoadingMessage("Loading graphics for all cars ...");
+        addLoadingMessage(tr("loading/graphicscars"));
 
         loadCarsGraphics(_piRaceEngine->outData()->s);
-        addLoadingMessage("Loading sound effects for all cars ...");
+        addLoadingMessage(tr("loading/soundcars"));
         _piSoundEngine->init(_piRaceEngine->outData()->s);
     }
 }
