@@ -7,8 +7,8 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: docker
+  build-w64-mingw32:
+    runs-on: [docker, amd64]
     container:
       image: forge.a-lec.org/speed-dreams/ubuntu-i686-w64-mingw32:jammy
     steps:
