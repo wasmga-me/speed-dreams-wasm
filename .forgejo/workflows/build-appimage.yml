@@ -8,7 +8,14 @@ on:
 
 jobs:
   build-appimage:
-    runs-on: docker
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+          - arch: amd64
+
+    runs-on: [docker, "${{ matrix.arch }}"]
     container:
       image: forge.a-lec.org/speed-dreams/ubuntu-appimage:focal
     steps:
