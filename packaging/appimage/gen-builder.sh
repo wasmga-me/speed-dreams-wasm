@@ -14,7 +14,17 @@ done
 dir=${dir:-"/AppDir"}
 arch=${arch:-"$(uname -m)"}
 dpkgarch=${dpkgarch:-"$(dpkg --print-architecture)"}
-url=${url:-"http://archive.ubuntu.com/ubuntu"}
+
+case $dpkgarch in
+    amd64|i386)
+        url="http://archive.ubuntu.com/ubuntu" ;;
+    arm64|armhf|ppc64el|riscv64|s390x)
+        url="http://ports.ubuntu.com/ubuntu-ports" ;;
+    *)
+        printf "Unknown Ubuntu repository URL for architecture %s\n" \
+            "$dpkgarch" >&2
+        exit 1
+esac
 
 cat <<EOF
 version: 1
