@@ -174,6 +174,9 @@ public:
 	//! Start the standings menu.
 	void showStandings();
 
+	//! Get translated string.
+	const char *tr(const char *key) const;
+
  protected:
 
 	//! The singleton.

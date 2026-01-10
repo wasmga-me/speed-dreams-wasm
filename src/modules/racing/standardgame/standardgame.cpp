@@ -22,6 +22,7 @@
 #include <sstream>
 
 #include <tgf.hpp>
+#include <translation.h>
 
 #include <car.h> // tCarPitCmd.
 #include <raceman.h>
@@ -329,10 +330,13 @@ bool StandardGame::loadPhysicsEngine()
 	}
 
 	// 3) Load it.
-	std::ostringstream ossLoadMsg;
-	ossLoadMsg << "Loading physics engine (" << strModName << ") ...";
+	const char *fmt = ReTr("loading/physicsengine");
+	char buf[128];
+
+	snprintf(buf, sizeof(buf), fmt, strModName.c_str());
+
 	if (_piUserItf)
-		_piUserItf->addLoadingMessage(ossLoadMsg.str().c_str());
+		_piUserItf->addLoadingMessage(buf);
 
 	GfModule* pmodPhysEngine = GfModule::load("modules/simu", strModName);
 	if (pmodPhysEngine)

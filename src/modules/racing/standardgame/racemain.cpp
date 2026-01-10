@@ -24,6 +24,7 @@
 
 #include <portability.h>
 #include <musicplayer.h>
+#include <translation.h>
 
 #include <robot.h>
 #ifdef CLIENT_SERVER
@@ -81,6 +82,15 @@ ReHumanInGroup()
 
 
 /***************************************************************/
+
+const char *
+ReTr(const char *key)
+{
+    void *param = ReInfo->raceEngineInfo.param;
+    std::string s = std::string("Translatable/") + key;
+
+    return GfuiGetTranslatedText(param, s.c_str(), "text", "");
+}
 
 int ReConfigure()
 {
@@ -544,7 +554,7 @@ RePreRace(void)
     }
     else
     {
-        ReUI().addLoadingMessage("Determining Starting Order ...");
+        ReUI().addLoadingMessage(ReTr("loading/startingorder"));
 
         const char* gridType =
             GfParmGetStr(params, raceName, RM_ATTR_START_ORDER, RM_VAL_DRV_LIST_ORDER);
@@ -843,10 +853,12 @@ ReRaceRealStart(void)
     // Load drivers for the race
     for (i = 0; i < s->_ncars; i++)
     {
+        const char *fmt = ReTr("loading/driver");
+
         snprintf(buf, sizeof(buf), "cars/models/%s/%s.xml",
                  s->cars[i]->_carName, s->cars[i]->_carName);
         carHdle = GfParmReadFileBoth(buf, GFPARM_RMODE_STD);
-        snprintf(buf, sizeof(buf), "Loading %s driver (%s) ...",
+        snprintf(buf, sizeof(buf), fmt,
                  s->cars[i]->_name, GfParmGetName(carHdle));
 
         ReUI().addLoadingMessage(buf);
@@ -880,7 +892,7 @@ ReRaceRealStart(void)
     }
 
     // All cars start with max brakes on
-    ReUI().addLoadingMessage("Running Prestart ...");
+    ReUI().addLoadingMessage(ReTr("loading/prestart"));
 
     for (i = 0; i < s->_ncars; i++)
     {
@@ -919,14 +931,14 @@ ReRaceRealStart(void)
     // Initialize the network if needed.
     if (NetGetNetwork())
     {
-        ReUI().addLoadingMessage("Preparing online race ...");
+        ReUI().addLoadingMessage(ReTr("loading/onlinerace"));
 
         NetGetNetwork()->RaceInit(ReOutputSituation()->s);
         NetGetNetwork()->SetRaceActive(true);
     }
 
     // Notify the UI that the race is now started.
-    ReUI().addLoadingMessage("Ready.");
+    ReUI().addLoadingMessage(ReTr("loading/ready"));
 
     ReUI().onRaceStarted();
 
@@ -1007,7 +1019,7 @@ ReRaceStart(void)
     else
     {
         // For a race, add cars to the starting grid in the order stored in ReStartingOrderIdx.
-        ReUI().addLoadingMessage("Preparing Starting Grid ...");
+        ReUI().addLoadingMessage(ReTr("loading/startinggrid"));
 
         int maxCars = (int)GfParmGetNum(params, sessionName, RM_ATTR_MAX_DRV, NULL, 100);
         nCars = MIN(nCars, maxCars);
