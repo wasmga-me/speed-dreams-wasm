@@ -26,6 +26,7 @@
 #include <iomanip>
 
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <race.h>
 #include <cars.h>
@@ -33,6 +34,13 @@
 
 #include "garagemenu.h"
 #include "carsetupmenu.h"
+
+const char *RmGarageMenu::tr(const char *key) const
+{
+	std::string s = std::string("translatable/") + key;
+
+	return GfuiGetTranslatedText(getXMLDescriptor(), s.c_str(), "text", "");
+}
 
 void RmGarageMenu::onActivateCB(void *pGarageMenu)
 {
@@ -50,10 +58,14 @@ void RmGarageMenu::onActivateCB(void *pGarageMenu)
 	// Get infos about the current car for the current driver
 	const GfDriver* pDriver = pMenu->getDriver();
 	const GfCar* pCurCar = pDriver->getCar();
+	const char *fmt = pMenu->tr("garage");
+	char buf[256];
+
+	snprintf(buf, sizeof(buf), fmt, pDriver->getName().c_str());
 
 	// Initialize the GUI contents.
 	GfuiLabelSetText(pMenu->getMenuHandle(), pMenu->getDynamicControlId("DriverNameLabel"),
-					 pDriver->getName().c_str());
+					 buf);
 	const std::string strSelCatName = pMenu->resetCarCategoryComboBox(pCurCar->getCategoryName());
 	pCurCar = pMenu->resetCarModelComboBox(strSelCatName, pCurCar->getName());
 	pMenu->resetCarDataSheet(pCurCar->getId());
