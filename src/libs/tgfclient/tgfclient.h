@@ -345,6 +345,10 @@ public:
 
     bool openXMLDescriptor();
 
+    void* getXMLDescriptor() const
+    {
+        return xmlDescParmHdle;
+    }
     bool createStaticControls();
 
     int createButtonControl(const char* pszName, void* userData, tfuiCallback onPush,
