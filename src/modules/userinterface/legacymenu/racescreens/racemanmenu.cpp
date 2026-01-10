@@ -100,6 +100,15 @@ tr(const char *key)
 	return GfuiGetTranslatedText(menuXMLDescHdle, s.c_str(), "text", "");
 }
 
+static const char *
+retr(const char *key)
+{
+    void *param = LmRaceEngine().inData()->raceEngineInfo.param;
+	std::string s = std::string("Translatable/") + key;
+
+	return GfuiGetTranslatedText(param, s.c_str(), "text", "");
+}
+
 // Callbacks for the File Select menu --------------------------------------------------------
 static void
 rmSaveRaceToConfigFile(const char *filename)
@@ -289,8 +298,9 @@ rmOnRaceDataChanged()
 
 	const char *fmt = tr("modecircuit");
 	char buf[256];
+	std::string key = "racemode/" + pRaceMan->getName();
 
-	snprintf(buf, sizeof(buf), fmt, tr(pRaceMan->getName().c_str()),
+	snprintf(buf, sizeof(buf), fmt, retr(key.c_str()),
 		pTrack->getName().c_str());
 
 	// Set title (race type + track name).

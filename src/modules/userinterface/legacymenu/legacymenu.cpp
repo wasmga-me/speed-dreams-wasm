@@ -258,11 +258,9 @@ void LegacyMenu::shutdown()
 void LegacyMenu::activateLoadingScreen()
 {
     tRmInfo* pReInfo = _piRaceEngine->inData();
+    std::string key = std::string("racemode/") + pReInfo->_reName;
 
-    char pszTitle[128];
-
-    snprintf(pszTitle, sizeof (pszTitle), "%s", pReInfo->_reName);
-	::RmLoadingScreenStart(pszTitle, "data/img/splash-raceload.jpg");
+	::RmLoadingScreenStart(tr(key.c_str()), "data/img/splash-raceload.jpg");
 }
 
 void LegacyMenu::addLoadingMessage(const char* pszText)
