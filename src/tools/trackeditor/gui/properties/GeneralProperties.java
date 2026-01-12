@@ -22,6 +22,7 @@ package gui.properties;
 
 import java.io.File;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -50,6 +51,9 @@ public class GeneralProperties extends PropertyPanel
 	private JComboBox<String>	versionComboBox			= null;
 	private JLabel				skyVersionLabel			= new JLabel();
 	private JComboBox<String>	skyVersionComboBox		= null;
+	private JLabel				disabledPenaltiesLabel	= new JLabel();
+	private JCheckBox			dpHitWall				= null;
+	private JCheckBox			dpSlowdown				= null;
 	private JLabel				authorLabel				= new JLabel();
 	private JTextField			authorTextField			= new JTextField();
 	private JLabel				emailLabel				= new JLabel();
@@ -85,10 +89,11 @@ public class GeneralProperties extends PropertyPanel
 		addLabel(this, 3, subcategoryLabel, "Subcategory", 110);
 		addLabel(this, 4, versionLabel, "Version", 110);
 		addLabel(this, 5, skyVersionLabel, "Sky Version", 110);
-		addLabel(this, 6, authorLabel, "Author", 80);
-		addLabel(this, 7, emailLabel, "Email", 80);
-		addLabel(this, 8, copyrightLabel, "Copyright", 80);
-		addLabel(this, 9, descriptionLabel, "Description", 80);
+		addLabel(this, 6, disabledPenaltiesLabel, "Disabled penalties", 110);
+		addLabel(this, 7, authorLabel, "Author", 80);
+		addLabel(this, 8, emailLabel, "Email", 80);
+		addLabel(this, 9, copyrightLabel, "Copyright", 80);
+		addLabel(this, 10, descriptionLabel, "Description", 80);
 
 		addTextField(this, 0, nameTextField, getEditorFrame().getTrackData().getHeader().getName(), 130, 200);
 		addTextField(this, 1, shortNameTextField, getEditorFrame().getTrackData().getHeader().getShortName(), 130, 200);
@@ -97,11 +102,13 @@ public class GeneralProperties extends PropertyPanel
 		add(getSubcategoryComboBox(), null);
 		add(getVersionComboBox(), null);
 		add(getSkyVersionComboBox(), null);
+		add(getdpHitWall(), null);
+		add(getdpSlowdown(), null);
 
-		addTextField(this, 6, authorTextField, getEditorFrame().getTrackData().getHeader().getAuthor(), 85, 435);
-		addTextField(this, 7, emailTextField, getEditorFrame().getTrackData().getHeader().getEmail(), 85, 435);
-		addTextField(this, 8, copyrightTextField, getEditorFrame().getTrackData().getHeader().getCopyright(), 85, 435);
-		addTextField(this, 9, descriptionTextField, getEditorFrame().getTrackData().getHeader().getDescription(), 85, 435);
+		addTextField(this, 8, authorTextField, getEditorFrame().getTrackData().getHeader().getAuthor(), 85, 435);
+		addTextField(this, 9, emailTextField, getEditorFrame().getTrackData().getHeader().getEmail(), 85, 435);
+		addTextField(this, 10, copyrightTextField, getEditorFrame().getTrackData().getHeader().getCopyright(), 85, 435);
+		addTextField(this, 11, descriptionTextField, getEditorFrame().getTrackData().getHeader().getDescription(), 85, 435);
 	}
 
 	/**
@@ -220,6 +227,42 @@ public class GeneralProperties extends PropertyPanel
 		return skyVersionComboBox;
 	}
 
+	/**
+	 * This method initializes dpHitWall
+	 *
+	 * @return javax.swing.JCheckBox
+	 */
+	public JCheckBox getdpHitWall()
+	{
+		if (dpHitWall == null)
+		{
+			dpHitWall = new JCheckBox("Hit wall");
+			dpHitWall.setBounds(130, 170, 60, 23);
+			Boolean disabled = getEditorFrame().getTrackData().getHeader().getdpHitWall();
+
+			dpHitWall.setSelected(disabled);
+		}
+		return dpHitWall;
+	}
+
+	/**
+	 * This method initializes dpSlowdown
+	 *
+	 * @return javax.swing.JCheckBox
+	 */
+	public JCheckBox getdpSlowdown()
+	{
+		if (dpSlowdown == null)
+		{
+			dpSlowdown = new JCheckBox("Slowdown");
+			dpSlowdown.setBounds(220, 170, 80, 23);
+			Boolean disabled = getEditorFrame().getTrackData().getHeader().getdpSlowdown();
+
+			dpSlowdown.setSelected(disabled);
+		}
+		return dpSlowdown;
+	}
+
 	public void exit()
 	{
 		MutableString stringResult = new MutableString();
@@ -291,6 +334,18 @@ public class GeneralProperties extends PropertyPanel
 		if (skyVersion != getEditorFrame().getTrackData().getHeader().getSkyVersion())
 		{
 			getEditorFrame().getTrackData().getHeader().setSkyVersion(skyVersion);
+			getEditorFrame().documentIsModified = true;
+		}
+
+		if (dpHitWall.isSelected() != getEditorFrame().getTrackData().getHeader().getdpHitWall())
+		{
+			getEditorFrame().getTrackData().getHeader().setdpHitWall(dpHitWall.isSelected());
+			getEditorFrame().documentIsModified = true;
+		}
+
+		if (dpSlowdown.isSelected() != getEditorFrame().getTrackData().getHeader().getdpSlowdown())
+		{
+			getEditorFrame().getTrackData().getHeader().setdpSlowdown(dpSlowdown.isSelected());
 			getEditorFrame().documentIsModified = true;
 		}
 

@@ -724,6 +724,16 @@ public class XmlWriter
 		addContent(header, "version", null, editorFrame.getTrackData().getHeader().getVersion());
 		addContent(header, "sky version", null, editorFrame.getTrackData().getHeader().getSkyVersion());
 
+		Vector<String> disabledPenalties = new Vector<String>();
+
+		if (editorFrame.getTrackData().getHeader().getdpSlowdown())
+			disabledPenalties.add("slowdown");
+
+		if (editorFrame.getTrackData().getHeader().getdpHitWall())
+			disabledPenalties.add("wallhittimeinvalidate");
+
+		addContent(header, "disabled penalties", String.join(";", disabledPenalties));
+
 		if (editorFrame.getTrackData().getHeader().getAuthor() != null)
 		{
 			tmp = editorFrame.getTrackData().getHeader().getAuthor();
