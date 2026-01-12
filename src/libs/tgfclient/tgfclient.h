@@ -727,7 +727,7 @@ typedef struct
 /** Joystick Information Structure */
 typedef struct
 {
-    int         oldb[GFCTRL_JOY_MAX_BUTTONS * GFCTRL_JOY_NUMBER];
+    int         oldb[GFCTRL_JOY_NUMBER];
     float       ax[GFCTRL_JOY_MAX_AXES * GFCTRL_JOY_NUMBER];         /**< Axis values */
     int         edgeup[GFCTRL_JOY_MAX_BUTTONS * GFCTRL_JOY_NUMBER];  /**< Button transition from down (pressed) to up */
     int         edgedn[GFCTRL_JOY_MAX_BUTTONS * GFCTRL_JOY_NUMBER];  /**< Button transition from up to down */
