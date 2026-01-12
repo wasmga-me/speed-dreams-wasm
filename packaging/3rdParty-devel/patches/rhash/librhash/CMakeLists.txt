@@ -1,6 +1,11 @@
 # Based on https://raw.githubusercontent.com/rhash/RHash/e601748b1c166791429944e2f4233ba6ba62988f/librhash/CMakeLists.txt
 
-cmake_minimum_required(VERSION 3.1)
+if(CMAKE_MAJOR_VERSION GREATER 3
+   OR (CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 30))
+    cmake_minimum_required(VERSION 3.10)
+else()
+    cmake_minimum_required(VERSION 3.1)
+endif()
 project(librhash LANGUAGES C)
 
 include(GNUInstallDirs)
