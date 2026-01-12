@@ -490,51 +490,37 @@ GfctrlJoyNumber(void)
 }
 
 static void
-gfctrlGetHats(tCtrlJoyInfo *joyInfo, int used_axes, int ind)
+gfctrlGetHats(int ind, int hat, int &x, int &y)
 {
-    int n = SDL_JoystickNumHats(Joysticks[ind]);
 
-    // Two axes are used for each hat.
-    n *= 2;
-
-    if (n > GFCTRL_JOY_MAX_AXES || n >= GFCTRL_JOY_MAX_AXES - used_axes)
-        // No space left for more axes.
-        return;
-
-    for (int i = used_axes, hat = 0; i < n + used_axes; i += 2, hat++)
+    static const struct map
     {
-        static const struct map
-        {
-            int state;
-            float x, y;
-        } map[] =
-        {
-            {SDL_HAT_CENTERED, 0, 0 },
-            {SDL_HAT_UP, 0, -1.0f },
-            {SDL_HAT_RIGHT, 1.0f, 0 },
-            {SDL_HAT_DOWN, 0, 1.0f },
-            {SDL_HAT_LEFT, -1.0f, 0},
-            {SDL_HAT_RIGHTUP, 1.0f, -1.0f},
-            {SDL_HAT_RIGHTDOWN, 1.0f, 1.0f},
-            {SDL_HAT_LEFTUP, -1.0f, -1.0f},
-            {SDL_HAT_LEFTDOWN, -1.0f, 1.0f}
-        };
+        int state, x, y;
+    } map[] =
+    {
+        {SDL_HAT_CENTERED, 0, 0},
+        {SDL_HAT_UP, 0, -1},
+        {SDL_HAT_RIGHT, 1, 0},
+        {SDL_HAT_DOWN, 0, 1},
+        {SDL_HAT_LEFT, -1, 0},
+        {SDL_HAT_RIGHTUP, 1, -1},
+        {SDL_HAT_RIGHTDOWN, 1, 1},
+        {SDL_HAT_LEFTUP, -1, -1},
+        {SDL_HAT_LEFTDOWN, -1, 1}
+    };
 
-        Uint8 state = SDL_JoystickGetHat(Joysticks[ind], hat);
+    Uint8 state = SDL_JoystickGetHat(Joysticks[ind], hat);
 
-        for (size_t j = 0; j < sizeof map / sizeof *map; j++)
-        {
-            const struct map &m = map[j];
+    for (size_t j = 0; j < sizeof map / sizeof *map; j++)
+    {
+        const struct map &m = map[j];
 
-            if (state != m.state)
-                continue;
+        if (state != m.state)
+            continue;
 
-            float x = m.x, y = m.y;
-            size_t idx = GFCTRL_JOY_MAX_AXES * ind + i;
-
-            joyInfo->ax[idx] = x;
-            joyInfo->ax[idx + 1] = y;
-        }
+        x = m.x;
+        y = m.y;
+        break;
     }
 }
 
@@ -560,14 +546,14 @@ GfctrlJoyGetCurrentStates(tCtrlJoyInfo *joyInfo)
       {
          if (Joysticks[ind])
          {
-            j = SDL_JoystickNumAxes(Joysticks[ind]);
-            if (j > GFCTRL_JOY_MAX_AXES)
-                j = GFCTRL_JOY_MAX_AXES;
+            int hats, axes;
 
-            for (i=0; i < j;i++)
+            axes = SDL_JoystickNumAxes(Joysticks[ind]);
+            if (axes > GFCTRL_JOY_MAX_AXES)
+                axes = GFCTRL_JOY_MAX_AXES;
+
+            for (i=0; i < axes;i++)
                joyInfo->ax[GFCTRL_JOY_MAX_AXES * ind + i] = ((float) SDL_JoystickGetAxis(Joysticks[ind],i)) / 32768;
-
-            gfctrlGetHats(joyInfo, j, ind);
 
             j = SDL_JoystickNumButtons(Joysticks[ind]);
             if (j > GFCTRL_JOY_MAX_BUTTONS)
@@ -578,6 +564,48 @@ GfctrlJoyGetCurrentStates(tCtrlJoyInfo *joyInfo)
             {
                mask = (unsigned int)SDL_JoystickGetButton(Joysticks[ind], i);
                b |= (mask << i);
+            }
+
+            hats = SDL_JoystickNumHats(Joysticks[ind]);
+
+            if (hats < 0)
+                GfLogError("SDL_JoystickNumHats failed: %s\n", SDL_GetError());
+            // Try to add POV hats as axes.
+            // Each hat has two axes (X and Y), plus two directions.
+            else if ((hats * 4) + j < GFCTRL_JOY_MAX_BUTTONS)
+            {
+                for (int hat = 0, cnt = j; hat < hats; hat++, cnt += 4)
+                {
+                    int x, y;
+
+                    gfctrlGetHats(ind, hat, x, y);
+
+                    if (x >= 0)
+                        b |= (x << cnt);
+                    else
+                        b |= (abs(x) << (cnt + 1));
+
+                    if (y >= 0)
+                        b |= (y << (cnt + 2));
+                    else
+                        b |= (abs(y) << (cnt + 3));
+                }
+
+                j += hats * 4;
+            }
+            // Otherwise, try to add POV hats as axes.
+            // Each hat has two axes (X and Y).
+            else if ((hats * 2) + axes < GFCTRL_JOY_MAX_AXES)
+            {
+                for (int hat = 0, cnt = j; hat < hats; hat++, cnt += 2)
+                {
+                    int x, y, idx = GFCTRL_JOY_MAX_AXES * ind + i;
+
+                    gfctrlGetHats(ind, hat, x, y);
+
+                    joyInfo->ax[idx] = x;
+                    joyInfo->ax[idx + 1] = y;
+                }
             }
 
             /* Joystick buttons */
