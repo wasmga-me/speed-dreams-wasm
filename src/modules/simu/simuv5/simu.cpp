@@ -490,7 +490,7 @@ RemoveCar(tCar *car, tSituation *s)
         }
     }
 
-    carElt->_state |= RM_CAR_STATE_PULLUP;
+    carElt->_state |= RM_CAR_STATE_PULLUP | RM_CAR_STATE_JUSTPULLUP | RM_CAR_STATE_DNF;
     // RM_CAR_STATE_NO_SIMU evaluates to > 0 from here, so we remove the car from the
     // collision detection.
     SimCollideRemoveCar(car, s->_ncars);

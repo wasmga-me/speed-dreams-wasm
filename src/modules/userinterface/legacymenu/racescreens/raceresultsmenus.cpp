@@ -189,7 +189,11 @@ rmPracticeResults(void *prevHdle, tRmInfo *info, int start)
                                    buf, GFUI_TPL_X, y);
 
         /* Time */
-        str = GfTime2Str(GfParmGetNum(results, path, RE_ATTR_TIME, NULL, 0), "  ", false, 3);
+        if (GfParmGetNum(results, path, RE_ATTR_DNF, NULL, 0))
+            str = strdup("DNF");
+        else
+            str = GfTime2Str(GfParmGetNum(results, path, RE_ATTR_TIME, NULL, 0), "  ", false, 3);
+
         GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "LapTime", true, // From template.
                                    str, GFUI_TPL_X, y);
         free(str);
@@ -351,7 +355,11 @@ rmRaceResults(void *prevHdle, tRmInfo *info, int start)
                                    GfParmGetStr(results, path, RE_ATTR_NATION, ""), GFUI_TPL_X, y);
 
         //Total Time
-        str = GfTime2Str(GfParmGetNum(results, path, RE_ATTR_TIME, NULL, 0), 0, false, 3);
+        if (GfParmGetNum(results, path, RE_ATTR_DNF, NULL, 0))
+            str = strdup("DNF");
+        else
+            str = GfTime2Str(GfParmGetNum(results, path, RE_ATTR_TIME, NULL, 0), "  ", false, 3);
+
         GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "TotalTime", true, // From template.
                                    str, GFUI_TPL_X, y);
         free(str);

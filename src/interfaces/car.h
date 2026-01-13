@@ -308,6 +308,7 @@ typedef struct {
 #define RM_CAR_STATE_ELIMINATED	 	0x00000800				/**< Eliminated due to rules infringement */
 #define RM_CAR_STATE_ENDRACE_CALLED	0x00001000				/**< Endrace called so robot freed a part of its data */
 #define RM_CAR_STATE_SIMU_NO_MOVE	0x00010000 				/**< Simulation without car move (i.e. clutch applied and no wheel move)  */
+#define RM_CAR_STATE_JUSTPULLUP	0x00020000              /**< Car has started to pull up (used to trigger race message) */
     tPosd	corner[4];
     tdble       glance;         /* Glance angle degrees, left -ve, right +ve */
     tdble       oldglance;

@@ -540,6 +540,7 @@ typedef struct RmInfo
 #define RE_ATTR_LAPS		"laps"
 #define RE_ATTR_BEST_LAP_TIME	"best lap time"
 #define RE_ATTR_TIME		"time"
+#define RE_ATTR_DNF		"dnf"
 #define RE_ATTR_SESSIONTIME	"session time"
 #define RE_ATTR_TOP_SPEED	"top speed"
 #define RE_ATTR_BOT_SPEED	"bottom speed"

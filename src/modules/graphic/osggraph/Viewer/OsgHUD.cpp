@@ -1378,7 +1378,12 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
             data.timeDiffFreezeTime = GfTimeClock();
         }
 
-        if ( GfTimeClock() < (data.timeDiffFreezeTime + data.timeDiffFreezeCountdown))
+        if ((*car)->_state & RM_CAR_STATE_DNF)
+        {
+            hudTextElements[mapKey.str()]->setText("DNF");
+            hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
+        }
+        else if ( GfTimeClock() < (data.timeDiffFreezeTime + data.timeDiffFreezeCountdown))
         {
             data.oldLapNumber = currCar->_laps;
 
