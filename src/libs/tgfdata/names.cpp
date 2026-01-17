@@ -307,6 +307,154 @@ static const char *const FR_surnames[] =
     "Mercier",
 };
 
+static const char *const IN_names[] =
+{
+    "Sunita",
+    "Anita",
+    "Gita",
+    "Rekha",
+    "Shanti",
+    "Usha",
+    "Asha",
+    "Mina",
+    "Laxmi",
+    "Sita",
+    "Shivansh",
+    "Dhruv",
+    "Kabir",
+    "Vedant",
+    "Kiaan",
+    "Aarav",
+    "Arjun",
+    "Viraj",
+    "Krishna",
+    "Avyan",
+};
+
+static const char *const IN_surnames[] =
+{
+    "Devi",
+    "Singh",
+    "Kumar",
+    "Das",
+    "Kaur",
+    "Ram",
+    "Yadav",
+    "Kumari",
+    "Lal",
+    "Bai",
+};
+
+static const char *const GR_names[] =
+{
+    "Giorgos",
+    "Konstantinos",
+    "Ioannis",
+    "Dimitris",
+    "Nikolaos",
+    "Panagiotis",
+    "Christos",
+    "Alexandros",
+    "Vasilis",
+    "Angelos",
+    "Aria",
+    "Christina",
+    "Ellie",
+    "Maria",
+    "Violeta",
+    "Raphaela",
+};
+
+static const char *const GR_surnames[] =
+{
+    "Samaras",
+    "Papoutsis",
+    "Kritikos",
+    "Aivaliotis",
+    "Kontos",
+    "Mytaras",
+    "Koufos",
+    "Mitsotakis",
+    "Theodorakis",
+    "Stamatelopoulos",
+    "Papadopoulos",
+    "Alexoudis",
+    "Tsolakoglou",
+};
+
+static const char *const IL_names[] =
+{
+    "Ariel",
+    "Lavi",
+    "David",
+    "Raphael",
+    "Uri",
+    "Michael",
+    "Adam",
+    "Charbel",
+    "Jude",
+    "Avigail",
+    "Maryam",
+    "Libi",
+    "Tamar",
+    "Lia",
+    "Sarah",
+    "Yael",
+    "Ella",
+};
+
+static const char *const IL_surnames[] =
+{
+    "Cohen",
+    "Levi",
+    "Mizrachi",
+    "Peretz",
+    "Biton",
+    "Dahan",
+    "Avraham",
+    "Friedman",
+    "Malka",
+    "Azoulay",
+    "Katz",
+    "Yosef",
+    "Amar",
+    "Ohayon",
+};
+
+static const char *const CN_names[] =
+{
+    "Yi nuo",
+    "Zi han",
+    "Yu tong",
+    "Xin yi",
+    "Ke xin",
+    "Meng yao",
+    "Yichen",
+    "Yuxuan",
+    "Haoyu",
+    "Yuchen",
+    "Zimo",
+    "Yuhang",
+    "Haoran",
+    "Zihao"
+};
+
+static const char *const CN_surnames[] =
+{
+    "Zhou",
+    "Suen",
+    "Ng",
+    "Zhu",
+    "Lin",
+    "Wang",
+    "Li",
+    "Zhang",
+    "Chen",
+    "Sun",
+    "Gao",
+    "Luo"
+};
+
 #define NATION(X) \
 { \
     #X, \
@@ -324,6 +472,10 @@ const struct GfDrivers::names GfDrivers::names[] =
     NATION(CR),
     NATION(IT),
     NATION(FR),
+    NATION(IN),
+    NATION(GR),
+    NATION(IL),
+    NATION(CN),
 };
 
 const char *const GfDrivers::teams[] =
