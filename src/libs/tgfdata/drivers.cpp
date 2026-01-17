@@ -1858,7 +1858,7 @@ int GfDrivers::getDriverIdx(const std::string &mod, const std::string &name) con
 {
     int ret = -1, n;
     std::string path = "drivers/" + mod + "/" + mod + PARAMEXT;
-    const char *p = path.c_str(), *pname = name.c_str(), *pmod = mod.c_str();
+    const char *p = path.c_str(), *pmod = mod.c_str();
     static const char *prefix = ROB_SECT_ROBOTS "/" ROB_LIST_INDEX;
     void *h = GfParmReadFileLocal(p, GFPARM_RMODE_STD);
 
@@ -1887,8 +1887,6 @@ int GfDrivers::getDriverIdx(const std::string &mod, const std::string &name) con
             goto end;
         }
     }
-
-    GfLogError("No driver found: %s, module=%s\n", pname, pmod);
 
 end:
     if (h)
