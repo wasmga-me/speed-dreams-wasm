@@ -898,8 +898,10 @@ rmdsGenerate(void *)
 		return;
 	}
 
+	std::vector<std::string> names;
+
 	for (unsigned long i = 0; i < num; i++)
-		if (drivers->gen(seldriver, catId, selcar))
+		if (drivers->gen(names, seldriver, catId, selcar))
 		{
 			const char *d = seldriver.empty() ? "random" : seldriver.c_str();
 
