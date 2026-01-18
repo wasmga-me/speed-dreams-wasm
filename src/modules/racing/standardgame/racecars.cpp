@@ -357,8 +357,8 @@ reCarsApplyRaceRules(tCarElt *car, double deltaTime)
                 penalty->timeToClear = penalty->timeToClear*penaltyFactor(penalty);
             }
 
-            penalty->timeToClear += cutDistance * constant * speed * deltaTime * penaltyFactor(penalty);
-            double maxPenalty = 20*penaltyFactor(penalty);
+            penalty->timeToClear += log2(cutDistance+1) * constant * speed * deltaTime * penaltyFactor(penalty);
+            double maxPenalty = 15*penaltyFactor(penalty);
             if (penalty->timeToClear > maxPenalty) penalty->timeToClear = maxPenalty;
 
             if (penalty->timeToClear > 0.1 && ((int)(penalty->timeToClear*10) % 5) == 0) {
