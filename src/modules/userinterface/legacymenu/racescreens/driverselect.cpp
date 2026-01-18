@@ -938,6 +938,9 @@ rmdsDelete(void *)
 	if (!GfuiScrollListGetSelectedElement(ScrHandle, CandidatesScrollListId, &dv))
 		return;
 
+	int sel = GfuiScrollListGetSelectedElementIndex(ScrHandle,
+		CandidatesScrollListId);
+
 	const GfDriver *d = static_cast<GfDriver *>(dv);
 	const std::string &name = d->getName();
 	GfDrivers *drivers = GfDrivers::self();
@@ -950,6 +953,16 @@ rmdsDelete(void *)
 		GfLogError("Failed to reload drivers\n");
 
 	rmdsRefreshLists();
+
+	int n = GfuiScrollListGetNumberOfElements(ScrHandle, CandidatesScrollListId);
+
+	if (n)
+	{
+		if (sel >= n)
+			sel = n - 1;
+
+		GfuiScrollListSetSelectedElement(ScrHandle, CandidatesScrollListId, sel);
+	}
 }
 
 static void
