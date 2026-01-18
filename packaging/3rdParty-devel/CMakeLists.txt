@@ -24,7 +24,12 @@
 #==============================================================================
 #
 # (hashtag) starts a comment
-cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
+if(CMAKE_MAJOR_VERSION GREATER 3
+   OR (CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 30))
+    cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+else()
+    cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
+endif()
 
 IF(POLICY CMP0135)
    CMAKE_POLICY(SET CMP0135 NEW)

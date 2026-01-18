@@ -1,5 +1,10 @@
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
-cmake_minimum_required(VERSION 3.0)
+if(CMAKE_MAJOR_VERSION GREATER 3
+   OR (CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 30))
+    cmake_minimum_required(VERSION 3.10)
+else()
+    cmake_minimum_required(VERSION 3.0)
+endif()
 
 project(cJSON
     VERSION 1.7.18
