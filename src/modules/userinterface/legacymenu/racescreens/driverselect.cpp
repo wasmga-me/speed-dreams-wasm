@@ -30,6 +30,7 @@
 
 #include <tgfclient.h>
 #include <track.h>
+#include <translation.h>
 #include <car.h>
 #include <raceman.h>
 #include <robot.h>
@@ -48,6 +49,9 @@
 
 // Handle for the screen.
 static void* ScrHandle;
+
+// Handle for the parameters file.
+static void *menuDescHdle;
 
 // Information about the current race type.
 static tRmDriverSelect* MenuData;
@@ -82,18 +86,18 @@ static int      ChangeCarButtonId;
 static RmGarageMenu GarageMenu;
 
 // Car categories
-static const char* AnyCarCategory = "--- All car categories ---";
+static const char* AnyCarCategory;
 static std::vector<std::string> VecCarCategoryIds; // Category folder/file names
 static std::vector<std::string> VecCarCategoryNames; // Category real/displayed names
 static size_t CurCarCategoryIndex = 0;
 
 // Driver types
-static const char* AnyDriverType = "--- All driver types ---";
+static const char* AnyDriverType;
 static std::vector<std::string> VecDriverTypes;
 static size_t CurDriverTypeIndex = 0;
 
 // Car models
-static const char* AnyCarModel = "--- All car models ---";
+static const char* AnyCarModel;
 static std::vector<std::string> VecCarModels;
 static size_t CurCarModelIdx = 0;
 
@@ -111,16 +115,24 @@ static void rmdsFilterCandidatesScrollList(const std::string& strCarCatId,
 										   const std::string& strCarModel);
 static void rmdsClickOnDriver(void * /* dummy */);
 
+static const char *
+tr(const char *key)
+{
+	std::string s = std::string("translatable/") + key;
+
+	return GfuiGetTranslatedText(menuDescHdle, s.c_str(), "text", "");
+}
+
 static void
 rmdsUpdateLabels()
 {
 	int ncm = GfuiScrollListGetNumberOfElements(ScrHandle, CompetitorsScrollListId),
 		nca = GfuiScrollListGetNumberOfElements(ScrHandle, CandidatesScrollListId);
-	char cmlabel[sizeof "COMPETITORS (18446744073709551615)"],
-		calabel[sizeof "CANDIDATES (18446744073709551615)"];
+	const char *cmfmt = tr("competitors"), *cafmt = tr("candidates");
+	char cmlabel[64], calabel[64];
 
-	snprintf(cmlabel, sizeof cmlabel, "COMPETITORS (%d)", ncm);
-	snprintf(calabel, sizeof calabel, "CANDIDATES (%d)", nca);
+	snprintf(cmlabel, sizeof cmlabel, cmfmt, ncm);
+	snprintf(calabel, sizeof calabel, cafmt, nca);
 	GfuiLabelSetText(ScrHandle, CompetitorsLabelId, cmlabel);
 	GfuiLabelSetText(ScrHandle, CandidatesLabelId, calabel);
 }
@@ -336,6 +348,7 @@ static void
 rmdsDeactivate(void *nextScreenHdle)
 {
     rmdsCleanup();
+    GfParmReleaseHandle(menuDescHdle);
     GfuiScreenRelease(ScrHandle);
 
     if (nextScreenHdle)
@@ -965,8 +978,11 @@ RmDriversSelect(void *vs)
     // Create screen, background image and title
     ScrHandle = GfuiScreenCreate((float*)NULL, NULL, rmdsActivate, NULL, (tfuiCallback)NULL, 1);
 
-    void *menuDescHdle = GfuiMenuLoad("driverselectmenu.xml");
+    menuDescHdle = GfuiMenuLoad("driverselectmenu.xml");
     GfuiMenuCreateStaticControls(ScrHandle, menuDescHdle);
+    AnyCarCategory = tr("anycarcategory");
+    AnyDriverType = tr("anydrivertype");
+    AnyCarModel = tr("anycarmodel");
 
     CandidatesLabelId = GfuiMenuCreateLabelControl(ScrHandle, menuDescHdle, "candidateslabel");
     CompetitorsLabelId = GfuiMenuCreateLabelControl(ScrHandle, menuDescHdle, "competitorslabel");
@@ -1090,8 +1106,6 @@ RmDriversSelect(void *vs)
     ChangeCarButtonId = GfuiMenuCreateButtonControl(ScrHandle, menuDescHdle, "carselectbutton",
 											ScrHandle, rmdsGarageMenu);
 	GfuiEnable(ScrHandle, ChangeCarButtonId, GFUI_DISABLE);
-
-    GfParmReleaseHandle(menuDescHdle);
 
     // Keyboard shortcuts
     GfuiMenuDefaultKeysAdd(ScrHandle);
