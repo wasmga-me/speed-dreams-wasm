@@ -7,6 +7,8 @@ public class Header {
 	private String	subcategory	= null;
 	private int		version		= 4;
 	private int		skyVersion	= Integer.MAX_VALUE;
+	private Boolean	dpHitWall	= false;
+	private Boolean	dpSlowdown	= false;
 	private String	author		= null;
 	private String	email		= null;
 	private String	copyright	= null;
@@ -102,6 +104,38 @@ public class Header {
 	}
 
 	/**
+	 * @return Returns true if the HitWall penalty is disabled.
+	 */
+	public Boolean getdpHitWall()
+	{
+		return dpHitWall;
+	}
+	/**
+	 * @param dpHitWall
+	 *            Set to true if the HitWall penalty must be disabled.
+	 */
+	public void setdpHitWall(Boolean dpHitWall)
+	{
+		this.dpHitWall = dpHitWall;
+	}
+
+	/**
+	 * @return Returns true if the HitWall penalty is disabled.
+	 */
+	public Boolean getdpSlowdown()
+	{
+		return dpSlowdown;
+	}
+	/**
+	 * @param dpSlowdown
+	 *            Set to true if the Slowdown penalty must be disabled.
+	 */
+	public void setdpSlowdown(Boolean dpSlowdown)
+	{
+		this.dpSlowdown = dpSlowdown;
+	}
+
+	/**
 	 * @return Returns the author.
 	 */
 	public String getAuthor()
@@ -162,6 +196,7 @@ public class Header {
 		System.out.println(indent + "  subcategory : " + subcategory);
 		System.out.println(indent + "  version     : " + version);
 		System.out.println(indent + "  skyVersion  : " + skyVersion);
+		System.out.println(indent + "  HitWall penalty  : " + dpHitWall);
 		System.out.println(indent + "  author      : " + author);
 		System.out.println(indent + "  email       : " + email);
 		System.out.println(indent + "  copyright   : " + copyright);

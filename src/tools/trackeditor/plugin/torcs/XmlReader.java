@@ -266,6 +266,21 @@ public class XmlReader
         editorFrame.getTrackData().getHeader().setEmail(getAttrStrValue(header, "email"));
         editorFrame.getTrackData().getHeader().setCopyright(getAttrStrValue(header, "copyright"));
         editorFrame.getTrackData().getHeader().setDescription(getAttrStrValue(header, "description"));
+
+        String disabledPenalties = getAttrStrValue(header, "disabled penalties");
+
+        if (disabledPenalties != null)
+        {
+            String[] tokens = disabledPenalties.split(";");
+
+            for (int i = 0; i < tokens.length; i++)
+            {
+                if (tokens[i].equals("wallhittimeinvalidate"))
+                    editorFrame.getTrackData().getHeader().setdpHitWall(true);
+                else if (tokens[i].equals("slowdown"))
+                    editorFrame.getTrackData().getHeader().setdpSlowdown(true);
+            }
+        }
     }
 
     /**
