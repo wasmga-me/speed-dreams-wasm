@@ -165,8 +165,8 @@ public:
 														 const std::string& strCarCatId = "") const;
 
  	void print() const;
-	int gen(const std::string &driver, const std::string &category,
-		const std::string &car = "") const;
+	int gen(std::vector<std::string> &names, const std::string &driver,
+		const std::string &category, const std::string &car = "") const;
 	int gen(const std::vector<std::string> &robots,
 		const std::string &category, unsigned n) const;
 	int robots(std::vector<std::string> &out) const;
@@ -209,7 +209,8 @@ protected:
 	bool isindex(const std::string &dir) const;
 	bool human(const std::string &name) const;
 	int genparams(const std::string &driver, const std::string &category,
-		const std::string &car, const std::string &dir) const;
+		const std::string &car, const std::string &dir,
+		std::vector<std::string> &names) const;
 	int genident(struct identity &ident) const;
 	int genskill(const std::string &driver, const std::string &dir) const;
 	bool supports_aggression(const std::string &driver) const;

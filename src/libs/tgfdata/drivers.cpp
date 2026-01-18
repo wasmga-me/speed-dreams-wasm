@@ -721,6 +721,8 @@ end:
 int GfDrivers::gen(const std::vector<std::string> &robots,
     const std::string &category, unsigned n) const
 {
+    std::vector<std::string> names;
+
     for (unsigned i = 0; i < n; i++)
     {
         unsigned index;
@@ -739,7 +741,7 @@ again:
 
         if (human(driver))
             goto again;
-        else if (gen(driver, category))
+        else if (gen(names, driver, category))
         {
             GfLogError("Failed to generate driver: %s\n", d);
             return -1;
@@ -1634,7 +1636,8 @@ int GfDrivers::pickcar(const std::string &category, std::string &car,
 }
 
 int GfDrivers::genparams(const std::string &driver, const std::string &category,
-    const std::string &car, const std::string &dir) const
+    const std::string &car, const std::string &dir,
+    std::vector<std::string> &names) const
 {
     int ret = -1;
     const char *catId = category.c_str();
@@ -1656,11 +1659,19 @@ int GfDrivers::genparams(const std::string &driver, const std::string &category,
         goto end;
     }
 
-    if (genident(ident))
+    do
     {
-        GfLogError("Failed to generate driver identitity\n");
-        return -1;
-    }
+again:
+        if (genident(ident))
+        {
+            GfLogError("Failed to generate driver identitity\n");
+            return -1;
+        }
+
+        for (const auto &name : names)
+            if (name == ident.name)
+                goto again;
+    } while (getDriverIdx(driver, ident.name) >= 0);
 
     GfParmSetStr(h, "driver", ROB_ATTR_NAME, ident.name.c_str());
     GfParmSetStr(h, "driver", ROB_ATTR_SNAME, ident.short_name.c_str());
@@ -1685,6 +1696,7 @@ int GfDrivers::genparams(const std::string &driver, const std::string &category,
     GfLogInfo("Generated driver %s with robot %s for category %s\n",
         ident.name.c_str(), driver.c_str(), category.c_str());
 
+    names.push_back(ident.name);
     ret = 0;
 
 end:
@@ -1778,8 +1790,8 @@ int GfDrivers::pickdriver(std::string &out) const
     return 0;
 }
 
-int GfDrivers::gen(const std::string &driver, const std::string &category,
-    const std::string &car) const
+int GfDrivers::gen(std::vector<std::string> &names, const std::string &driver,
+    const std::string &category, const std::string &car) const
 {
     const char *dir = GfLocalDir();
     std::string seldriver = driver;
@@ -1819,7 +1831,7 @@ int GfDrivers::gen(const std::string &driver, const std::string &category,
         GfLogError("Failed to created directory: %s\n", d);
         return -1;
     }
-    else if (genparams(seldriver, category, car, drvdir))
+    else if (genparams(seldriver, category, car, drvdir, names))
     {
         GfLogError("Failed to generate driver parameters\n");
         return -1;
@@ -1858,7 +1870,7 @@ int GfDrivers::getDriverIdx(const std::string &mod, const std::string &name) con
 {
     int ret = -1, n;
     std::string path = "drivers/" + mod + "/" + mod + PARAMEXT;
-    const char *p = path.c_str(), *pname = name.c_str(), *pmod = mod.c_str();
+    const char *p = path.c_str(), *pmod = mod.c_str();
     static const char *prefix = ROB_SECT_ROBOTS "/" ROB_LIST_INDEX;
     void *h = GfParmReadFileLocal(p, GFPARM_RMODE_STD);
 
@@ -1887,8 +1899,6 @@ int GfDrivers::getDriverIdx(const std::string &mod, const std::string &name) con
             goto end;
         }
     }
-
-    GfLogError("No driver found: %s, module=%s\n", pname, pmod);
 
 end:
     if (h)
