@@ -410,7 +410,6 @@ void GraphicsConfig::setpreset(int id, const char *preset) const
 void GraphicsConfig::setpreset(const struct preset_ssggraph &p) const
 {
     setpreset(visibility, p.visibility);
-    setpreset(anisotropicfilter, p.anisotropicfilter);
     setpreset(texturecompression, p.texturecompression);
     setpreset(skydome, p.skydome);
     setpreset(multitexturing, p.multitexturing);
@@ -434,6 +433,7 @@ void GraphicsConfig::setpreset(tComboBoxInfo *info)
 
         gfx->sel_engine = SSGGRAPH;
         gfx->setpreset(gfx->antialiasing, p.antialiasing);
+        gfx->setpreset(gfx->anisotropicfilter, p.anisotropicfilter);
         gfx->setpreset(p.u.ssggraph);
     }
     else if (!strcmp(text, gfx->tr("balanced")))
@@ -442,6 +442,7 @@ void GraphicsConfig::setpreset(tComboBoxInfo *info)
 
         gfx->sel_engine = OSGGRAPH;
         gfx->setpreset(gfx->antialiasing, p.antialiasing);
+        gfx->setpreset(gfx->anisotropicfilter, p.anisotropicfilter);
         gfx->setpreset(p.u.osggraph);
     }
     else if (!strcmp(text, gfx->tr("high")))
@@ -450,6 +451,7 @@ void GraphicsConfig::setpreset(tComboBoxInfo *info)
 
         gfx->sel_engine = OSGGRAPH;
         gfx->setpreset(gfx->antialiasing, p.antialiasing);
+        gfx->setpreset(gfx->anisotropicfilter, p.anisotropicfilter);
         gfx->setpreset(p.u.osggraph);
     }
 
@@ -462,8 +464,6 @@ bool GraphicsConfig::ispreset(const struct preset_ssggraph &p) const
     return !strcmp(GfuiComboboxGetText(hscr, multitexturing), p.multitexturing)
         && !strcmp(GfuiComboboxGetText(hscr, texturecompression),
             p.texturecompression)
-        && !strcmp(GfuiComboboxGetText(hscr, anisotropicfilter),
-            p.anisotropicfilter)
         && !strcmp(GfuiComboboxGetText(hscr, skydome), p.skydome)
         && !strcmp(GfuiComboboxGetText(hscr, visibility), p.visibility);
 }
@@ -478,7 +478,9 @@ bool GraphicsConfig::ispreset(const struct preset_osggraph &p) const
 bool GraphicsConfig::ispreset(const struct preset &p) const
 {
     if (sel_engine != p.engine
-        || strcmp(GfuiComboboxGetText(hscr, antialiasing), p.antialiasing))
+        || strcmp(GfuiComboboxGetText(hscr, antialiasing), p.antialiasing)
+        || strcmp(GfuiComboboxGetText(hscr, anisotropicfilter),
+            p.anisotropicfilter))
         return false;
 
     switch (sel_engine)
@@ -754,14 +756,18 @@ void GraphicsConfig::init_presets()
         low.u.ssggraph.multitexturing = tr("unsupported");
 
     if (gl.getSupported(GfglFeatures::AnisotropicFiltering))
-        low.u.ssggraph.anisotropicfilter = tr("bilinear");
+    {
+        low.anisotropicfilter = tr("bilinear");
+        balanced.anisotropicfilter = tr("bilinear");
+        high.anisotropicfilter = tr("trilinear");
+    }
     else
-        low.u.ssggraph.anisotropicfilter = tr("unsupported");
+        low.anisotropicfilter = tr("unsupported");
 
     balanced.engine = OSGGRAPH;
 
     if (gl.isSupported(GfglFeatures::MultiSampling))
-        balanced.antialiasing = "2x";
+        balanced.antialiasing = "1x";
     else
         balanced.antialiasing = tr("unsupported");
 
@@ -833,10 +839,6 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     shaders_lbl = GfuiMenuCreateLabelControl(hscr, param, "shaders_lbl");
     anisotropicfilter = GfuiMenuCreateComboboxControl(hscr, param,
         "anisotropicfilter", this, setcustom);
-    anisotropicfilter_bg = GfuiMenuCreateStaticImageControl(hscr, param,
-        "anisotropicfilter_bg");
-    anisotropicfilter_lbl = GfuiMenuCreateLabelControl(hscr, param,
-        "anisotropicfilter_lbl");
     texturecompression = GfuiMenuCreateComboboxControl(hscr, param,
         "texturecompression", this, setcustom);
     texturecompression_bg = GfuiMenuCreateStaticImageControl(hscr, param,
@@ -870,8 +872,6 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         || shaders < 0
         || shaders_lbl < 0
         || anisotropicfilter < 0
-        || anisotropicfilter_lbl < 0
-        || anisotropicfilter_bg < 0
         || texturecompression < 0
         || texturecompression_lbl < 0
         || texturecompression_bg < 0
@@ -969,9 +969,6 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
 
     idtype[visibility] = SSGGRAPH;
     idtype[visibility_lbl] = SSGGRAPH;
-    idtype[anisotropicfilter] = SSGGRAPH;
-    idtype[anisotropicfilter_lbl] = SSGGRAPH;
-    idtype[anisotropicfilter_bg] = SSGGRAPH;
     idtype[texturecompression] = SSGGRAPH;
     idtype[texturecompression_lbl] = SSGGRAPH;
     idtype[texturecompression_bg] = SSGGRAPH;
