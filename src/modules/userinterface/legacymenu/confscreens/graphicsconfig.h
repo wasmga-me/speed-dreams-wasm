@@ -31,7 +31,7 @@ private:
     struct preset_ssggraph
     {
         const char *texturecompression, *skydome,
-            *multitexturing, *visibility, *anisotropicfilter;
+            *multitexturing, *visibility;
     };
 
     struct preset_osggraph
@@ -42,7 +42,7 @@ private:
     struct preset
     {
         int engine;
-        const char *antialiasing;
+        const char *antialiasing, *anisotropicfilter;
 
         union
         {
@@ -102,7 +102,7 @@ private:
     int preset, graphicsengine, graphicsengine_info, visibility,
         visibility_lbl, skydome, skydome_lbl, dynamicshadows,
         dynamicshadows_lbl, shaders, shaders_lbl, antialiasing,
-        anisotropicfilter, anisotropicfilter_lbl, anisotropicfilter_bg,
+        anisotropicfilter,
         texturecompression, texturecompression_lbl, texturecompression_bg,
         maxtexturesize, maxtexturesize_lbl, multitexturing, multitexturing_lbl,
         multitexturing_bg, shadowsize, shadowsize_lbl;

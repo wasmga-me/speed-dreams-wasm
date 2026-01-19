@@ -46,6 +46,7 @@
 #include <osgUtil/Tessellator>
 #include <osgUtil/SmoothingVisitor>
 
+#include <glfeatures.h>
 #include <tgf.h>
 
 #include "AccException.h"
@@ -177,21 +178,46 @@ public:
     {
     }
 
+    float getAnisotropicFiltering() const
+    {
+        if (GfglFeatures::self().getSupported(GfglFeatures::AnisotropicFiltering) != GfglFeatures::InvalidInt)
+        {
+            int aniS = GfglFeatures::self().getSelected(GfglFeatures::AnisotropicFiltering);
+            GLfloat fLargest;
+
+            glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
+
+            switch(aniS)
+            {
+                case 1:
+                    return fLargest / 2;
+                case 2:
+                    return fLargest;
+                default:
+                    break;
+            }
+        }
+
+        return 1.0f;
+    }
+
     void SetBlockTransparent(bool bStatus) { mTranslucent = bStatus;}
 
     bool setTexture(const std::string& name, const std::string& name1, const std::string& name2, const std::string& name3, const osgDB::ReaderWriter::Options* options, osg::TexEnv* modulateTexEnv,const bool bBlockTransparent)
     {
+        float af = getAnisotropicFiltering();
+
         mTexture2DRepeat = new osg::Texture2D;
         mTexture2DRepeat->setDataVariance(osg::Object::STATIC);
         mTexture2DRepeat->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::REPEAT);
         mTexture2DRepeat->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::REPEAT);
-        mTexture2DRepeat->setMaxAnisotropy(16);
+        mTexture2DRepeat->setMaxAnisotropy(af);
 
         mTexture2DClamp = new osg::Texture2D;
         mTexture2DClamp->setDataVariance(osg::Object::STATIC);
         mTexture2DClamp->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::CLAMP_TO_EDGE);
         mTexture2DClamp->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::CLAMP_TO_EDGE);
-        mTexture2DClamp->setMaxAnisotropy(16);
+        mTexture2DClamp->setMaxAnisotropy(af);
 
         std::string absFileName = osgDB::findDataFile(name, options);
 
@@ -260,14 +286,14 @@ public:
             mTexture2DRepeat1->setDataVariance(osg::Object::STATIC);
             mTexture2DRepeat1->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::REPEAT);
             mTexture2DRepeat1->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::REPEAT);
-            mTexture2DRepeat1->setMaxAnisotropy(16);
+            mTexture2DRepeat1->setMaxAnisotropy(af);
             mTexture2DRepeat1->setImage(mImage1.get());
 
             mTexture2DClamp1 = new osg::Texture2D;
             mTexture2DClamp1->setDataVariance(osg::Object::STATIC);
             mTexture2DClamp1->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::CLAMP_TO_EDGE);
             mTexture2DClamp1->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::CLAMP_TO_EDGE);
-            mTexture2DClamp1->setMaxAnisotropy(16);
+            mTexture2DClamp1->setMaxAnisotropy(af);
             mTexture2DClamp1->setImage(mImage1.get());
         }
 
@@ -299,14 +325,14 @@ public:
             mTexture2DRepeat2->setDataVariance(osg::Object::STATIC);
             mTexture2DRepeat2->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::REPEAT);
             mTexture2DRepeat2->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::REPEAT);
-            mTexture2DRepeat2->setMaxAnisotropy(16);
+            mTexture2DRepeat2->setMaxAnisotropy(af);
             mTexture2DRepeat2->setImage(mImage2.get());
 
             mTexture2DClamp2 = new osg::Texture2D;
             mTexture2DClamp2->setDataVariance(osg::Object::STATIC);
             mTexture2DClamp2->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::CLAMP_TO_EDGE);
             mTexture2DClamp2->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::CLAMP_TO_EDGE);
-            mTexture2DClamp2->setMaxAnisotropy(16);
+            mTexture2DClamp2->setMaxAnisotropy(af);
             mTexture2DClamp2->setImage(mImage2.get());
         }
 
@@ -337,14 +363,14 @@ public:
             mTexture2DRepeat3->setDataVariance(osg::Object::STATIC);
             mTexture2DRepeat3->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::REPEAT);
             mTexture2DRepeat3->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::REPEAT);
-            mTexture2DRepeat3->setMaxAnisotropy(16);
+            mTexture2DRepeat3->setMaxAnisotropy(af);
             mTexture2DRepeat3->setImage(mImage3.get());
 
             mTexture2DClamp3 = new osg::Texture2D;
             mTexture2DClamp3->setDataVariance(osg::Object::STATIC);
             mTexture2DClamp3->setWrap(osg::Texture2D::WRAP_S, osg::Texture2D::CLAMP_TO_EDGE);
             mTexture2DClamp3->setWrap(osg::Texture2D::WRAP_T, osg::Texture2D::CLAMP_TO_EDGE);
-            mTexture2DClamp3->setMaxAnisotropy(16);
+            mTexture2DClamp3->setMaxAnisotropy(af);
             mTexture2DClamp3->setImage(mImage3.get());
         }
 
