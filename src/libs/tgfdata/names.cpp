@@ -4,6 +4,7 @@
 // References:
 // https://en.wikipedia.org/wiki/List_of_most_popular_given_names
 // https://en.wikipedia.org/wiki/Lists_of_most_common_surnames_in_Asian_countries
+// https://familynames.org/
 
 static const char *JP_surnames[] =
 {
@@ -455,6 +456,133 @@ static const char *const CN_surnames[] =
     "Luo"
 };
 
+static const char *const EG_names[] =
+{
+    "Shaimaa",
+    "Shahd",
+    "Ashraqat",
+    "Sahar",
+    "Fatin",
+    "Dalal",
+    "Fajr",
+    "Suha",
+    "Rowan",
+    "Hasnaa",
+    "Hosna",
+    "Mohamed",
+    "Ahmed",
+    "Mahmoud",
+    "Mustafa",
+    "Taha",
+    "Khaled",
+    "Hamza",
+    "Bilal",
+};
+
+static const char *const EG_surnames[] =
+{
+    "Abdallah",
+    "Amin",
+    "Ali",
+    "Kamel",
+    "Khalil",
+    "Zakaria",
+    "Hamed",
+    "Magdy",
+    "Said",
+    "Al-Ameen",
+    "Sallom",
+    "Ally",
+};
+
+static const char *const ZA_names[] =
+{
+    "Onalerona",
+    "Melokuhle",
+    "Lisakhanya",
+    "Zanokuhle",
+    "Lethabo",
+    "Lesedi",
+    "Omphile",
+    "Amahle",
+    "Naledi",
+    "Nkanyezi",
+    "Lethabo",
+    "Nkazimulo",
+    "Lubanzi",
+    "Nkanyezi",
+    "Langelihle",
+    "Lethokuhle",
+    "Junior",
+    "Melokuhle",
+    "Siphosethu",
+    "Omphilet",
+};
+
+static const char *const ZA_surnames[] =
+{
+    "Dlamini",
+    "Nkosi",
+    "Ndlovu",
+    "Khumalo",
+    "Sithole",
+    "Botha",
+    "Mahlangu",
+    "Mokoena",
+    "Smith",
+    "Naidoo",
+    "Mkhize",
+    "Mthembu",
+    "Ngcobo",
+    "Gumede",
+};
+
+static const char *const FI_names[] =
+{
+    "Olivia",
+    "Oliver",
+    "Eino",
+    "Väinö",
+    "Ellen",
+    "Aino",
+    "Linnea",
+    "Sofia",
+    "Leo",
+    "Lilja",
+    "Eevi",
+    "Hilla",
+    "Aava",
+    "Helmi",
+    "Isla",
+    "Viola",
+    "Elias",
+    "Onni",
+    "Toivo",
+    "Oiva",
+    "Emil",
+    "Vilho",
+    "Aatos",
+    "Hugo",
+};
+
+static const char *const FI_surnames[] =
+{
+    "Korhonen",
+    "Virtanen",
+    "Mäkinen",
+    "Nieminen",
+    "Mäkelä",
+    "Hämäläinen",
+    "Laine",
+    "Heikkinen",
+    "Koskinen",
+    "Järvinen",
+    "Lehtonen",
+    "Lehtinen",
+    "Heinonen",
+    "Salo",
+};
+
 #define NATION(X) \
 { \
     #X, \
@@ -476,6 +604,9 @@ const struct GfDrivers::names GfDrivers::names[] =
     NATION(GR),
     NATION(IL),
     NATION(CN),
+    NATION(EG),
+    NATION(ZA),
+    NATION(FI),
 };
 
 const char *const GfDrivers::teams[] =
