@@ -2065,8 +2065,14 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
             hudImgElements["light11-on"]->setNodeMask(0);
             hudImgElements["light12-on"]->setNodeMask(0);
 
-            float horsepowerCurr = horsepowerPoints.at((int)currCar->_enginerpm);
-            float horsepowerNext = horsepowerPoints.at((int)nextRpm);
+            float horsepowerCurr = 0;
+            float horsepowerNext = 0;
+
+            if (horsepowerPoints.size() > (unsigned)currCar->_enginerpm)
+                horsepowerCurr = horsepowerPoints.at((int)currCar->_enginerpm);
+
+            if (horsepowerPoints.size() > (unsigned)nextRpm)
+                horsepowerNext = horsepowerPoints.at((int)nextRpm);
             //GfLogInfo("Curr gear %i (%f) - RPM %i - CurrPower %f \n", currCar->_gear, currCar->_gearRatio[(int) (currCar->_gear + currCar->_gearOffset)], (int)RADS2RPM(currCar->_enginerpm), horsepowerCurr);
             //GfLogInfo("Next gear %i (%f)- RPM %i - nextPower %f \n", currCar->_gear+1, currCar->_gearRatio[(int) (currCar->_gear + currCar->_gearOffset+1)], (int)RADS2RPM(nextRpm), horsepowerNext);
 
