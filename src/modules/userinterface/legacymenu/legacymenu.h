@@ -136,6 +136,9 @@ public:
 	//! Accessor to the sound engine.
 	ISoundEngine* soundEngine();
 
+	//! Get translated string.
+	const char *tr(const char *key) const;
+
  protected:
 
 	//! Protected constructor to avoid instanciation outside (but friends).
@@ -173,9 +176,6 @@ public:
 
 	//! Start the standings menu.
 	void showStandings();
-
-	//! Get translated string.
-	const char *tr(const char *key) const;
 
  protected:
 
