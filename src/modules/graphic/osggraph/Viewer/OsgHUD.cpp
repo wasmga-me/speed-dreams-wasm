@@ -55,7 +55,7 @@ namespace osggraph {
 
 //string constants for dashboard
 static std::string strEmpty;
-static std::string strBrakeRep("F/R Brake Rep.");
+static std::string strBrakeRep("brakerep");
 static std::string strFrontARB("Front ARB");
 static std::string strRearARB("Rear ARB");
 static std::string strFDiffMSB("F Pow Max Slip");
@@ -69,7 +69,7 @@ static std::string strRepair("Repair");
 static std::string strTireSet("New tires");
 static std::string strFrontWing("Front wing");
 static std::string strRearWing("Rear wing");
-static std::string strPenalty("Next pit type");
+static std::string strPenalty("boxtype");
 static std::string strTireCompounds("Tyre compound");
 
 static const osg::Vec4 colorRed(1.0, 0.0, 0.0, 1.0);
@@ -1121,7 +1121,8 @@ SDHUD::SDHUD() :
     lastCar(nullptr),
     hudScale(1.0f),
     prevSteerAngle(0.0f),
-    hudElementsVisibilityStatusEnabled(true)
+    hudElementsVisibilityStatusEnabled(true),
+    paramHandle(nullptr)
 {
 }
 
@@ -1203,11 +1204,22 @@ std::string &SDHUD::GetCarName(const tCarElt *currCar)
     return s;
 }
 
+const char *SDHUD::tr(const char *key)
+{
+    if (!paramHandle)
+        paramHandle = GfParmReadFileLocal("config/osghudconfig.xml", GFPARM_RMODE_STD);
+
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(paramHandle, s.c_str(), "text", "");
+}
+
 void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
                         const tCarElt *currCar, int SimClouds, int SimRain, float SimTimeOfDay)
 {
     typedef std::map<std::string,OSGPLOT* >::iterator it_type;
     bool carHasChanged = true;
+    const auto encoding = osgText::String::Encoding::ENCODING_UTF8;
 
     CarData &data = carData[currCar];
 
@@ -1346,7 +1358,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         //update board names texts
         mapKey.str("");
         mapKey << "board-player" << id << "-name";
-        hudTextElements[mapKey.str()]->setText((*car)->_name);
+        hudTextElements[mapKey.str()]->setText((*car)->_name, encoding);
         hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
 
         //update time diff texts
@@ -1626,7 +1638,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
             temp << std::fixed << std::setprecision(1) << (100.0 * item->setup->value) << " %";
             break;
         }
-        hudTextElements["dash-items-type"]->setText(description);
+        hudTextElements["dash-items-type"]->setText(tr(description.c_str()), encoding);
         hudTextElements["dash-items-value1"]->setColor(colorRed);
         hudTextElements["dash-items-value1"]->setText(temp.str());
         hudTextElements["dash-items-value2"]->setText(std::string(" "));
@@ -1654,34 +1666,34 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
             description = strTireSet;
             if (item->setup->desired_value > 0.9)
             {
-                value1 << "YES";
+                value1 << tr("yes");
             }
             else
             {
-                value1 << "NO";
+                value1 << tr("no");
             }
             break;
         case DI_COMPOUND_SET:
             description = strTireCompounds;
             if(item->setup->desired_value == 1)
             {
-                value1 << "SOFT";
+                value1 << tr("compounds/soft");
             }
             else if (item->setup->desired_value == 2)
             {
-                value1 << "MEDIUM";
+                value1 << tr("compounds/medium");
             }
             else if (item->setup->desired_value == 3)
             {
-                value1 << "HARD";
+                value1 << tr("compounds/hard");
             }
             else if (item->setup->desired_value == 4)
             {
-                value1 << "WET";
+                value1 << tr("compounds/wet");
             }
             else if (item->setup->desired_value == 5)
             {
-                value1 << "EXTREME WET";
+                value1 << tr("compounds/extreme wet");
             }
             break;
         case DI_FRONT_WING_ANGLE:
@@ -1699,17 +1711,17 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
 
             if (item->setup->desired_value > 0.9)
             {
-                value1 << "PENALTY";
+                value1 << tr("boxtype/penalty");
             }
             else
             {
-                value1 << "REPAIR";
+                value1 << tr("boxtype/repair");
             }
             break;
         }
-        hudTextElements["dash-items-type"]->setText(description);
+        hudTextElements["dash-items-type"]->setText(tr(description.c_str()), encoding);
         hudTextElements["dash-items-value1"]->setColor(colorYellow);
-        hudTextElements["dash-items-value1"]->setText(value1.str());
+        hudTextElements["dash-items-value1"]->setText(value1.str(), encoding);
         hudTextElements["dash-items-value2"]->setColor(colorCyan);
         hudTextElements["dash-items-value2"]->setText(value2.str());
     }
@@ -3569,6 +3581,9 @@ SDHUD::~SDHUD()
 {
     for (std::map<std::string, OSGPLOT * >::iterator it = hudGraphElements.begin(); it != hudGraphElements.end(); ++it)
         delete(it->second);
+
+    if (paramHandle)
+        GfParmReleaseHandle(paramHandle);
 }
 
 } // namespace osggraph
