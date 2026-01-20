@@ -392,9 +392,8 @@ rmRaceResults(void *prevHdle, tRmInfo *info, int start)
     paramHandle = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
     replayRateSchemeName = GfParmGetStr(paramHandle, RM_SECT_RACE_ENGINE, RM_ATTR_REPLAY_RATE, RM_VAL_REPLAY_OFF);
 
-    rmReplayButtonId = GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "ReplayButton", prevHdle, rmReplayRace);
-    if (strcmp(replayRateSchemeName, RM_VAL_REPLAY_OFF) == 0)
-        GfuiEnable(rmScrHdle, rmReplayButtonId, GFUI_DISABLE);
+    if (strcmp(replayRateSchemeName, RM_VAL_REPLAY_OFF) != 0)
+        rmReplayButtonId = GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "ReplayButton", prevHdle, rmReplayRace);
     GfParmReleaseHandle(paramHandle);
 
     //Create 'save' button in the bottom right
