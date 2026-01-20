@@ -597,19 +597,19 @@ void LegacyMenu::setResultsTableTitles(const char* pszTitle, const char* pszSubT
     ::RmResScreenSetTitles(pszTitle, pszSubTitle);
 }
 
-void LegacyMenu::setResultsTableHeader(const char* pszHeader)
+void LegacyMenu::setResultsTableHeader(const std::vector<std::string> &header)
 {
-    ::RmResScreenSetHeader(pszHeader);
+    ::RmResScreenSetHeader(header);
 }
 
-void LegacyMenu::addResultsTableRow(const char* pszText)
+void LegacyMenu::addResultsTableRow(const std::vector<std::string> &row)
 {
-    ::RmResScreenAddText(pszText);
+    ::RmResScreenAddText(row);
 }
 
-void LegacyMenu::setResultsTableRow(int nIndex, const char* pszText, bool bHighlight)
+void LegacyMenu::setResultsTableRow(int nIndex, const std::vector<std::string> &row, bool bHighlight)
 {
-    ::RmResScreenSetText(pszText, nIndex, bHighlight ? 1 : 0);
+    ::RmResScreenSetText(row, nIndex, bHighlight ? 1 : 0);
 }
 
 void LegacyMenu::removeResultsTableRow(int nIndex)

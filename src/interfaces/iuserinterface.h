@@ -22,6 +22,9 @@
 #ifndef __IUSERINTERFACE__H__
 #define __IUSERINTERFACE__H__
 
+#include <string>
+#include <vector>
+
 class IRaceEngine;
 
 struct RmInfo;
@@ -72,9 +75,9 @@ public:
 
 	// Blind-race results table management.
 	virtual void setResultsTableTitles(const char* pszTitle, const char* pszSubTitle) = 0;
-	virtual void setResultsTableHeader(const char* pszHeader) = 0;
-	virtual void addResultsTableRow(const char* pszText) = 0;
-	virtual void setResultsTableRow(int nIndex, const char* pszText,
+	virtual void setResultsTableHeader(const std::vector<std::string> &header) = 0;
+	virtual void addResultsTableRow(const std::vector<std::string> &row) = 0;
+	virtual void setResultsTableRow(int nIndex, const std::vector<std::string> &row,
 									bool bHighlight = false) = 0;
 	virtual void removeResultsTableRow(int nIndex) = 0;
 	virtual void eraseResultsTable() = 0;
