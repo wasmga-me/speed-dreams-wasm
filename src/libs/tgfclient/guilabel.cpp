@@ -244,6 +244,29 @@ GfuiLabelSetText(void *scr, int id, const char *text)
     }
 }
 
+/** Retrieve the text of a label.
+    @ingroup	gui
+    @param	scr	Screen of the label
+    @param	id	Id of the label
+    @return	Text of the label
+    @see	GfuiAddLabel
+ */
+std::string
+GfuiLabelGetText(void *scr, int id)
+{
+    tGfuiObject* object = gfuiGetObject(scr, id);
+
+    if (object && object->widget == GFUI_LABEL)
+    {
+        tGfuiLabel* label = &(object->u.label);
+
+        // Update the text.
+        return gfuiLabelGetText(label);
+    }
+
+    return "";
+}
+
 /** Change the color of a label.
     @ingroup	gui
     @param	label	Label to modify
