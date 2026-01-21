@@ -207,7 +207,6 @@ GfuiTipCreate(void *scr, const char *text, int maxlen)
     @param	label	Label itself
     @param	obj	Label object
     @param	text	Text of the label
-    @warning	The maximum length is set at the label creation
     @see	GfuiAddLabel
  */
 void
@@ -229,7 +228,6 @@ gfuiLabelSetText(tGfuiLabel *label, const char *text)
     @param	scr	Screen of the label
     @param	id	Id of the label
     @param	text	Text of the label
-    @warning	The maximum length is set at the label creation
     @see	GfuiAddLabel
  */
 void
@@ -244,6 +242,29 @@ GfuiLabelSetText(void *scr, int id, const char *text)
         // Update the text.
         gfuiLabelSetText(label, text);
     }
+}
+
+/** Retrieve the text of a label.
+    @ingroup	gui
+    @param	scr	Screen of the label
+    @param	id	Id of the label
+    @return	Text of the label
+    @see	GfuiAddLabel
+ */
+std::string
+GfuiLabelGetText(void *scr, int id)
+{
+    tGfuiObject* object = gfuiGetObject(scr, id);
+
+    if (object && object->widget == GFUI_LABEL)
+    {
+        tGfuiLabel* label = &(object->u.label);
+
+        // Update the text.
+        return gfuiLabelGetText(label);
+    }
+
+    return "";
 }
 
 /** Change the color of a label.

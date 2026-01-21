@@ -30,6 +30,9 @@
 
 #include <tgfclient.h> // tfuiCallback
 
+#include <string>
+#include <vector>
+
 class GfRace;
 
 typedef struct RmTrackSelect
@@ -139,9 +142,9 @@ extern bool RmCheckPitRequest();
 extern void* RmResScreenInit();
 extern void RmResScreenShutdown();
 extern void RmResScreenSetTitles(const char *pszTitle, const char *pszSubTitle);
-extern void RmResScreenSetHeader(const char *pszHeader);
-extern void RmResScreenAddText(const char *pszText);
-extern void RmResScreenSetText(const char *pszText, int nRowIndex, int nColorIndex);
+extern void RmResScreenSetHeader(const std::vector<std::string> &header);
+extern void RmResScreenAddText(const std::vector<std::string> &row);
+extern void RmResScreenSetText(const std::vector<std::string> &row, int nRowIndex, int nColorIndex);
 extern void RmResScreenRemoveText(int nRowIndex);
 //extern void RmResShowCont(); // Never used : remove ?
 extern int  RmResGetRows();

@@ -24,6 +24,7 @@
 
 #include <portability.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <drivers.h>
 #include <tracks.h>
@@ -109,6 +110,21 @@ rmChgPracticeScreen(void *vprc)
 }
 
 static void
+rmSetTitle(void *hmenu, const tRmInfo *info)
+{
+    // Create variable title labels.
+    char buf[128];
+    const char *race = info->_reRaceName;
+    std::string rm = std::string("racemode/") + race;
+    const char *fmt = GfuiGetTranslatedText(hmenu, "translatable/title", "text", ""),
+        *trrace = LegacyMenu::self().tr(rm.c_str());
+
+    snprintf(buf, sizeof(buf), fmt, trrace, info->track->name);
+    const int titleId = GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "Title");
+    GfuiLabelSetText(rmScrHdle, titleId, buf);
+}
+
+static void
 rmPracticeResults(void *prevHdle, tRmInfo *info, int start)
 {
     // Used across rmPracticeResults calls when multiple pages.
@@ -135,10 +151,7 @@ rmPracticeResults(void *prevHdle, tRmInfo *info, int start)
 
     GfuiMenuDefaultKeysAdd(rmScrHdle);
 
-    // Create variable title labels.
-    snprintf(buf, sizeof(buf), "%s at %s", race, info->track->name);
-    const int titleId = GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "Title");
-    GfuiLabelSetText(rmScrHdle, titleId, buf);
+    rmSetTitle(hmenu, info);
 
     snprintf(path, sizeof(path), "%s/%s/%s", info->track->name, RE_SECT_RESULTS, race);
     snprintf(buf, sizeof(buf), "%s (%s)", GfParmGetStr(results, path, RM_ATTR_DRVNAME, NULL),
@@ -275,10 +288,7 @@ rmRaceResults(void *prevHdle, tRmInfo *info, int start)
     void *hmenu = GfuiMenuLoad("raceresultsmenu.xml");
     GfuiMenuCreateStaticControls(rmScrHdle, hmenu);
 
-    // Create variable title label.
-    snprintf(buf, sizeof(buf), "%s at %s", race, info->track->name);
-    const int titleId = GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "Title");
-    GfuiLabelSetText(rmScrHdle, titleId, buf);
+    rmSetTitle(hmenu, info);
 
     // Get layout properties.
     const int nMaxLines = (int)GfuiMenuGetNumProperty(hmenu, "nMaxResultLines", 15);
@@ -392,9 +402,8 @@ rmRaceResults(void *prevHdle, tRmInfo *info, int start)
     paramHandle = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
     replayRateSchemeName = GfParmGetStr(paramHandle, RM_SECT_RACE_ENGINE, RM_ATTR_REPLAY_RATE, RM_VAL_REPLAY_OFF);
 
-    rmReplayButtonId = GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "ReplayButton", prevHdle, rmReplayRace);
-    if (strcmp(replayRateSchemeName, RM_VAL_REPLAY_OFF) == 0)
-        GfuiEnable(rmScrHdle, rmReplayButtonId, GFUI_DISABLE);
+    if (strcmp(replayRateSchemeName, RM_VAL_REPLAY_OFF) != 0)
+        rmReplayButtonId = GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "ReplayButton", prevHdle, rmReplayRace);
     GfParmReleaseHandle(paramHandle);
 
     //Create 'save' button in the bottom right
@@ -446,10 +455,7 @@ rmQualifResults(void *prevHdle, tRmInfo *info, const char* pszTitle, int start)
     void *hmenu = GfuiMenuLoad("qualifsresultsmenu.xml");
     GfuiMenuCreateStaticControls(rmScrHdle, hmenu);
 
-    // Create variable title label.
-    const int titleId = GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "Title");
-    snprintf(buf, sizeof(buf), "%s at %s", race, info->track->name);
-    GfuiLabelSetText(rmScrHdle, titleId, buf);
+    rmSetTitle(hmenu, info);
 
     // Get layout properties.
     const int nMaxLines = (int)GfuiMenuGetNumProperty(hmenu, "nMaxResultLines", 15);
@@ -574,9 +580,10 @@ RmShowStandings(void *prevHdle, tRmInfo *info, int start)
 
     // Create variable title label (with group info for the Career mode).
     const int titleId = GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "Title");
+    std::string rm = std::string("racemode/") + info->_reName;
+    const char *trname = GfuiGetTranslatedText(info->_reParam, rm.c_str(), "text", "");
     GfRaceManager* pRaceMan = LmRaceEngine().race()->getManager();
-    snprintf(buf, sizeof(buf), "%s", info->_reName);
-    GfuiLabelSetText(rmScrHdle, titleId, buf);
+    GfuiLabelSetText(rmScrHdle, titleId, trname);
 
     // Create variable subtitle label.
     const char* pszSessionName;

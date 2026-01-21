@@ -505,6 +505,7 @@ TGFCLIENT_API void GfuiSetTipPosition(int x,int y);
 TGFCLIENT_API int GfuiTipCreate(void* scr, const char* text, int maxlen);
 
 TGFCLIENT_API void GfuiLabelSetText(void* scr, int id, const char* text);
+TGFCLIENT_API std::string GfuiLabelGetText(void* scr, int id);
 TGFCLIENT_API void GfuiLabelSetColor(void* scr, int id, const float* color);
 
 /* Buttons */

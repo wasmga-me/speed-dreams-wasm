@@ -23,9 +23,6 @@
 #include <cstdlib>
 #include <climits>
 
-static const char repath[] = "config/raceengine.xml",
-    graphpath[] = "config/graph.xml";
-
 static const char *const shadowsizes[] =
 {
     GR_ATT_SHADOW_512,
@@ -296,17 +293,17 @@ int GraphicsConfig::store() const
     int ret = -1;
     bool restart = false;
     GfglFeatures &gl = GfglFeatures::self();
-    void *re = GfParmReadFileLocal(repath, GFPARM_RMODE_STD),
-        *graph = GfParmReadFileLocal(graphpath, GFPARM_RMODE_STD);
+    void *re = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_STD),
+        *graph = GfParmReadFileLocal(GR_PARAM_FILE, GFPARM_RMODE_STD);
 
     if (!re)
     {
-        GfLogError("GfParmReadFileLocal %s failed\n", repath);
+        GfLogError("GfParmReadFileLocal %s failed\n", RACE_ENG_CFG);
         goto end;
     }
     else if (!graph)
     {
-        GfLogError("GfParmReadFileLocal %s failed\n", graphpath);
+        GfLogError("GfParmReadFileLocal %s failed\n", GR_PARAM_FILE);
         goto end;
     }
     else if (store_visibility(graph)
@@ -321,14 +318,14 @@ int GraphicsConfig::store() const
         || store_anisotropicfilter(gl)
         || store_graphicsengine(re, restart))
         goto end;
-    else if (GfParmWriteFileLocal(graphpath, graph, "Graph"))
+    else if (GfParmWriteFileLocal(GR_PARAM_FILE, graph, "Graph"))
     {
-        GfLogError("GfParmWriteFileLocal %s failed\n", graphpath);
+        GfLogError("GfParmWriteFileLocal %s failed\n", GR_PARAM_FILE);
         goto end;
     }
-    else if (GfParmWriteFileLocal(repath, re, "raceengine"))
+    else if (GfParmWriteFileLocal(RACE_ENG_CFG, re, "raceengine"))
     {
-        GfLogError("GfParmWriteFileLocal %s failed\n", repath);
+        GfLogError("GfParmWriteFileLocal %s failed\n", RACE_ENG_CFG);
         goto end;
     }
 
@@ -696,18 +693,18 @@ void GraphicsConfig::load_graphicsengine(void *param)
 int GraphicsConfig::load()
 {
     int ret = -1;
-    void *re = GfParmReadFileLocal(repath, GFPARM_RMODE_STD),
-        *graph = GfParmReadFileLocal(graphpath, GFPARM_RMODE_STD);
+    void *re = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_STD),
+        *graph = GfParmReadFileLocal(GR_PARAM_FILE, GFPARM_RMODE_STD);
     const GfglFeatures &gl = GfglFeatures::self();
 
     if (!re)
     {
-        GfLogError("GfParmReadFileLocal %s failed\n", repath);
+        GfLogError("GfParmReadFileLocal %s failed\n", RACE_ENG_CFG);
         goto end;
     }
     else if (!graph)
     {
-        GfLogError("GfParmReadFileLocal %s failed\n", graphpath);
+        GfLogError("GfParmReadFileLocal %s failed\n", GR_PARAM_FILE);
         goto end;
     }
 

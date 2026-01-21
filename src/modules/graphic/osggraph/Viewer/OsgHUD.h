@@ -138,6 +138,7 @@ class SDHUD
         bool hudElementsVisibilityStatusEnabled;
         bool hudEditModeEnabled;
         std::string selectedWidgetGroup;
+        void *paramHandle;
 
         static osg::Vec3 calculatePosition(osg::BoundingBox mybb, const std::string &objPoint,
                                            osg::BoundingBox bb, const std::string &referenceObjPoint,
@@ -170,6 +171,7 @@ class SDHUD
         void setWidgetsGroupsVisibilityNormal();
         void saveWidgetGroupPosition(std::string widgetGroupName);
         std::string &GetCarName(const tCarElt *currCar);
+        const char *tr(const char *key);
 
 public:
         SDHUD();

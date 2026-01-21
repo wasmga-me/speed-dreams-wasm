@@ -483,15 +483,20 @@ ReInitCurRes()
         }
         else
         {
-            static const char* pszTableHeader = "Rank    Time     Driver               Car";
+            std::vector<std::string> header;
+
+            header.push_back(ReTr("results/Rank"));
+            header.push_back(ReTr("results/Time"));
+            header.push_back(ReTr("results/Driver"));
+            header.push_back(ReTr("results/Car"));
             char pszTitle[128];
-            snprintf(pszTitle, sizeof(pszTitle), "%s at %s",
+            snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
                      ReInfo->_reRaceName, ReInfo->track->name);
             char pszSubTitle[128];
             snprintf(pszSubTitle, sizeof(pszSubTitle), "%s (%s)",
                      ReInfo->s->cars[0]->_name, ReInfo->s->cars[0]->_carName);
             ReUI().setResultsTableTitles(pszTitle, pszSubTitle);
-            ReUI().setResultsTableHeader(pszTableHeader);
+            ReUI().setResultsTableHeader(header);
         }
     }//if displayMode != normal
 }
@@ -501,23 +506,48 @@ ReUpdatePracticeCurRes(tCarElt *car, bool bForceNew)
 {
     if (bForceNew)
     {
-        static const char* pszTableHeader =
-            "Lap     \tTime          \tBest      \tTop spd  \tMin spd  \tDamages";
-        ReUI().setResultsTableHeader(pszTableHeader);
+        std::vector<std::string> header;
+
+        header.push_back("Lap");
+        header.push_back("Time");
+        header.push_back("Best");
+        header.push_back("Top spd");
+        header.push_back("Min spd");
+        header.push_back("Damages");
+        ReUI().setResultsTableHeader(header);
         char* t1 = GfTime2Str(car->_lastLapTime, 0, false, 3);
         char* t2 = GfTime2Str(car->_bestLapTime, 0, false, 3);
-        char row[128];
+        const char *tstr;
+        std::vector<std::string> row;
+        char buf[128];
 
         // Cancel hightlight on first line
-        if (car->_laps == 2) ReUI().setResultsTableRow(0, "");
+        if (car->_laps == 2) ReUI().setResultsTableRow(0, std::vector<std::string>());
 
         tReCarInfo *info = &(ReInfo->_reCarInfo[car->index]);
         static int nLastLapDamages = 0;
         if (car->_laps <= 2)
             nLastLapDamages = 0;
-        snprintf(row, sizeof(row), "%.3d  \t%-12s \t%-12s    \t%5.1f   \t%5.1f \t %.5d (%d)",
-                 car->_laps - 1, t1, t2, info->topSpd * 3.6, info->botSpd * 3.6,
-                 car->_dammage ? car->_dammage - nLastLapDamages : 0, car->_dammage);
+
+        snprintf(buf, sizeof(buf), "%.3d", car->_laps);
+        row.push_back(buf);
+        tstr = t1;
+        while (*tstr == ' ')
+            tstr++;
+        row.push_back(tstr);
+        tstr = t2;
+        while (*tstr == ' ')
+            tstr++;
+        row.push_back(tstr);
+        snprintf(buf, sizeof(buf), "%.1f", info->topSpd * 3.6);
+        row.push_back(buf);
+        snprintf(buf, sizeof(buf), "%.1f", info->botSpd * 3.6);
+        row.push_back(buf);
+        snprintf(buf, sizeof(buf), "%.5d", car->_dammage ?
+            car->_dammage - nLastLapDamages : 0);
+        row.push_back(buf);
+        snprintf(buf, sizeof(buf), "%d", car->_dammage);
+        row.push_back(buf);
         nLastLapDamages = car->_dammage;
         free(t1);
         free(t2);
@@ -533,7 +563,6 @@ ReUpdatePracticeCurRes(tCarElt *car, bool bForceNew)
 void
 ReUpdateQualifCurRes(tCarElt *car)
 {
-    static const char* pszTableHeader = "Rank    \tTime          \tDriver                     \tCar";
     int		i;
     int		xx;
     int		nCars;
@@ -546,6 +575,12 @@ ReUpdateQualifCurRes(tCarElt *car)
     void	*results = ReInfo->results;
     char	*tmp_str;
     double		time_left;
+    std::vector<std::string> header;
+
+    header.push_back(ReTr("results/Rank"));
+    header.push_back(ReTr("results/Time"));
+    header.push_back(ReTr("results/Driver"));
+    header.push_back(ReTr("results/Car"));
 
     if (ReInfo->s->_ncars == 1)
     {
@@ -557,14 +592,14 @@ ReUpdateQualifCurRes(tCarElt *car)
         carName = GfParmGetName(carparam);
 
         char pszTitle[128];
-        snprintf(pszTitle, sizeof(pszTitle), "%s at %s",
+        snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
                  race, ReInfo->track->name);
         if (ReInfo->s->_raceType == RM_TYPE_PRACTICE || car->_laps < 1 || car->_laps > ReInfo->s->_totLaps)
             snprintf(buf, sizeof(buf), "%s (%s)", car->_name, carName);
         else
             snprintf(buf, sizeof(buf), "%s (%s) - Lap %d", car->_name, carName, car->_laps);
         ReUI().setResultsTableTitles(pszTitle, buf);
-        ReUI().setResultsTableHeader(pszTableHeader);
+        ReUI().setResultsTableHeader(header);
 
         printed = 0;
         snprintf(path, sizeof(path), "%s/%s/%s/%s", ReInfo->track->name, RE_SECT_RESULTS, race, RE_SECT_RANK);
@@ -574,25 +609,50 @@ ReUpdateQualifCurRes(tCarElt *car)
             snprintf(path, sizeof(path), "%s/%s/%s/%s/%d", ReInfo->track->name, RE_SECT_RESULTS, race, RE_SECT_RANK, i);
             if (!printed && car->_bestLapTime != 0.0
                 && car->_bestLapTime < GfParmGetNum(results, path, RE_ATTR_BEST_LAP_TIME, NULL, 0)) {
+                const char *tstr;
+                std::vector<std::string> row;
                 tmp_str = GfTime2Str(car->_bestLapTime, "  ", false, 3);
-                snprintf(buf, sizeof(buf), " %2d \t%-12s  \t%-25s \t%-20s", i, tmp_str, car->_name, carName);
+                tstr = tmp_str;
+                while (*tstr == ' ')
+                    tstr++;
+                snprintf(buf, sizeof(buf), "%d", i);
+                row.push_back(buf);
+                row.push_back(tstr);
+                row.push_back(car->_name);
+                row.push_back(carName);
                 free(tmp_str);
-                ReUI().setResultsTableRow(i - 1, buf, /*highlight=*/true);
+                ReUI().setResultsTableRow(i - 1, row, /*highlight=*/true);
                 printed = 1;
             }
+            std::vector<std::string> row;
+            const char *tstr;
             tmp_str = GfTime2Str(GfParmGetNum(results, path, RE_ATTR_BEST_LAP_TIME, NULL, 0), "  ", false, 3);
-            snprintf(buf, sizeof(buf), " %2d \t%-12s  \t%-25s \t%-20s",
-                     i + printed, tmp_str, GfParmGetStr(results, path, RE_ATTR_NAME, ""),
-                     GfParmGetStr(results, path, RE_ATTR_CAR, ""));
+            tstr = tmp_str;
+            while (*tstr == ' ')
+                tstr++;
+            snprintf(buf, sizeof(buf), "%d", i + printed);
+            row.push_back(buf);
+            row.push_back(tstr);
+            row.push_back(GfParmGetStr(results, path, RE_ATTR_NAME, ""));
+            row.push_back(GfParmGetStr(results, path, RE_ATTR_CAR, ""));
             free (tmp_str);
-            ReUI().setResultsTableRow(i - 1 + printed, buf);
+            ReUI().setResultsTableRow(i - 1 + printed, row);
         }
 
         if (!printed) {
+            std::vector<std::string> row;
+            const char *tstr;
             tmp_str = GfTime2Str(car->_bestLapTime, "  ", false, 3);
-            snprintf(buf, sizeof(buf), " %2d \t%-12s  \t%-25s \t%-20s", nCarsReal + 1, tmp_str, car->_name, carName);
+            tstr = tmp_str;
+            while (*tstr == ' ')
+                tstr++;
+            snprintf(buf, sizeof(buf), "%d", nCarsReal + 1);
+            row.push_back(buf);
+            row.push_back(tstr);
+            row.push_back(car->_name);
+            row.push_back(carName);
             free(tmp_str);
-            ReUI().setResultsTableRow(i - 1, buf, /*highlight=*/true);
+            ReUI().setResultsTableRow(i - 1, row, /*highlight=*/true);
         }
 
         GfParmReleaseHandle(carparam);
@@ -604,7 +664,7 @@ ReUpdateQualifCurRes(tCarElt *car)
             nCars = ReUI().getResultsTableRowCount();
 
         char pszTitle[128];
-        snprintf(pszTitle, sizeof(pszTitle), "%s at %s",
+        snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
                  race, ReInfo->track->name);
         if (ReInfo->s->_totTime > ReInfo->s->currentTime)
         {
@@ -618,9 +678,10 @@ ReUpdateQualifCurRes(tCarElt *car)
             snprintf( buf, sizeof(buf), "%d laps", ReInfo->s->_totLaps );
         }
         ReUI().setResultsTableTitles(pszTitle, buf);
-        ReUI().setResultsTableHeader(pszTableHeader);
+        ReUI().setResultsTableHeader(header);
 
         for (xx = 0; xx < nCars; ++xx) {
+            std::vector<std::string> row;
             car = ReInfo->s->cars[ xx ];
             snprintf(buf, sizeof(buf), "cars/models/%s/%s.xml", car->_carName, car->_carName);
             carparam = GfParmReadFileBoth(buf, GFPARM_RMODE_STD);
@@ -628,21 +689,30 @@ ReUpdateQualifCurRes(tCarElt *car)
             GfParmReleaseHandle(carparam);
 
             if (car->_state & RM_CAR_STATE_DNF) {
-                snprintf(buf, sizeof(buf), "out \t               \t%-25s \t%-20s", car->_name, carName);
+                row.push_back(ReTr("results/out"));
             } else if (car->_bestLapTime <= 0.0f) {
-                snprintf(buf, sizeof(buf), " %2d \t      --:---   \t%-25s \t%-20s",
-                         xx + 1, car->_name, carName);
+                snprintf(buf, sizeof(buf), "%d", xx + 1);
+                row.push_back(buf);
+                row.push_back("--:---");
+
             } else {
+                const char *tstr;
                 if (xx == 0)
                     tmp_str = GfTime2Str(car->_bestLapTime, " ", false, 3);
                 else
                     tmp_str = GfTime2Str(car->_bestLapTime - ReInfo->s->cars[0]->_bestLapTime,
                                          "+", false, 3);
-                snprintf(buf, sizeof(buf), " %2d \t%-12s  \t%-25s \t%-20s",
-                         xx + 1, tmp_str, car->_name, carName);
+                tstr = tmp_str;
+                while (*tstr == ' ')
+                    tstr++;
+                snprintf(buf, sizeof(buf), "%d", xx + 1);
+                row.push_back(buf);
+                row.push_back(tstr);
                 free(tmp_str);
             }
-            ReUI().setResultsTableRow(xx, buf);
+            row.push_back(car->_name);
+            row.push_back(carName);
+            ReUI().setResultsTableRow(xx, row);
             FREEZ(carName);
         }
     }
@@ -651,7 +721,6 @@ ReUpdateQualifCurRes(tCarElt *car)
 void
 ReUpdateRaceCurRes()
 {
-    static const char* pszTableHeader = "Rank    \tTime          \tDriver                   \tCar";
     int ncars;
     int xx;
     void *carparam;
@@ -659,13 +728,20 @@ ReUpdateRaceCurRes()
     tCarElt *car;
     char *tmp_str;
     double time_left;
+    std::vector<std::string> header;
+
+    header.push_back(ReTr("results/Rank"));
+    header.push_back(ReTr("results/Time"));
+    header.push_back(ReTr("results/Driver"));
+    header.push_back(ReTr("results/Car"));
 
     ncars = ReInfo->s->_ncars;
     if (ncars > ReUI().getResultsTableRowCount())
         ncars = ReUI().getResultsTableRowCount();
 
     char pszTitle[128];
-    snprintf(pszTitle, sizeof(pszTitle), "%s at %s",
+    const char *laps = ReTr("results/laps");
+    snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
              ReInfo->_reRaceName, ReInfo->track->name);
 
     if (ReInfo->s->_totTime > ReInfo->s->currentTime)
@@ -677,12 +753,13 @@ ReUpdateRaceCurRes()
     }
     else
     {
-        snprintf( buf, sizeof(buf), "%d laps", ReInfo->s->_totLaps );
+        snprintf( buf, sizeof(buf), "%d %s", ReInfo->s->_totLaps , laps );
     }
     ReUI().setResultsTableTitles(pszTitle, buf);
-    ReUI().setResultsTableHeader(pszTableHeader);
+    ReUI().setResultsTableHeader(header);
 
     for (xx = 0; xx < ncars; ++xx) {
+        std::vector<std::string> row;
         car = ReInfo->s->cars[ xx ];
         snprintf(buf, sizeof(buf), "cars/models/%s/%s.xml", car->_carName, car->_carName);
         carparam = GfParmReadFileBoth(buf, GFPARM_RMODE_STD);
@@ -690,35 +767,54 @@ ReUpdateRaceCurRes()
         GfParmReleaseHandle(carparam);
 
         if (car->_state & RM_CAR_STATE_DNF) {
-            snprintf(buf, sizeof(buf), "out               %-20s %-20s", car->_name, carName);
+            row.push_back(ReTr("results/out"));
         } else if (car->_timeBehindLeader == 0.0f) {
-            if (xx != 0)
-                snprintf(buf, sizeof(buf), " %2d     \t   --:--- \t%-25s \t%-20s",
-                         xx + 1, car->_name, carName);
-            else
-                snprintf(buf, sizeof(buf), " %2d     \t%3d laps  \t%-25s \t%-20s",
-                         xx + 1, car->_laps - 1, car->_name, carName);
+            if (xx != 0) {
+                row.push_back("");
+                row.push_back("--:---");
+            }
+            else {
+                snprintf(buf, sizeof(buf), "%d", xx + 1);
+                row.push_back(buf);
+                snprintf(buf, sizeof(buf), "%d %s", car->_laps- 1, laps);
+                row.push_back(buf);
+            }
         } else {
             if (xx == 0) {
-                snprintf(buf, sizeof(buf), " %2d     \t%3d laps  \t%-25s \t%-20s",
-                         xx + 1, car->_laps - 1, car->_name, carName);
+                snprintf(buf, sizeof(buf), "%d", xx + 1);
+                row.push_back(buf);
+                snprintf(buf, sizeof(buf), "%d %s", car->_laps- 1, laps);
+                row.push_back(buf);
             } else {
                 if (car->_lapsBehindLeader == 0)
                 {
-                    tmp_str = GfTime2Str(car->_timeBehindLeader, "  ", false, 3);
-                    snprintf(buf, sizeof(buf), " %2d \t%-12s\t%-25s \t%-20s",
-                             xx + 1, tmp_str, car->_name, carName);
+                    const char *tstr;
+                    tmp_str = GfTime2Str(car->_timeBehindLeader, "", false, 3);
+                    tstr = tmp_str;
+                    while (*tstr == ' ')
+                        tstr++;
+                    snprintf(buf, sizeof(buf), "%d", xx + 1);
+                    row.push_back(buf);
+                    row.push_back(tstr);
                     free(tmp_str);
                 }
-                else if (car->_lapsBehindLeader == 1)
-                    snprintf(buf, sizeof(buf), " %2d \t       1 lap  \t%-25s \t%-20s",
-                             xx + 1, car->_name, carName);
-                else
-                    snprintf(buf, sizeof(buf), " %2d \t    %3d laps  \t%-25s \t%-20s",
-                             xx + 1, car->_lapsBehindLeader, car->_name, carName);
+                else if (car->_lapsBehindLeader == 1) {
+                    snprintf(buf, sizeof(buf), "%d", xx + 1);
+                    row.push_back(buf);
+                    snprintf(buf, sizeof(buf), "1 %s", ReTr("results/lap"));
+                    row.push_back(buf);
+                }
+                else {
+                    snprintf(buf, sizeof(buf), "%d", xx + 1);
+                    row.push_back(buf);
+                    snprintf(buf, sizeof(buf), "%d %s", car->_lapsBehindLeader, laps);
+                    row.push_back(buf);
+                }
             }
         }
-        ReUI().setResultsTableRow(xx, buf);
+        row.push_back(car->_name);
+        row.push_back(carName);
+        ReUI().setResultsTableRow(xx, row);
         FREEZ(carName);
     }
 }

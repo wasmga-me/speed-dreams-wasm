@@ -39,8 +39,9 @@ class TextOnlyUI::ResultsTable
  public:
 	std::string strTitle;
 	std::string strSubTitle;
-	std::string strHeader;
-	std::vector<std::string> vecLines;
+	std::vector<std::string> vecHeader;
+	typedef std::vector<std::string> row;
+	std::vector<row> vecLines;
 };
 
 
@@ -218,18 +219,69 @@ void TextOnlyUI::onRaceResuming()
 
 void TextOnlyUI::onLapCompleted(int nLapIndex)
 {
+	std::vector<size_t> rowlengths;
+
 	if (nLapIndex <= 0)
 		return;
 
 	GfLogInfo("Lap #%d completed.\n", nLapIndex);
 
-    // Dump the results table.
-	GfLogInfo("%s - %s\n", _pResTable->strTitle.c_str(), _pResTable->strSubTitle.c_str());
-	GfLogInfo("%s\n", _pResTable->strHeader.c_str());
+	// Calculate row lengths for correct alignment.
+	for (const auto &column : _pResTable->vecHeader)
+		rowlengths.push_back(column.size());
 
-	std::vector<std::string>::const_iterator itLine;
-	for (itLine = _pResTable->vecLines.begin(); itLine != _pResTable->vecLines.end(); ++itLine)
-		GfLogInfo("%s\n", itLine->c_str());
+	for (const auto &row : _pResTable->vecLines)
+	{
+		if (row.size() != rowlengths.size())
+		{
+			GfLogWarning("Mismatched number of rows, expected=%lu, got=%lu\n",
+				(unsigned long)row.size(), (unsigned long)rowlengths.size());
+			continue;
+		}
+
+		for (size_t i = 0; i < row.size(); i++)
+		{
+			const auto &column = row.at(i);
+
+			if (column.size() > rowlengths.at(i))
+				rowlengths[i] = column.size();
+		}
+	}
+
+	// Add arbitrary spacing between columns.
+	for (auto &row : rowlengths)
+		row += 4;
+
+	// Dump the results table.
+	GfLogInfo("%s - %s\n", _pResTable->strTitle.c_str(), _pResTable->strSubTitle.c_str());
+
+	for (size_t i = 0; i < _pResTable->vecHeader.size(); i++)
+	{
+		const auto &column = _pResTable->vecHeader.at(i);
+
+		GfLogInfo("%s", column.c_str());
+
+		if (rowlengths.at(i) > column.size() &&
+			i + 1 < _pResTable->vecHeader.size())
+			GfLogInfo("%*c", (int)(rowlengths.at(i) - column.size()), ' ');
+	}
+
+	GfLogInfo("\n");
+
+	for (const auto &row : _pResTable->vecLines)
+	{
+		for (size_t i = 0; i < row.size(); i++)
+		{
+			const auto &column = row.at(i);
+
+			GfLogInfo("%s", column.c_str());
+
+			if (rowlengths.at(i) > column.size() && i + 1 < row.size())
+				GfLogInfo("%*c", (int)(rowlengths.at(i) - column.size()), ' ');
+		}
+
+		GfLogInfo("\n");
+	}
 }
 
 void TextOnlyUI::onRaceInterrupted()
@@ -313,17 +365,17 @@ void TextOnlyUI::setResultsTableTitles(const char* pszTitle, const char* pszSubT
     GfLogDebug("TextOnlyUI::setResultsTableTitles : nMaxRows=%d\n", getResultsTableRowCount());
 }
 
-void TextOnlyUI::setResultsTableHeader(const char* pszHeader)
+void TextOnlyUI::setResultsTableHeader(const std::vector<std::string> &header)
 {
-	_pResTable->strHeader = pszHeader;
+	_pResTable->vecHeader = header;
 }
 
-void TextOnlyUI::addResultsTableRow(const char* pszText)
+void TextOnlyUI::addResultsTableRow(const std::vector<std::string> &row)
 {
-	_pResTable->vecLines.push_back(pszText);
+	_pResTable->vecLines.push_back(row);
 }
 
-void TextOnlyUI::setResultsTableRow(int nIndex, const char* pszText, bool bHighlight)
+void TextOnlyUI::setResultsTableRow(int nIndex, const std::vector<std::string> &row, bool bHighlight)
 {
 	if (nIndex < 0 || nIndex >= (int)_pResTable->vecLines.size())
 	{
@@ -332,9 +384,9 @@ void TextOnlyUI::setResultsTableRow(int nIndex, const char* pszText, bool bHighl
 		_pResTable->vecLines.resize(nIndex + 1);
 	}
 
-	_pResTable->vecLines[nIndex] = pszText;
+	_pResTable->vecLines[nIndex] = row;
 	if (bHighlight)
-		_pResTable->vecLines[nIndex] += " *";
+		_pResTable->vecLines[nIndex].push_back(" *");
 }
 
 void TextOnlyUI::removeResultsTableRow(int nIndex)

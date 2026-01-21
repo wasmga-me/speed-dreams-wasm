@@ -320,6 +320,8 @@ gfuiShutdownLanguage()
 {
     if (langParam)
         GfParmReleaseHandle(langParam);
+
+    langParam = nullptr;
 }
 
 const char *GfuiGetTranslatedText(void* hparm, const char* pszPath,
@@ -327,6 +329,13 @@ const char *GfuiGetTranslatedText(void* hparm, const char* pszPath,
 {
     const char *ret = pszDefault, *lang;
     std::string key;
+
+    if (!langParam)
+    {
+        const char *path = "config/language" PARAMEXT;
+
+        langParam = GfParmReadFileLocal(path, GFPARM_RMODE_STD);
+    }
 
     lang = GfParmGetStr(langParam, "Language", "language", nullptr);
     key = pszKey;

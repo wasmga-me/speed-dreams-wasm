@@ -89,9 +89,9 @@ public:
 
 	// Blind-race results table management.
 	virtual void setResultsTableTitles(const char* pszTitle, const char* pszSubTitle);
-	virtual void setResultsTableHeader(const char* pszHeader);
-	virtual void addResultsTableRow(const char* pszText);
-	virtual void setResultsTableRow(int nIndex, const char* pszText, bool bHighlight = false);
+	virtual void setResultsTableHeader(const std::vector<std::string> &header);
+	virtual void addResultsTableRow(const std::vector<std::string> &row);
+	virtual void setResultsTableRow(int nIndex, const std::vector<std::string> &row, bool bHighlight = false);
 	virtual void removeResultsTableRow(int nIndex);
 	virtual void eraseResultsTable();
 	virtual int  getResultsTableRowCount() const;
