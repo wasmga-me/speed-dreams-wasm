@@ -172,7 +172,7 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 		startRecordIndex = nMaxRecordsPerPage * ((nRecordsInChapter - 1) / nMaxRecordsPerPage);
 	int nRecordInd = startRecordIndex;
 	int nLines = 0;
-	for (; nRecordInd < nRecordsInChapter && nRecordInd - startRecordIndex < nMaxRecordsPerPage;
+	for (; nRecordInd <= nRecordsInChapter && nRecordInd - startRecordIndex < nMaxRecordsPerPage;
 		 nRecordInd++)
 	{
 		x0 = x = xLeft1stCol;
