@@ -283,8 +283,9 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 		*md_license = GfuiGetTranslatedText(hmenu,
 			TRACK_METADATA_SECT "/license", "text", "");
 
-	std::string trackinfo = std::string(md_artist) + ": " + author + '\n';
+	std::string trackinfo = "\n";
 
+	trackinfo += std::string(md_artist) + ": " + author + '\n';
 	trackinfo += std::string(md_title) + ": " + name + '\n';
 	trackinfo += std::string(md_license) + ": " + license + '\n';
 	notifications = new NotificationManager;

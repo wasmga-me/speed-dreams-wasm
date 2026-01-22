@@ -148,9 +148,9 @@ MainMenuInit(bool SupportsHumanDrivers)
             TRACK_METADATA_SECT "/title", "text", ""),
         license = GfuiGetTranslatedText(menuDescHdle,
             TRACK_METADATA_SECT "/license", "text", ""),
-        trackinfo;
+        trackinfo = "\n";
 
-    trackinfo = artist + ": " + track.author + '\n';
+    trackinfo += artist + ": " + track.author + '\n';
     trackinfo += title + ": " + track.name + '\n';
     trackinfo += license + ": " + track.license;
     notifications.msglist.push_back(trackinfo);
