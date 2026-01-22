@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <tgfclient.h>
+#include <translation.h>
 
 
 // Description of a columns in the credits XML file
@@ -95,7 +96,7 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 
 	// Get requested chapter info
 	sprintf(buf, "chapters/%d", startChapterIndex);
-	const char* chapName = GfParmGetStr(hparmCredits, buf, "name", "<no name>");
+	const char* chapName = GfuiGetTranslatedText(hparmCredits, buf, "name", "<no name>");
 
 	sprintf(buf, "chapters/%d/records", startChapterIndex);
 	const int nRecordsInChapter = (int)GfParmGetEltNb(hparmCredits, buf);
@@ -113,8 +114,10 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 	GfuiMenuDefaultKeysAdd(hscrPage);
 
 	// Create title label from chapter name
+	const char* fmt = GfuiGetTranslatedText(hmenu, "translatable/title", "text", "");
+	snprintf(buf, sizeof(buf), fmt, chapName);
 	const int titleId = GfuiMenuCreateLabelControl(hscrPage, hmenu, "subtitle");
-	GfuiLabelSetText(hscrPage, titleId, chapName);
+	GfuiLabelSetText(hscrPage, titleId, buf);
 
 	// Get menu properties.
 	const int nMaxLinesPerPage =
@@ -180,7 +183,7 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 		std::vector<const char*>::const_iterator colIdIter;
 		for (colIdIter = orderedColumnIds.begin(); colIdIter != orderedColumnIds.end(); ++colIdIter)
 		{
-			const char* colValue = GfParmGetStr(hparmCredits, buf, *colIdIter, "");
+			const char* colValue = GfuiGetTranslatedText(hparmCredits, buf, *colIdIter, "");
 			if (x >= xRightLastCol)
 			{
 				// We need 1 more screen line for the current credits record ?
