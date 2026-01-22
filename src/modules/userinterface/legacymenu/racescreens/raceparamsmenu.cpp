@@ -40,6 +40,7 @@
 #include <racemanagers.h>
 #include <race.h>
 
+#include "legacymenu.h"
 #include "racescreens.h"
 
 // Constants.
@@ -247,7 +248,7 @@ rmChangeDisplayMode(int delta)
 {
     rmrpDispMode =
             (rmrpDispMode + NDisplayModeNumber + delta) % NDisplayModeNumber;
-    GfuiLabelSetText(ScrHandle, rmrpDispModeEditId, DispModeValues[rmrpDispMode]);
+    GfuiLabelSetText(ScrHandle, rmrpDispModeEditId, tr(DispModeValues[rmrpDispMode]));
 }
 
 static void
@@ -577,8 +578,10 @@ RmRaceParamsMenu(void *vrp)
 
     // Create the variable title label.
     int titleId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "titlelabel");
-    std::string strTitle(MenuData->session);
-    strTitle += " Options";
+    std::string key = "racemode/" + MenuData->session, strTitle;
+    const char *text = LegacyMenu::self().tr(key.c_str());
+
+    strTitle = std::string(text) + " - " + tr("options");
     GfuiLabelSetText(ScrHandle, titleId, strTitle.c_str());
 
     // Create the "nothing to configure here" label if actually nothing configurable.
@@ -813,7 +816,7 @@ RmRaceParamsMenu(void *vrp)
         GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "displayrightarrow",
                                     NULL, rmChangeDisplayModeRight);
         rmrpDispModeEditId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "displayedit");
-        GfuiLabelSetText(ScrHandle, rmrpDispModeEditId, DispModeValues[rmrpDispMode]);
+        GfuiLabelSetText(ScrHandle, rmrpDispModeEditId, tr(DispModeValues[rmrpDispMode]));
     }
 
     // Create Accept and Cancel buttons
