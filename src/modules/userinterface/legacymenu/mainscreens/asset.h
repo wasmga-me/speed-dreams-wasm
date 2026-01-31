@@ -31,7 +31,7 @@ public:
     int needs_update(bool &out) const;
 
 private:
-    int parse(const std::string &s, unsigned long long &size);
+    int parse(const std::string &s, unsigned long long &size) const;
     int check_dir(const std::string &d) const;
     int needs_update(const std::string &path, bool &out) const;
     int needs_update_drv(bool &out) const;

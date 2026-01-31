@@ -24,7 +24,7 @@ Asset::Asset(const enum type type) :
 {
 }
 
-int Asset::parse(const std::string &s, unsigned long long &out)
+int Asset::parse(const std::string &s, unsigned long long &out) const
 {
     try
     {
