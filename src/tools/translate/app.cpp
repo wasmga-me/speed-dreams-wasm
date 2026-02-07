@@ -60,13 +60,17 @@ int Application::parse_param(void *h, const std::string &section,
 int Application::parse_section(void *h, const std::string &section)
 {
     const char *csection = section.c_str();
+    std::vector<std::string> params = GfParmListGetParamsNamesList(h, csection);
+
+    for (const auto &param : params)
+        if (parse_param(h, section, param))
+            return -1;
 
     for (int result = GfParmListSeekFirst(h, csection);
         !result;
         result = GfParmListSeekNext(h, csection))
     {
         const char *name = GfParmListGetCurEltName(h, csection);;
-        std::vector<std::string> params = GfParmListGetParamsNamesList(h, csection);
 
         if (name)
         {
@@ -75,10 +79,6 @@ int Application::parse_section(void *h, const std::string &section)
             if (parse_section(h, subsection))
                 return -1;
         }
-
-        for (const auto &param : params)
-            if (parse_param(h, section, param))
-                return -1;
     }
 
     return 0;
