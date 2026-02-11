@@ -299,8 +299,12 @@ rmOnRaceDataChanged()
 	const char *fmt = tr("modecircuit");
 	char buf[256];
 	std::string key = "racemode/" + pRaceMan->getName();
+	const char *text = retr(key.c_str());
 
-	snprintf(buf, sizeof(buf), fmt, retr(key.c_str()),
+	if (!*text)
+		text = pRaceMan->getName().c_str();
+
+	snprintf(buf, sizeof(buf), fmt, text,
 		pTrack->getName().c_str());
 
 	// Set title (race type + track name).

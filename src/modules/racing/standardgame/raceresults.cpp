@@ -484,6 +484,7 @@ ReInitCurRes()
         else
         {
             std::vector<std::string> header;
+            std::string racename = std::string("racemode/") + ReInfo->_reRaceName;
 
             header.push_back(ReTr("results/Rank"));
             header.push_back(ReTr("results/Time"));
@@ -491,7 +492,7 @@ ReInitCurRes()
             header.push_back(ReTr("results/Car"));
             char pszTitle[128];
             snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
-                     ReInfo->_reRaceName, ReInfo->track->name);
+                     ReTr(racename.c_str()), ReInfo->track->name);
             char pszSubTitle[128];
             snprintf(pszSubTitle, sizeof(pszSubTitle), "%s (%s)",
                      ReInfo->s->cars[0]->_name, ReInfo->s->cars[0]->_carName);
@@ -576,6 +577,7 @@ ReUpdateQualifCurRes(tCarElt *car)
     char	*tmp_str;
     double		time_left;
     std::vector<std::string> header;
+    std::string racename = std::string("racemode/") + race;
 
     header.push_back(ReTr("results/Rank"));
     header.push_back(ReTr("results/Time"));
@@ -593,7 +595,7 @@ ReUpdateQualifCurRes(tCarElt *car)
 
         char pszTitle[128];
         snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
-                 race, ReInfo->track->name);
+                 ReTr(racename.c_str()), ReInfo->track->name);
         if (ReInfo->s->_raceType == RM_TYPE_PRACTICE || car->_laps < 1 || car->_laps > ReInfo->s->_totLaps)
             snprintf(buf, sizeof(buf), "%s (%s)", car->_name, carName);
         else
@@ -665,7 +667,7 @@ ReUpdateQualifCurRes(tCarElt *car)
 
         char pszTitle[128];
         snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
-                 race, ReInfo->track->name);
+                 ReTr(racename.c_str()), ReInfo->track->name);
         if (ReInfo->s->_totTime > ReInfo->s->currentTime)
         {
             time_left = ReInfo->s->_totTime - ReInfo->s->currentTime;
@@ -729,6 +731,7 @@ ReUpdateRaceCurRes()
     char *tmp_str;
     double time_left;
     std::vector<std::string> header;
+    std::string racename = std::string("racemode/") + ReInfo->_reRaceName;
 
     header.push_back(ReTr("results/Rank"));
     header.push_back(ReTr("results/Time"));
@@ -742,7 +745,7 @@ ReUpdateRaceCurRes()
     char pszTitle[128];
     const char *laps = ReTr("results/laps");
     snprintf(pszTitle, sizeof(pszTitle), ReTr("results/title"),
-             ReInfo->_reRaceName, ReInfo->track->name);
+             ReTr(racename.c_str()), ReInfo->track->name);
 
     if (ReInfo->s->_totTime > ReInfo->s->currentTime)
     {

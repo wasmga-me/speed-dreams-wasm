@@ -28,6 +28,7 @@
 #include <stdexcept>
 
 #include <tgfclient.h>
+#include <translation.h>
 #include <guimenu.h>
 
 #include <raceman.h>
@@ -42,9 +43,9 @@
 // The Race Select menu.
 void *RmRaceSelectMenuHandle = NULL;
 
-
 static std::map<std::string, int> rmMapSubTypeComboIds;
 static std::list<std::string> rmRaceTypes;
+static void *RmReParams;
 
 
 /* Called when the menu is activated */
@@ -60,6 +61,10 @@ rmOnActivate(void * /* dummy */)
 static void
 rmOnRaceSelectShutdown(void *prevMenu)
 {
+	if (RmReParams)
+		GfParmReleaseHandle(RmReParams);
+
+	RmReParams = NULL;
 	rmRaceTypes.clear();
 
 	GfuiScreenRelease(RmRaceSelectMenuHandle);
@@ -71,6 +76,16 @@ rmOnRaceSelectShutdown(void *prevMenu)
 	LegacyMenu::self().shutdownGraphics(/*bUnloadModule=*/true);
 }
 
+static const char *
+tr(const char *key)
+{
+	std::string s = std::string("Translatable/") + key;
+
+	if (!RmReParams)
+		RmReParams = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_STD);
+
+	return GfuiGetTranslatedText(RmReParams, s.c_str(), "text", "");
+}
 
 static void
 rmOnSelectRaceMan(void *pvRaceManTypeIndex)
@@ -109,7 +124,13 @@ rmOnSelectRaceMan(void *pvRaceManTypeIndex)
 		std::vector<GfRaceManager*>::const_iterator itRaceMan;
 		for (itRaceMan = vecRaceMans.begin(); itRaceMan != vecRaceMans.end(); ++itRaceMan)
 		{
-			if ((*itRaceMan)->getSubType() == pszSelSubType)
+			const std::string &subtype = "racemode/" + (*itRaceMan)->getSubType();
+			const char *text = tr(subtype.c_str());
+
+			if (!*text)
+				text = (*itRaceMan)->getSubType().c_str();
+
+			if (!strcmp(text, pszSelSubType))
 			{
 				// Start configuring it.
 				pSelRaceMan = *itRaceMan;
@@ -197,7 +218,13 @@ rmCreateRaceSubtype(void *h, const char *name)
 			if (first)
 				first = false;
 
-			GfuiComboboxAddText(RmRaceSelectMenuHandle, id, subtype.c_str());
+			std::string rm = std::string("racemode/") + subtype;
+			const char *text = tr(rm.c_str());
+
+			if (!*text)
+				text = subtype.c_str();
+
+			GfuiComboboxAddText(RmRaceSelectMenuHandle, id, text);
 		}
 
 		rmMapSubTypeComboIds[type] = id;

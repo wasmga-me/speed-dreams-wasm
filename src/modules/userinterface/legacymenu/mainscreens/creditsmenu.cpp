@@ -20,8 +20,12 @@
 #include <map>
 #include <vector>
 
+#include <notification.h>
+#include <guimenu.h>
 #include <tgfclient.h>
+#include <translation.h>
 
+#define TRACK_METADATA_SECT "track metadata"
 
 // Description of a columns in the credits XML file
 typedef struct
@@ -57,6 +61,8 @@ static tPageChangeRequest	PrevPageRequest;
 // Handle of the screen to return when exiting from this credits pages.
 static void* RetScrHdle = 0;
 
+static NotificationManager *notifications;
+
 // Internal function declarations.
 static void* creditsPageCreate(int startChapterIndex, int startRecordIndex);
 
@@ -73,6 +79,17 @@ static void creditsPageChange(void *vpcr)
 
 	// Release the previously activated page screen.
 	GfuiScreenRelease(prevPageScrHdle);
+}
+
+static void deinit(void *args)
+{
+	delete notifications;
+	GfuiScreenReplace(RetScrHdle);
+}
+
+static void recompute(unsigned ms, void *args)
+{
+    notifications->updateStatus();
 }
 
 // Create a credits page screen for given chapter and starting record.
@@ -95,7 +112,7 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 
 	// Get requested chapter info
 	sprintf(buf, "chapters/%d", startChapterIndex);
-	const char* chapName = GfParmGetStr(hparmCredits, buf, "name", "<no name>");
+	const char* chapName = GfuiGetTranslatedText(hparmCredits, buf, "name", "<no name>");
 
 	sprintf(buf, "chapters/%d/records", startChapterIndex);
 	const int nRecordsInChapter = (int)GfParmGetEltNb(hparmCredits, buf);
@@ -113,8 +130,10 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 	GfuiMenuDefaultKeysAdd(hscrPage);
 
 	// Create title label from chapter name
+	const char* fmt = GfuiGetTranslatedText(hmenu, "translatable/title", "text", "");
+	snprintf(buf, sizeof(buf), fmt, chapName);
 	const int titleId = GfuiMenuCreateLabelControl(hscrPage, hmenu, "subtitle");
-	GfuiLabelSetText(hscrPage, titleId, chapName);
+	GfuiLabelSetText(hscrPage, titleId, buf);
 
 	// Get menu properties.
 	const int nMaxLinesPerPage =
@@ -172,7 +191,7 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 		startRecordIndex = nMaxRecordsPerPage * ((nRecordsInChapter - 1) / nMaxRecordsPerPage);
 	int nRecordInd = startRecordIndex;
 	int nLines = 0;
-	for (; nRecordInd < nRecordsInChapter && nRecordInd - startRecordIndex < nMaxRecordsPerPage;
+	for (; nRecordInd <= nRecordsInChapter && nRecordInd - startRecordIndex < nMaxRecordsPerPage;
 		 nRecordInd++)
 	{
 		x0 = x = xLeft1stCol;
@@ -180,7 +199,7 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 		std::vector<const char*>::const_iterator colIdIter;
 		for (colIdIter = orderedColumnIds.begin(); colIdIter != orderedColumnIds.end(); ++colIdIter)
 		{
-			const char* colValue = GfParmGetStr(hparmCredits, buf, *colIdIter, "");
+			const char* colValue = GfuiGetTranslatedText(hparmCredits, buf, *colIdIter, "");
 			if (x >= xRightLastCol)
 			{
 				// We need 1 more screen line for the current credits record ?
@@ -227,7 +246,7 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 
 	// Add "Continue" button (credits screen exit).
 	GfuiMenuCreateButtonControl(hscrPage, hmenu, "back button",
-								RetScrHdle, GfuiScreenReplace);
+								NULL, ::deinit);
 
 	// Add "Next page" button, and disable it  if not the last page.
 	const int nNextButId =
@@ -254,6 +273,24 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 		GfuiEnable(hscrPage, nNextButId, GFUI_DISABLE);
 	}
 
+	const char *author = GfParmGetStr(hmenu, GFMNU_SECT_MUSIC, "author", ""),
+		*name = GfParmGetStr(hmenu, GFMNU_SECT_MUSIC, "name", ""),
+		*license = GfParmGetStr(hmenu, GFMNU_SECT_MUSIC, "license", ""),
+		*md_artist = GfuiGetTranslatedText(hmenu, TRACK_METADATA_SECT "/artist",
+			"text", ""),
+		*md_title = GfuiGetTranslatedText(hmenu, TRACK_METADATA_SECT "/title",
+			"text", ""),
+		*md_license = GfuiGetTranslatedText(hmenu,
+			TRACK_METADATA_SECT "/license", "text", "");
+
+	std::string trackinfo = "\n";
+
+	trackinfo += std::string(md_artist) + ": " + author + '\n';
+	trackinfo += std::string(md_title) + ": " + name + '\n';
+	trackinfo += std::string(md_license) + ": " + license + '\n';
+	notifications = new NotificationManager;
+	notifications->msglist.push_back(trackinfo);
+
 	GfParmReleaseHandle(hmenu);
 
 	// Add standard keyboard shortcuts.
@@ -273,4 +310,8 @@ void CreditsMenuActivate(void *retScrHdle)
 
 	// Create first page screen and return its handle.
 	GfuiScreenActivate(creditsPageCreate(0, 0));
+
+	// This must be done after GfuiScreenActivate because this function
+    // overwrites the recompute callback to a null pointer.
+    GfuiApp().eventLoop().setRecomputeCB(::recompute, nullptr);
 }
