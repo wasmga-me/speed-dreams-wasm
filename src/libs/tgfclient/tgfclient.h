@@ -656,7 +656,11 @@ TGFCLIENT_API int GfuiMenuCreateImageButtonControl(void* hscr, void* hparm, cons
                                                    int x = GFUI_TPL_X, int y = GFUI_TPL_Y,
                                                    int width = GFUI_TPL_WIDTH,
                                                    int height = GFUI_TPL_HEIGHT);
-TGFCLIENT_API int GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName);
+TGFCLIENT_API int GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName,
+                                                   bool bFromTemplate = false,
+                                                   int x = GFUI_TPL_X, int y = GFUI_TPL_Y,
+                                                   int width = GFUI_TPL_WIDTH,
+                                                   int height = GFUI_TPL_HEIGHT);
 TGFCLIENT_API int GfuiMenuCreateLabelControl(void* hscr, void* hparm, const char* pszName,
                                              bool bFromTemplate = false,
                                              const char* text = GFUI_TPL_TEXT,
