@@ -34,6 +34,7 @@ NotificationManager::NotificationManager()
   menuXMLDescHdle(NULL)
 {
 
+    this->status = Idle;
     this->busy = false;
     this->notifyUiIdBg = -1;//the bg image ui id
     this->notifyUiIdBusyIcon = -1;//the bg image ui id
