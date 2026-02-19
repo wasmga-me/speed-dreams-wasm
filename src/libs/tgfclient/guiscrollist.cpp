@@ -529,8 +529,10 @@ GfuiScrollListInsertElement(void *scr, int id, const char *element, int index, v
 	tGfuiScrollList* scrollist = &(object->u.scrollist);
 
     tGfuiListElement* elt = (tGfuiListElement*)calloc(1, sizeof(tGfuiListElement));
-    elt->name = element;
-    elt->label = elt->name;  /* TODO LENGTH !!!!!*/
+    char *s = (char *)malloc(strlen(element) + 1);
+    strcpy(s, element);
+    elt->name = s;
+    elt->label = s;
     elt->userData = userData;
     elt->index = index;
 
@@ -762,6 +764,7 @@ gfuiReleaseScrollist(tGfuiObject *curObject)
 
     scrollist = &(curObject->u.scrollist);
     while ((elt = gfuiScrollListRemElt(scrollist, 0)) != NULL) {
+		free(elt->name);
 		free(elt);
     }
     free(curObject);
