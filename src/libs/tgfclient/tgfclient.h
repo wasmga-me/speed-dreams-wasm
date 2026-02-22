@@ -668,11 +668,14 @@ TGFCLIENT_API int GfuiMenuCreateLabelControl(void* hscr, void* hparm, const char
                                              const float* fgColor = GFUI_TPL_COLOR,
                                              const float* fgFocusColor = GFUI_TPL_FOCUSCOLOR);
 TGFCLIENT_API int GfuiMenuCreateEditControl(void* hscr, void* hparm, const char* pszName,
-                                            void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                            void* userDataOnFocus = nullptr,
+                                            tfuiCallback onFocus = nullptr,
+                                            tfuiCallback onFocusLost = nullptr);
 TGFCLIENT_API int GfuiMenuCreateScrollListControl(void* hscr, void* hparm, const char* pszName,
                                                   void* userData, tfuiCallback onSelect);
 TGFCLIENT_API int GfuiMenuCreateComboboxControl(void* hscr, void* hparm, const char* pszName,
-                                                void* userData, tfuiComboboxCallback onChange);
+                                                void* userData = nullptr,
+                                                tfuiComboboxCallback onChange = nullptr);
 TGFCLIENT_API int GfuiMenuCreateCheckboxControl(void* hscr, void* hparm, const char* pszName,
                                                 void* userData, tfuiCheckboxCallback onChange);
 TGFCLIENT_API int GfuiMenuCreateProgressbarControl(void* hscr, void* hparm, const char* pszName);
