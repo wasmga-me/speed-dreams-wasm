@@ -10,61 +10,12 @@
 
 #include "transfer.h"
 #include <curl/curl.h>
-#include <tgfclient.h>
-
-int transfer::check(CURLcode result, std::string &error) const
-{
-    int ret = -1;
-    long response;
-    CURLcode code;
-    char *url;
-
-    if ((code = curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE,
-        &response)) != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(code);
-
-        error = "Failed to retrieve response code: ";
-        error += e;
-    }
-    else if ((code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url))
-        != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(code);
-
-        error = "Failed to retrieve effective URL: ";
-        error += e;
-    }
-    else if (response != 200)
-    {
-        error = url;
-        error += ": unexpected HTTP status ";
-        error += std::to_string(response);
-    }
-    else if (result != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(result);
-
-        error = "Fetch failed: ";
-        error += e;
-    }
-    else
-        ret = 0;
-
-    if (ret)
-        GfLogError("%s\n", error.c_str());
-
-    return ret;
-}
+#include <tgf.h>
 
 int transfer::exec(CURLcode result, std::string &error) const
 {
-    return check(result, error) || f(result, h, s, error, args);
-}
-
-void transfer::flush() const
-{
     s->flush();
+    return check(result, error) || f(result, h, s, error, args);
 }
 
 int transfer::write(char *ptr, size_t size, size_t nmemb, void *userdata)
@@ -150,19 +101,13 @@ failure:
     return -1;
 }
 
-CURL *transfer::handle() const
-{
-    return h;
-}
-
 transfer::~transfer()
 {
-    curl_easy_cleanup(h);
     delete s;
 }
 
 transfer::transfer(sink *s, cb f, void *args) :
-    h(nullptr),
+    transferbase(),
     s(s),
     f(f),
     args(args)

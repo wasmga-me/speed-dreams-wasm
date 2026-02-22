@@ -11,11 +11,12 @@
 #ifndef TRANSFER_H
 #define TRANSFER_H
 
+#include "transferbase.h"
 #include <curl/curl.h>
 #include "sink.h"
 #include <string>
 
-class transfer
+class transfer : public transferbase
 {
 public:
     typedef int (*cb)(CURLcode, CURL *, const sink *, std::string &, void *);
@@ -24,14 +25,10 @@ public:
 
     int start(const char *url, long max);
     int exec(CURLcode result, std::string &error) const;
-    void flush() const;
-    CURL *handle() const;
 
 private:
     static int write(char *ptr, size_t size, size_t nmemb, void *userdata);
-    int check(CURLcode result, std::string &error) const;
 
-    CURL *h;
     sink *const s;
     const cb f;
     void *const args;

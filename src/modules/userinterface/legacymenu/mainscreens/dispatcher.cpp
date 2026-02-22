@@ -19,7 +19,7 @@ int dispatcher::dispatch(const struct CURLMsg *m, std::string &error)
     for (auto it = transfers.begin(); it != transfers.end(); it++)
     {
         CURL *h = m->easy_handle;
-        transfer *t = *it;
+        transferbase *t = *it;
 
         if (t->handle() == h)
         {
@@ -27,7 +27,6 @@ int dispatcher::dispatch(const struct CURLMsg *m, std::string &error)
             CURLMcode c;
             int ret;
 
-            t->flush();
             ret = t->exec(result, error);
 
             if ((c = curl_multi_remove_handle(multi, h)) != CURLM_OK)

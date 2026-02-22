@@ -12,6 +12,7 @@
 #define DISPATCHER_H
 
 #include "transfer.h"
+#include "transferbase.h"
 #include <list>
 #include <string>
 
@@ -27,7 +28,7 @@ private:
     int dispatch(const struct CURLMsg *m, std::string &error);
 
     CURLM *const multi;
-    std::list<transfer *> transfers;
+    std::list<transferbase *> transfers;
 };
 
 #endif
