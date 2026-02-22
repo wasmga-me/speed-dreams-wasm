@@ -11,6 +11,7 @@ SET(MAINSCREENS_SOURCES ${MS}/splash.cpp ${MS}/mainmenu.cpp
                         ${MS}/downloadsmenu.cpp
                         ${MS}/entry.cpp
                         ${MS}/infomenu.cpp
+                        ${MS}/ptransfer.cpp
                         ${MS}/repomenu.cpp
                         ${MS}/sha256.cpp
                         ${MS}/sink.cpp
@@ -31,6 +32,7 @@ SET(MAINSCREENS_HEADERS ${MS}/splash.h ${MS}/mainmenu.h
                         ${MS}/downloadsmenu.h
                         ${MS}/entry.h
                         ${MS}/infomenu.h
+                        ${MS}/ptransfer.h
                         ${MS}/repomenu.h
                         ${MS}/sha256.h
                         ${MS}/sink.h

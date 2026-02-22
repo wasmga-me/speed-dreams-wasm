@@ -91,6 +91,54 @@ int dispatcher::run(unsigned &ms, std::string &error)
     return ret;
 }
 
+int dispatcher::add(const char *url, const std::vector<ptransfer::form> &forms,
+    ptransfer::cb f, void *args)
+{
+    ptransfer *t = new ptransfer(f, args);
+
+    if (t->start(url, forms))
+    {
+        GfLogError("Failed to initialize ptransfer\n");
+        goto failure;
+    }
+    else if (curl_multi_add_handle(multi, t->handle()) != CURLM_OK)
+    {
+        GfLogError("curl_multi_add_handle failed\n");
+        goto failure;
+    }
+
+    transfers.push_back(t);
+    return 0;
+
+failure:
+    delete t;
+    return -1;
+}
+
+int dispatcher::add(const char *url, const char *path, ptransfer::cb f,
+    void *args)
+{
+    ptransfer *t = new ptransfer(f, args);
+
+    if (t->start(url, path))
+    {
+        GfLogError("Failed to initialize ptransfer\n");
+        goto failure;
+    }
+    else if (curl_multi_add_handle(multi, t->handle()) != CURLM_OK)
+    {
+        GfLogError("curl_multi_add_handle failed\n");
+        goto failure;
+    }
+
+    transfers.push_back(t);
+    return 0;
+
+failure:
+    delete t;
+    return -1;
+}
+
 int dispatcher::add(const char *url, long max, sink *s, transfer::cb f,
     void *args)
 {
