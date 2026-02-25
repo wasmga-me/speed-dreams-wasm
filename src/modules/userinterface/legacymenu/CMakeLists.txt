@@ -75,7 +75,8 @@ SET(CONFSCREENS_HEADERS ${CS}/confscreens.h
                         ${CS}/languageconfig.h)
 
 SET(RS racescreens)
-SET(RACESCREENS_SOURCES ${RS}/raceselectmenu.cpp
+SET(RACESCREENS_SOURCES ${RS}/humanselect.cpp
+                        ${RS}/raceselectmenu.cpp
                         #${RS}/raceweekendmenu.cpp
                         ${RS}/racemanmenu.cpp ${RS}/fileselect.cpp
                         ${RS}/raceconfigstate.cpp
@@ -93,7 +94,10 @@ ELSE()
    SET(RACESCREENS_SOURCES ${RACESCREENS_SOURCES} ${RS}/networkingmenu.cpp)
 ENDIF(OPTION_CLIENT_SERVER)
 
-SET(RACESCREENS_HEADERS ${RS}/racescreens.h ${RS}/garagemenu.h ${RS}/carsetupmenu.h) #${RS}/raceweekendscreens.h)
+SET(RACESCREENS_HEADERS ${RS}/humanselect.h
+                        ${RS}/racescreens.h
+                        ${RS}/garagemenu.h
+                        ${RS}/carsetupmenu.h)
 IF(OPTION_CLIENT_SERVER)
    SET(RACESCREENS_HEADERS ${RACESCREENS_HEADERS} ${RS}/csnetworking.h)
 ENDIF(OPTION_CLIENT_SERVER)
