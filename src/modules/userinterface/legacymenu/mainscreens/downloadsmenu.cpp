@@ -447,10 +447,10 @@ void DownloadsMenu::update_ui()
     GfuiLabelSetText(hscr, npages, s);
 }
 
-static std::unique_ptr<hash> alloc_hash(const std::string &type)
+static hash *get_hash(const std::string &type)
 {
     if (type == "sha256")
-        return std::unique_ptr<hash>(new sha256());
+        return &sha256::self();
 
     return nullptr;
 }
@@ -460,7 +460,7 @@ int DownloadsMenu::check_hash(const entry *e, const std::string &path,
 {
     const Asset &a = e->a;
     const std::string &exp = a.hash, &type = a.hashtype;
-    std::unique_ptr<hash> h = alloc_hash(type);
+    hash *h = get_hash(type);
     std::string hash;
 
     if (!h)

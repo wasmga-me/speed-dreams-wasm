@@ -11,12 +11,16 @@
 #ifndef HASH_H
 #define HASH_H
 
+#include <cstddef>
 #include <string>
 
 class hash
 {
 public:
-    virtual int run(const std::string &path, std::string &hash) = 0;
+    virtual int run(const std::string &path, std::string &hash) const = 0;
+    virtual int run(const void *buf, size_t n, std::string &hash) const = 0;
+
+protected:
     virtual ~hash() = default;
 };
 
