@@ -36,18 +36,19 @@ int transferbase::check(CURLcode result, std::string &error) const
         error = "Failed to retrieve effective URL: ";
         error += e;
     }
+    else if (result != CURLE_OK && result != CURLE_HTTP_RETURNED_ERROR)
+    {
+        const char *e = curl_easy_strerror(result);
+
+        error = url;
+        error += ": ";
+        error += e;
+    }
     else if (response != 200)
     {
         error = url;
         error += ": unexpected HTTP status ";
         error += std::to_string(response);
-    }
-    else if (result != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(result);
-
-        error = "Fetch failed: ";
-        error += e;
     }
     else
         ret = 0;
