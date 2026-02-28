@@ -59,10 +59,19 @@ int transfer::start(const char *url, long max)
             curl_easy_strerror(code));
         goto failure;
     }
-    else if ((code = curl_easy_setopt(h, CURLOPT_FOLLOWLOCATION, 0L))
+    else if ((code = curl_easy_setopt(h, CURLOPT_FOLLOWLOCATION, 1L))
         != CURLE_OK)
     {
         GfLogError("curl_easy_setopt follow location: %s\n",
+            curl_easy_strerror(code));
+        goto failure;
+    }
+    /* This value is the documented default since cURL 8.3.0.
+     * Make it explicit to follow the same behaviour on older versions. */
+    else if ((code = curl_easy_setopt(h, CURLOPT_MAXREDIRS, 30L))
+        != CURLE_OK)
+    {
+        GfLogError("curl_easy_setopt max redirs: %s\n",
             curl_easy_strerror(code));
         goto failure;
     }
