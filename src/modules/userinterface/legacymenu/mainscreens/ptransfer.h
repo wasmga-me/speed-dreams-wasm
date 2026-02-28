@@ -19,21 +19,27 @@
 class ptransfer : public transferbase
 {
 public:
-    typedef int (*cb)(CURLcode, CURL *, std::string &, void *);
+    typedef int (*cb)(CURLcode, CURL *, std::string &, void *,
+        const transferbase::headers &headers);
     struct form
     {
         std::string key, value;
     };
 
     ptransfer(cb f, void *args);
+    ~ptransfer();
 
-    int start(const char *url, const char *path);
-    int start(const char *url, const std::vector<form> &forms);
+    int start(const char *url, const char *path,
+        const transferbase::headers &headers = transferbase::headers());
+    int start(const char *url, const std::vector<form> &forms,
+        const transferbase::headers &headers = transferbase::headers());
     int exec(CURLcode result, std::string &error) const;
 
 private:
     const cb f;
     void *const args;
+    struct curl_slist *headers;
+    struct curl_slist *get_headers(const transferbase::headers &headers) const;
 };
 
 #endif

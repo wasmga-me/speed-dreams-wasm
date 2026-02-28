@@ -16,15 +16,18 @@
 #include "transferbase.h"
 #include <list>
 #include <string>
+#include <vector>
 
 class dispatcher
 {
 public:
     dispatcher();
     ~dispatcher();
-    int add(const char *url, const char *path, ptransfer::cb f, void *args);
+    int add(const char *url, const char *path, ptransfer::cb f, void *args,
+        const transferbase::headers &headers = transferbase::headers());
     int add(const char *url, const std::vector<ptransfer::form> &forms,
-        ptransfer::cb f, void *args);
+        ptransfer::cb f, void *args,
+        const transferbase::headers &headers = transferbase::headers());
     int add(const char *url, long max, sink *s, transfer::cb f, void *args);
     int run(unsigned &ms, std::string &error);
 

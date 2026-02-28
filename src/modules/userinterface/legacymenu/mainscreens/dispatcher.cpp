@@ -92,11 +92,11 @@ int dispatcher::run(unsigned &ms, std::string &error)
 }
 
 int dispatcher::add(const char *url, const std::vector<ptransfer::form> &forms,
-    ptransfer::cb f, void *args)
+    ptransfer::cb f, void *args, const transferbase::headers &headers)
 {
     ptransfer *t = new ptransfer(f, args);
 
-    if (t->start(url, forms))
+    if (t->start(url, forms, headers))
     {
         GfLogError("Failed to initialize ptransfer\n");
         goto failure;
@@ -116,11 +116,11 @@ failure:
 }
 
 int dispatcher::add(const char *url, const char *path, ptransfer::cb f,
-    void *args)
+    void *args, const transferbase::headers &headers)
 {
     ptransfer *t = new ptransfer(f, args);
 
-    if (t->start(url, path))
+    if (t->start(url, path, headers))
     {
         GfLogError("Failed to initialize ptransfer\n");
         goto failure;

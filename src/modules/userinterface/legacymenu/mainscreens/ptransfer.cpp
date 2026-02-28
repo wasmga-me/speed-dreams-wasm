@@ -16,17 +16,48 @@ int ptransfer::exec(CURLcode result, std::string &error) const
     return check(result, error) || f(result, h, error, args);
 }
 
-int ptransfer::start(const char *url, const std::vector<form> &forms)
+struct curl_slist *ptransfer::get_headers(const transferbase::headers &headers)
+    const
+{
+    struct curl_slist *ret = nullptr;
+
+    for (const auto &header : headers)
+    {
+        std::string s = header.field + ": " + header.value;
+        struct curl_slist *sl = curl_slist_append(ret, s.c_str());
+
+        if (!sl)
+        {
+            GfLogError("curl_slist_append failed\n");
+            goto failure;
+        }
+    }
+
+    return ret;
+
+failure:
+    curl_slist_free_all(ret);
+    return nullptr;
+}
+
+int ptransfer::start(const char *url, const std::vector<form> &forms,
+    const transferbase::headers &headers)
 {
     int ret = -1;
     CURLcode code;
     char *escaped = nullptr;
     CURL *h = curl_easy_init();
+    struct curl_slist *list = nullptr;
     std::string form;
 
     if (!h)
     {
         GfLogError("curl_easy_init failed\n");
+        goto end;
+    }
+    else if (!(list = get_headers(headers)))
+    {
+        GfLogError("get_headers failed\n");
         goto end;
     }
 
@@ -82,17 +113,22 @@ int ptransfer::start(const char *url, const std::vector<form> &forms)
     }
 
     this->h = h;
+    this->headers = list;
     ret = 0;
 
 end:
     if (ret)
+    {
+        curl_slist_free_all(list);
         curl_easy_cleanup(h);
+    }
 
     curl_free(escaped);
     return ret;
 }
 
-int ptransfer::start(const char *url, const char *path)
+int ptransfer::start(const char *url, const char *path,
+    const transferbase::headers &headers)
 {
     CURLcode code;
     CURL *h = curl_easy_init();
@@ -158,9 +194,15 @@ failure:
     return -1;
 }
 
+ptransfer::~ptransfer()
+{
+    curl_slist_free_all(headers);
+}
+
 ptransfer::ptransfer(cb f, void *args) :
     transferbase(),
     f(f),
-    args(args)
+    args(args),
+    headers(nullptr)
 {
 }

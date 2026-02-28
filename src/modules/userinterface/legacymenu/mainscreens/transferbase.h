@@ -13,10 +13,20 @@
 
 #include <curl/curl.h>
 #include <string>
+#include <vector>
 
 class transferbase
 {
 public:
+    struct header
+    {
+        header() = default;
+        header(const std::string &field, const std::string & value) :
+            field(field), value(value) {}
+        std::string field, value;
+    };
+
+    typedef std::vector<header> headers;
     transferbase();
     virtual int exec(CURLcode result, std::string &error) const;
     virtual ~transferbase();
