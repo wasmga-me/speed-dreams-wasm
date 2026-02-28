@@ -12,6 +12,7 @@
 #define TRANSFERBASE_H
 
 #include <curl/curl.h>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -33,8 +34,17 @@ public:
     CURL *handle() const;
 
 protected:
-    int check(CURLcode result, std::string &error) const;
+    static size_t on_header(char *buffer, size_t size, size_t nitems,
+        void *userdata);
+    headers resp_headers;
     CURL *h;
+    int start(const char *url, const headers &headers);
+    int check(CURLcode result, std::string &error) const;
+
+private:
+    struct curl_slist *hlist;
+    int get_headers(const transferbase::headers &headers,
+        struct curl_slist **out) const;
 };
 
 #endif

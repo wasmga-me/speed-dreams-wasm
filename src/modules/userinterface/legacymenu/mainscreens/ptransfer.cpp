@@ -13,31 +13,42 @@
 
 int ptransfer::exec(CURLcode result, std::string &error) const
 {
-    return check(result, error) || f(result, h, error, args);
+    return check(result, error) || f(result, h, error, args, resp_headers);
 }
 
-struct curl_slist *ptransfer::get_headers(const transferbase::headers &headers)
-    const
+int ptransfer::start(const char *url, const void *data, size_t n,
+    const transferbase::headers &headers)
 {
-    struct curl_slist *ret = nullptr;
+    CURLcode code;
+    std::string form;
 
-    for (const auto &header : headers)
+    if (transferbase::start(url, headers))
     {
-        std::string s = header.field + ": " + header.value;
-        struct curl_slist *sl = curl_slist_append(ret, s.c_str());
-
-        if (!sl)
-        {
-            GfLogError("curl_slist_append failed\n");
-            goto failure;
-        }
+        GfLogError("transferbase::start failed\n");
+        return -1;
+    }
+    else if ((code = curl_easy_setopt(h, CURLOPT_POST, 1L)) != CURLE_OK)
+    {
+        GfLogError("curl_easy_setopt post: %s\n", curl_easy_strerror(code));
+        return -1;
+    }
+    else if ((code = curl_easy_setopt(h, CURLOPT_POSTFIELDSIZE, n))
+        != CURLE_OK)
+    {
+        GfLogError("curl_easy_setopt postfield size: %s\n",
+            curl_easy_strerror(code));
+        return -1;
+    }
+    else if (data
+        && (code = curl_easy_setopt(h, CURLOPT_COPYPOSTFIELDS, data))
+            != CURLE_OK)
+    {
+        GfLogError("curl_easy_setopt copypostfields: %s\n",
+            curl_easy_strerror(code));
+        return -1;
     }
 
-    return ret;
-
-failure:
-    curl_slist_free_all(ret);
-    return nullptr;
+    return 0;
 }
 
 int ptransfer::start(const char *url, const std::vector<form> &forms,
@@ -45,63 +56,17 @@ int ptransfer::start(const char *url, const std::vector<form> &forms,
 {
     int ret = -1;
     CURLcode code;
-    char *escaped = nullptr;
-    CURL *h = curl_easy_init();
-    struct curl_slist *list = nullptr;
     std::string form;
+    char *escaped = nullptr;
 
-    if (!h)
+    if (transferbase::start(url, headers))
     {
-        GfLogError("curl_easy_init failed\n");
+        GfLogError("transferbase::start failed\n");
         goto end;
     }
-    else if (!(list = get_headers(headers)))
-    {
-        GfLogError("get_headers failed\n");
-        goto end;
-    }
-
-    for (size_t i = 0; i < forms.size(); i++)
-    {
-        const auto &f = forms.at(i);
-
-        form += f.key + '=' +f.value;
-
-        if (i < forms.size() - 1)
-            form += '&';
-    }
-
-    if (!(escaped = curl_easy_escape(h, form.c_str(), 0)))
+    else if (!(escaped = curl_easy_escape(h, form.c_str(), 0)))
     {
         GfLogError("curl_easy_escape failed\n");
-        goto end;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_URL, url)) != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt url: %s\n", curl_easy_strerror(code));
-        goto end;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_PROTOCOLS,
-        CURLPROTO_HTTP | CURLPROTO_HTTPS)) != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt protocols: %s\n",
-            curl_easy_strerror(code));
-        goto end;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_FOLLOWLOCATION, 1L))
-        != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt follow location: %s\n",
-            curl_easy_strerror(code));
-        goto end;
-    }
-    /* This value is the documented default since cURL 8.3.0.
-     * Make it explicit to follow the same behaviour on older versions. */
-    else if ((code = curl_easy_setopt(h, CURLOPT_MAXREDIRS, 30L))
-        != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt max redirs: %s\n",
-            curl_easy_strerror(code));
         goto end;
     }
     else if ((code = curl_easy_setopt(h, CURLOPT_COPYPOSTFIELDS, escaped))
@@ -112,17 +77,9 @@ int ptransfer::start(const char *url, const std::vector<form> &forms,
         goto end;
     }
 
-    this->h = h;
-    this->headers = list;
     ret = 0;
 
 end:
-    if (ret)
-    {
-        curl_slist_free_all(list);
-        curl_easy_cleanup(h);
-    }
-
     curl_free(escaped);
     return ret;
 }
@@ -131,13 +88,13 @@ int ptransfer::start(const char *url, const char *path,
     const transferbase::headers &headers)
 {
     CURLcode code;
-    CURL *h = curl_easy_init();
+    struct curl_slist *list = nullptr;
     curl_mime *mime;
     curl_mimepart *part;
 
-    if (!h)
+    if (transferbase::start(url, headers))
     {
-        GfLogError("curl_easy_init failed\n");
+        GfLogError("transferbase::start failed\n");
         goto failure;
     }
     else if (!(mime = curl_mime_init(h)))
@@ -160,49 +117,24 @@ int ptransfer::start(const char *url, const char *path,
         GfLogError("curl_mime_filedata: %s\n", curl_easy_strerror(code));
         goto failure;
     }
-    else if ((code = curl_easy_setopt(h, CURLOPT_URL, url)) != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt url: %s\n", curl_easy_strerror(code));
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_PROTOCOLS,
-        CURLPROTO_HTTP | CURLPROTO_HTTPS)) != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt protocols: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
     else if ((code = curl_easy_setopt(h, CURLOPT_MIMEPOST, mime)) != CURLE_OK)
     {
         GfLogError("curl_easy_setopt mimepost: %s\n",
             curl_easy_strerror(code));
         goto failure;
     }
-    else if ((code = curl_easy_setopt(h, CURLOPT_FOLLOWLOCATION, 0L))
-        != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt follow location: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
 
-    this->h = h;
     return 0;
 
 failure:
+    curl_slist_free_all(list);
     curl_easy_cleanup(h);
     return -1;
-}
-
-ptransfer::~ptransfer()
-{
-    curl_slist_free_all(headers);
 }
 
 ptransfer::ptransfer(cb f, void *args) :
     transferbase(),
     f(f),
-    args(args),
-    headers(nullptr)
+    args(args)
 {
 }

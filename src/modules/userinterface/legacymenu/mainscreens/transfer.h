@@ -23,7 +23,7 @@ public:
     transfer(sink *s, cb f, void *args);
     ~transfer();
 
-    int start(const char *url, long max);
+    int start(const char *url, long max, const headers &hdrs = headers());
     int exec(CURLcode result, std::string &error) const;
 
 private:

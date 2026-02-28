@@ -27,7 +27,6 @@ public:
     };
 
     ptransfer(cb f, void *args);
-    ~ptransfer();
 
     int start(const char *url, const char *path,
         const transferbase::headers &headers = transferbase::headers());
@@ -40,8 +39,6 @@ public:
 private:
     const cb f;
     void *const args;
-    struct curl_slist *headers;
-    struct curl_slist *get_headers(const transferbase::headers &headers) const;
 };
 
 #endif
