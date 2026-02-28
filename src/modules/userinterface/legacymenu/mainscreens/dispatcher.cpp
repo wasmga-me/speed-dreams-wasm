@@ -10,7 +10,7 @@
 
 #include "dispatcher.h"
 #include <curl/curl.h>
-#include <tgfclient.h>
+#include <tgf.h>
 #include <stdexcept>
 #include <string>
 
