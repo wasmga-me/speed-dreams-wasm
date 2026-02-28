@@ -28,6 +28,9 @@ public:
     int add(const char *url, const std::vector<ptransfer::form> &forms,
         ptransfer::cb f, void *args,
         const transferbase::headers &headers = transferbase::headers());
+    int add(const char *url, const void *data, size_t n, ptransfer::cb f,
+        void *args,
+        const transferbase::headers &headers = transferbase::headers());
     int add(const char *url, long max, sink *s, transfer::cb f, void *args);
     int run(unsigned &ms, std::string &error);
 

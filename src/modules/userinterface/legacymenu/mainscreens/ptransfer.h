@@ -33,6 +33,8 @@ public:
         const transferbase::headers &headers = transferbase::headers());
     int start(const char *url, const std::vector<form> &forms,
         const transferbase::headers &headers = transferbase::headers());
+    int start(const char *url, const void *data, size_t n,
+        const transferbase::headers &headers = transferbase::headers());
     int exec(CURLcode result, std::string &error) const;
 
 private:
