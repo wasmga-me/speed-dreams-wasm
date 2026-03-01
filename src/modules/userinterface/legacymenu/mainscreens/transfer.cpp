@@ -159,6 +159,16 @@ int transfer::start(const char *url, long max, const headers &headers)
         GfLogError("curl_easy_setopt url: %s\n", curl_easy_strerror(code));
         goto failure;
     }
+#if LIBCURL_VERSION_MAJOR > 7 || \
+    (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 85)
+    else if ((code = curl_easy_setopt(h, CURLOPT_PROTOCOLS_STR,
+        "http,https")) != CURLE_OK)
+    {
+        GfLogError("curl_easy_setopt protocols: %s\n",
+            curl_easy_strerror(code));
+        goto failure;
+    }
+#else
     else if ((code = curl_easy_setopt(h, CURLOPT_PROTOCOLS,
         CURLPROTO_HTTP | CURLPROTO_HTTPS)) != CURLE_OK)
     {
@@ -166,6 +176,7 @@ int transfer::start(const char *url, long max, const headers &headers)
             curl_easy_strerror(code));
         goto failure;
     }
+#endif
     else if ((code = curl_easy_setopt(h, CURLOPT_HTTPHEADER, list)) != CURLE_OK)
     {
         GfLogError("curl_easy_setopt http header: %s\n",
