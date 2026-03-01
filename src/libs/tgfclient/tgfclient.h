@@ -591,6 +591,7 @@ TGFCLIENT_API int GfuiScrollListCreate(void* scr, int font, int x, int y, int wi
                                        int scrollBarPos, int scrollBarWidth, int scrollBarButHeight,
                                        void* userDataOnSelect, tfuiCallback onSelect);
 TGFCLIENT_API int GfuiScrollListInsertElement(void* scr, int Id, const char* element, int index, void* userData);
+TGFCLIENT_API int GfuiScrollListAppendElement(void* scr, int Id, const char* element, void* userData);
 TGFCLIENT_API int GfuiScrollListMoveSelectedElement(void* scr, int Id, int delta);
 TGFCLIENT_API const char* GfuiScrollListExtractSelectedElement(void* scr, int Id, void** userData);
 TGFCLIENT_API const char* GfuiScrollListExtractElement(void* scr, int Id, int index, void** userData);

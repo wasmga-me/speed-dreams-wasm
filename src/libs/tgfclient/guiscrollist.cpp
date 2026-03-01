@@ -544,6 +544,26 @@ GfuiScrollListInsertElement(void *scr, int id, const char *element, int index, v
     return 0;
 }
 
+/** Insert an element to the end of a scroll list.
+    @ingroup	gui
+    @param	scr		Current screen
+    @param	id		Scroll list Id
+    @param	element		New element
+    @param	userData	User defined data
+    @return	<tt>0 ... </tt>Ok
+	<br><tt>-1 .. </tt>Error
+*/
+int
+GfuiScrollListAppendElement(void* scr, int Id, const char* element, void* userData)
+{
+  int pos = GfuiScrollListGetNumberOfElements(scr, Id);
+
+  if (pos < 0)
+    return -1;
+
+  return GfuiScrollListInsertElement(scr, Id, element, pos, userData);
+}
+
 /** Scroll the list in order to show a given element.
     @ingroup	gui
     @param	scr		Current screen
