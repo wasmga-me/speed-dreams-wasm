@@ -11,34 +11,29 @@
 #ifndef PTRANSFER_H
 #define PTRANSFER_H
 
-#include "transferbase.h"
+#include "transfer.h"
+#include "sink.h"
 #include <curl/curl.h>
 #include <string>
 #include <vector>
 
-class ptransfer : public transferbase
+class ptransfer : public transfer
 {
 public:
-    typedef int (*cb)(CURLcode, CURL *, std::string &, void *,
-        const transferbase::headers &headers);
     struct form
     {
         std::string key, value;
     };
 
-    ptransfer(cb f, void *args);
+    ptransfer(sink *s, cb f, void *args);
 
-    int start(const char *url, const char *path,
-        const transferbase::headers &headers = transferbase::headers());
-    int start(const char *url, const std::vector<form> &forms,
-        const transferbase::headers &headers = transferbase::headers());
-    int start(const char *url, const void *data, size_t n,
-        const transferbase::headers &headers = transferbase::headers());
+    int start(const char *url, long max, const char *path,
+        const transfer::headers &headers = transfer::headers());
+    int start(const char *url, long max, const std::vector<form> &forms,
+        const transfer::headers &headers = transfer::headers());
+    int start(const char *url, long max, const void *data, size_t n,
+        const transfer::headers &headers = transfer::headers());
     int exec(CURLcode result, std::string &error) const;
-
-private:
-    const cb f;
-    void *const args;
 };
 
 #endif

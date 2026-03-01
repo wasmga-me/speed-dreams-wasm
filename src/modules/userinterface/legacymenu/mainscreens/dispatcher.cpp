@@ -19,7 +19,7 @@ int dispatcher::dispatch(const struct CURLMsg *m, std::string &error)
     for (auto it = transfers.begin(); it != transfers.end(); it++)
     {
         CURL *h = m->easy_handle;
-        transferbase *t = *it;
+        transfer *t = *it;
 
         if (t->handle() == h)
         {
@@ -91,12 +91,12 @@ int dispatcher::run(unsigned &ms, std::string &error)
     return ret;
 }
 
-int dispatcher::add(const char *url, const void *data, size_t n,
-    ptransfer::cb f, void *args, const transferbase::headers &headers)
+int dispatcher::add(const char *url, const void *data, size_t n, long max,
+    sink *s, ptransfer::cb f, void *args, const transfer::headers &headers)
 {
-    ptransfer *t = new ptransfer(f, args);
+    ptransfer *t = new ptransfer(s, f, args);
 
-    if (t->start(url, data, n, headers))
+    if (t->start(url, max, data, n, headers))
     {
         GfLogError("Failed to initialize ptransfer\n");
         goto failure;
@@ -116,11 +116,12 @@ failure:
 }
 
 int dispatcher::add(const char *url, const std::vector<ptransfer::form> &forms,
-    ptransfer::cb f, void *args, const transferbase::headers &headers)
+    long max, sink *s, ptransfer::cb f, void *args,
+    const transfer::headers &headers)
 {
-    ptransfer *t = new ptransfer(f, args);
+    ptransfer *t = new ptransfer(s, f, args);
 
-    if (t->start(url, forms, headers))
+    if (t->start(url, max, forms, headers))
     {
         GfLogError("Failed to initialize ptransfer\n");
         goto failure;
@@ -139,12 +140,12 @@ failure:
     return -1;
 }
 
-int dispatcher::add(const char *url, const char *path, ptransfer::cb f,
-    void *args, const transferbase::headers &headers)
+int dispatcher::add(const char *url, const char *path, long max, sink *s,
+    ptransfer::cb f, void *args, const transfer::headers &headers)
 {
-    ptransfer *t = new ptransfer(f, args);
+    ptransfer *t = new ptransfer(s, f, args);
 
-    if (t->start(url, path, headers))
+    if (t->start(url, max, path, headers))
     {
         GfLogError("Failed to initialize ptransfer\n");
         goto failure;
@@ -164,11 +165,11 @@ failure:
 }
 
 int dispatcher::add(const char *url, long max, sink *s, transfer::cb f,
-    void *args)
+    void *args, const transfer::headers &headers)
 {
     transfer *t = new transfer(s, f, args);
 
-    if (t->start(url, max))
+    if (t->start(url, max, headers))
     {
         GfLogError("Failed to initialize transfer\n");
         goto failure;

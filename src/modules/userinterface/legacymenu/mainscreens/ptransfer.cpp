@@ -9,30 +9,26 @@
  */
 
 #include "ptransfer.h"
+#include "transfer.h"
 #include <tgf.h>
 
-int ptransfer::exec(CURLcode result, std::string &error) const
-{
-    return check(result, error) || f(result, h, error, args, resp_headers);
-}
-
-int ptransfer::start(const char *url, const void *data, size_t n,
-    const transferbase::headers &headers)
+int ptransfer::start(const char *url, long max, const void *data, size_t n,
+    const transfer::headers &headers)
 {
     CURLcode code;
     std::string form;
 
-    if (transferbase::start(url, headers))
+    if (transfer::start(url, max, headers))
     {
-        GfLogError("transferbase::start failed\n");
+        GfLogError("transfer::start failed\n");
         return -1;
     }
-    else if ((code = curl_easy_setopt(h, CURLOPT_POST, 1L)) != CURLE_OK)
+    else if ((code = curl_easy_setopt(handle(), CURLOPT_POST, 1L)) != CURLE_OK)
     {
         GfLogError("curl_easy_setopt post: %s\n", curl_easy_strerror(code));
         return -1;
     }
-    else if ((code = curl_easy_setopt(h, CURLOPT_POSTFIELDSIZE, n))
+    else if ((code = curl_easy_setopt(handle(), CURLOPT_POSTFIELDSIZE, n))
         != CURLE_OK)
     {
         GfLogError("curl_easy_setopt postfield size: %s\n",
@@ -40,7 +36,7 @@ int ptransfer::start(const char *url, const void *data, size_t n,
         return -1;
     }
     else if (data
-        && (code = curl_easy_setopt(h, CURLOPT_COPYPOSTFIELDS, data))
+        && (code = curl_easy_setopt(handle(), CURLOPT_COPYPOSTFIELDS, data))
             != CURLE_OK)
     {
         GfLogError("curl_easy_setopt copypostfields: %s\n",
@@ -51,25 +47,25 @@ int ptransfer::start(const char *url, const void *data, size_t n,
     return 0;
 }
 
-int ptransfer::start(const char *url, const std::vector<form> &forms,
-    const transferbase::headers &headers)
+int ptransfer::start(const char *url, long max, const std::vector<form> &forms,
+    const transfer::headers &headers)
 {
     int ret = -1;
     CURLcode code;
     std::string form;
     char *escaped = nullptr;
 
-    if (transferbase::start(url, headers))
+    if (transfer::start(url, max, headers))
     {
-        GfLogError("transferbase::start failed\n");
+        GfLogError("transfer::start failed\n");
         goto end;
     }
-    else if (!(escaped = curl_easy_escape(h, form.c_str(), 0)))
+    else if (!(escaped = curl_easy_escape(handle(), form.c_str(), 0)))
     {
         GfLogError("curl_easy_escape failed\n");
         goto end;
     }
-    else if ((code = curl_easy_setopt(h, CURLOPT_COPYPOSTFIELDS, escaped))
+    else if ((code = curl_easy_setopt(handle(), CURLOPT_COPYPOSTFIELDS, escaped))
         != CURLE_OK)
     {
         GfLogError("curl_easy_setopt copypostfields: %s\n",
@@ -84,20 +80,19 @@ end:
     return ret;
 }
 
-int ptransfer::start(const char *url, const char *path,
-    const transferbase::headers &headers)
+int ptransfer::start(const char *url, long max, const char *path,
+    const transfer::headers &headers)
 {
     CURLcode code;
-    struct curl_slist *list = nullptr;
-    curl_mime *mime;
+    curl_mime *mime = nullptr;
     curl_mimepart *part;
 
-    if (transferbase::start(url, headers))
+    if (transfer::start(url, max, headers))
     {
-        GfLogError("transferbase::start failed\n");
+        GfLogError("transfer::start failed\n");
         goto failure;
     }
-    else if (!(mime = curl_mime_init(h)))
+    else if (!(mime = curl_mime_init(handle())))
     {
         GfLogError("curl_mime_init failed\n");
         goto failure;
@@ -117,7 +112,8 @@ int ptransfer::start(const char *url, const char *path,
         GfLogError("curl_mime_filedata: %s\n", curl_easy_strerror(code));
         goto failure;
     }
-    else if ((code = curl_easy_setopt(h, CURLOPT_MIMEPOST, mime)) != CURLE_OK)
+    else if ((code = curl_easy_setopt(handle(), CURLOPT_MIMEPOST, mime))
+        != CURLE_OK)
     {
         GfLogError("curl_easy_setopt mimepost: %s\n",
             curl_easy_strerror(code));
@@ -127,14 +123,11 @@ int ptransfer::start(const char *url, const char *path,
     return 0;
 
 failure:
-    curl_slist_free_all(list);
-    curl_easy_cleanup(h);
+    curl_mime_free(mime);
     return -1;
 }
 
-ptransfer::ptransfer(cb f, void *args) :
-    transferbase(),
-    f(f),
-    args(args)
+ptransfer::ptransfer(sink *s, cb f, void *args) :
+    transfer(s, f, args)
 {
 }

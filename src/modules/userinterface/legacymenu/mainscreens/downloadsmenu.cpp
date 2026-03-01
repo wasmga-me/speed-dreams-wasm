@@ -619,7 +619,7 @@ int DownloadsMenu::asset_fetched(const writefile *w, std::string &error)
 }
 
 int DownloadsMenu::asset_fetched(CURLcode result, CURL *h, const sink *s,
-        std::string &e, void *args)
+    std::string &e, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writefile *w = static_cast<const writefile *>(s);
@@ -641,7 +641,7 @@ int DownloadsMenu::thumbnail_fetched(const writefile *w, std::string &error)
 }
 
 int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
-    std::string &error, void *args)
+    std::string &error, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writefile *w = static_cast<const writefile *>(s);
@@ -778,7 +778,7 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const writebuf *w,
 }
 
 int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
-    std::string &e, void *args)
+    std::string &e, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writebuf *w = static_cast<const writebuf *>(s);

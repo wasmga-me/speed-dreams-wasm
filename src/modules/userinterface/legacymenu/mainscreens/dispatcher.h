@@ -11,9 +11,8 @@
 #ifndef DISPATCHER_H
 #define DISPATCHER_H
 
-#include "transfer.h"
 #include "ptransfer.h"
-#include "transferbase.h"
+#include "transfer.h"
 #include <list>
 #include <string>
 #include <vector>
@@ -23,22 +22,24 @@ class dispatcher
 public:
     dispatcher();
     ~dispatcher();
-    int add(const char *url, const char *path, ptransfer::cb f, void *args,
-        const transferbase::headers &headers = transferbase::headers());
+    int add(const char *url, const char *path, long max, sink *s,
+        transfer::cb f, void *args,
+        const transfer::headers &headers = transfer::headers());
     int add(const char *url, const std::vector<ptransfer::form> &forms,
-        ptransfer::cb f, void *args,
-        const transferbase::headers &headers = transferbase::headers());
-    int add(const char *url, const void *data, size_t n, ptransfer::cb f,
-        void *args,
-        const transferbase::headers &headers = transferbase::headers());
-    int add(const char *url, long max, sink *s, transfer::cb f, void *args);
+        long max, sink *s, transfer::cb f, void *args,
+        const transfer::headers &headers = transfer::headers());
+    int add(const char *url, const void *data, size_t n, long max, sink *s,
+        transfer::cb f, void *args,
+        const transfer::headers &headers = transfer::headers());
+    int add(const char *url, long max, sink *s, transfer::cb f, void *args,
+        const transfer::headers &headers = transfer::headers());
     int run(unsigned &ms, std::string &error);
 
 private:
     int dispatch(const struct CURLMsg *m, std::string &error);
 
     CURLM *const multi;
-    std::list<transferbase *> transfers;
+    std::list<transfer *> transfers;
 };
 
 #endif

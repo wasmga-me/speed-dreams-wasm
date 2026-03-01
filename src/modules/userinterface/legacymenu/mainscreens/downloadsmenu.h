@@ -65,11 +65,11 @@ public:
 
 private:
     static int assets_fetched(CURLcode result, CURL *h, const sink *s,
-        std::string &e, void *args);
+        std::string &e, void *args, const transfer::headers &headers);
     static int asset_fetched(CURLcode result, CURL *h, const sink *s,
-        std::string &e, void *args);
+        std::string &e, void *args, const transfer::headers &headers);
     static int thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
-        std::string &e, void *args);
+        std::string &e, void *args, const transfer::headers &headers);
 
     int fetch_assets();
     int fetch_thumbnail(entry *e);
