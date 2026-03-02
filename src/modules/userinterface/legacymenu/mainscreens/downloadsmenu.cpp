@@ -39,13 +39,6 @@
 static const size_t KB = 1024, MB = KB * KB;
 static const unsigned THUMBNAILS = 8;
 
-DownloadsMenu::transfer::transfer(CURL *h, done f, sink *s) :
-    h(h),
-    f(f),
-    s(s)
-{
-}
-
 static void recompute(unsigned ms, void *args)
 {
     static_cast<DownloadsMenu *>(args)->recompute(ms);
@@ -79,65 +72,6 @@ static void on_filter(tComboBoxInfo *info)
 static void on_category(tComboBoxInfo *info)
 {
     static_cast<DownloadsMenu *>(info->userData)->on_category();
-}
-
-static int randname(std::string &name)
-{
-    static const size_t len = 32;
-
-    for (size_t i = 0; i < len; i++)
-    {
-        unsigned char b;
-
-        if (portability::rand(&b, sizeof b))
-        {
-            GfLogError("%s: portability::rand failed\n", __func__);
-            return -1;
-        }
-
-        char hex[sizeof "00"];
-        int n = snprintf(hex, sizeof hex, "%02hhx", b);
-
-        if (n < 0 || n >= static_cast<int>(sizeof hex))
-        {
-            GfLogError("snprintf(3) failed with %d\n", n);
-            return -1;
-        }
-
-        name += hex;
-    }
-
-    return 0;
-}
-
-static int tmppath(std::string &path)
-{
-    const char *dir = GfLocalDir();
-
-    if (!dir)
-    {
-        GfLogError("unexpected null GfLocalDir\n");
-        return -1;
-    }
-
-    const std::string tmpdir = std::string(dir) + "/tmp/";
-
-    if (GfDirCreate(tmpdir.c_str()) != GF_DIR_CREATED)
-    {
-        GfLogError("Failed to create directory %s\n", tmpdir.c_str());
-        return -1;
-    }
-
-    std::string r;
-
-    if (randname(r))
-    {
-        GfLogError("Failed to generate random file name\n");
-        return -1;
-    }
-
-    path = tmpdir + r;
-    return 0;
 }
 
 const char *DownloadsMenu::tr(const char *s) const
@@ -177,16 +111,8 @@ void DownloadsMenu::restart(const std::vector<std::string> &repos)
     for (auto e : entries)
         delete e;
 
-    for (const auto &t : transfers)
-    {
-        curl_multi_remove_handle(multi, t.h);
-        curl_easy_cleanup(t.h);
-        delete t.s;
-    }
-
     assets.clear();
     entries.clear();
-    transfers.clear();
     offset = 0;
 
     if (downloadservers_set(repos))
@@ -334,177 +260,12 @@ int DownloadsMenu::check(CURLcode result, CURL *h, std::string &error) const
     return ret;
 }
 
-int DownloadsMenu::dispatch(const struct CURLMsg *m)
-{
-    for (auto t = transfers.begin(); t != transfers.end(); t++)
-    {
-        CURL *h = m->easy_handle;
-
-        if (t->h == h)
-        {
-            std::string error;
-            sink *s = t->s;
-            CURLcode result = m->data.result;
-            int ret = 0;
-
-            s->flush();
-
-            if (check(result, h, error)
-                || (this->*t->f)(result, h, s, error))
-            {
-                GfuiLabelSetText(hscr, error_label, error.c_str());
-                ret = -1;
-            }
-
-            transfers.erase(t);
-
-            CURLMcode c = curl_multi_remove_handle(multi, h);
-
-            if (c != CURLM_OK)
-                GfLogError("curl_multi_remove_handle failed with %s\n",
-                    curl_multi_strerror(c));
-
-            curl_easy_cleanup(h);
-            delete s;
-            return ret;
-        }
-    }
-
-    GfLogError("no suitable easy handle found\n");
-    return -1;
-}
-
 void DownloadsMenu::recompute(unsigned ms)
 {
-    int running;
-    double msd = ms;
+    std::string error;
 
-    do
-    {
-        double now = GfTimeClock();
-        CURLMcode code = curl_multi_perform(multi, &running);
-
-        if (code != CURLM_OK)
-        {
-            GfLogError("curl_multi_perform: %s\n", curl_multi_strerror(code));
-            return;
-        }
-        else if ((code = curl_multi_wait(multi, NULL, 0, msd, 0)) != CURLM_OK)
-        {
-            GfLogError("curl_multi_wait: %s\n", curl_multi_strerror(code));
-            return;
-        }
-
-        double elapsed = (GfTimeClock() - now) * 1000.0;
-
-        if (elapsed < msd)
-            msd -= elapsed;
-        else
-            msd = 0;
-
-        int pending = 0;
-
-        do
-        {
-            const CURLMsg *m = curl_multi_info_read(multi, &pending);
-
-            if (m)
-            {
-                if (m->msg != CURLMSG_DONE)
-                    GfLogError("unexpected msg %d\n", m->msg);
-
-                dispatch(m);
-            }
-        } while (pending);
-    } while (running && (unsigned)msd);
-}
-
-static size_t on_write(char *ptr, size_t size, size_t nmemb, void *userdata)
-{
-    sink *s = static_cast<sink *>(userdata);
-    size_t total = size * nmemb;
-
-    if (size != 0 && total / size != nmemb)
-    {
-        GfLogError("size calculation wrapped around\n");
-        return !size;
-    }
-    else if (s->append(ptr, total))
-    {
-        GfLogError("append failed\n");
-        return !size;
-    }
-
-    return total;
-}
-
-int DownloadsMenu::add(const char *url, transfer::done f, sink *s, long max)
-{
-    CURLcode code;
-    CURL *h = curl_easy_init();
-
-    if (!h)
-    {
-        GfLogError("curl_easy_init failed\n");
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_URL, url)) != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt url: %s\n", curl_easy_strerror(code));
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_PROTOCOLS,
-        CURLPROTO_HTTP | CURLPROTO_HTTPS)) != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt protocols: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_FOLLOWLOCATION, 0L))
-        != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt follow location: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_WRITEFUNCTION, ::on_write))
-        != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt writefunction: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_MAXFILESIZE, max)))
-    {
-        GfLogError("curl_easy_setopt maxfilesize: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_FAILONERROR, 1L)))
-    {
-        GfLogError("curl_easy_setopt failonerror: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
-    else if ((code = curl_easy_setopt(h, CURLOPT_WRITEDATA,
-        static_cast<void *>(s))) != CURLE_OK)
-    {
-        GfLogError("curl_easy_setopt writedata: %s\n",
-            curl_easy_strerror(code));
-        goto failure;
-    }
-    else if (curl_multi_add_handle(multi, h) != CURLM_OK)
-    {
-        GfLogError("curl_multi_add_handle failed\n");
-        return -1;
-    }
-
-    transfers.push_back(transfer(h, f, s));
-    return 0;
-
-failure:
-    curl_easy_cleanup(h);
-    return -1;
+    if (dispatcher.run(ms, error))
+        GfuiLabelSetText(hscr, error_label, error.c_str());
 }
 
 static int get_size(size_t n, std::string &out)
@@ -686,10 +447,10 @@ void DownloadsMenu::update_ui()
     GfuiLabelSetText(hscr, npages, s);
 }
 
-static std::unique_ptr<hash> alloc_hash(const std::string &type)
+static hash *get_hash(const std::string &type)
 {
     if (type == "sha256")
-        return std::unique_ptr<hash>(new sha256());
+        return &sha256::self();
 
     return nullptr;
 }
@@ -699,7 +460,7 @@ int DownloadsMenu::check_hash(const entry *e, const std::string &path,
 {
     const Asset &a = e->a;
     const std::string &exp = a.hash, &type = a.hashtype;
-    std::unique_ptr<hash> h = alloc_hash(type);
+    hash *h = get_hash(type);
     std::string hash;
 
     if (!h)
@@ -740,10 +501,10 @@ int DownloadsMenu::extract(const entry *e, const std::string &src,
     const Asset &a = e->a;
     std::string name;
 
-    if (randname(name))
+    if (GfRandName(name))
     {
         error = tr("failedranddir");
-        GfLogError("randname failed\n");
+        GfLogError("GfRandName failed\n");
         return -1;
     }
 
@@ -827,11 +588,8 @@ failure:
     return -1;
 }
 
-int DownloadsMenu::asset_fetched(CURLcode result, CURL *h, const sink *s,
-    std::string &error)
+int DownloadsMenu::asset_fetched(const writefile *w, std::string &error)
 {
-    const writefile *w = static_cast<const writefile *>(s);
-
     for (auto p = pargs.begin(); p != pargs.end(); p++)
     {
         pressedargs *pa = static_cast<pressedargs *>(w->args);
@@ -860,11 +618,17 @@ int DownloadsMenu::asset_fetched(CURLcode result, CURL *h, const sink *s,
     return ret;
 }
 
-int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
-    std::string &error)
+int DownloadsMenu::asset_fetched(CURLcode result, CURL *h, const sink *s,
+    std::string &e, void *args, const transfer::headers &headers)
 {
+    DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writefile *w = static_cast<const writefile *>(s);
 
+    return d->asset_fetched(w, e);
+}
+
+int DownloadsMenu::thumbnail_fetched(const writefile *w, std::string &error)
+{
     for (auto e : entries)
         if (e->thumbnail == w->path)
         {
@@ -876,12 +640,21 @@ int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
     return 0;
 }
 
+int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
+    std::string &error, void *args, const transfer::headers &headers)
+{
+    DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
+    const writefile *w = static_cast<const writefile *>(s);
+
+    return d->thumbnail_fetched(w, error);
+}
+
 int DownloadsMenu::fetch_thumbnail(entry *e)
 {
     const Asset &a = e->a;
     std::string path;
 
-    if (tmppath(path))
+    if (GfTmpPath(path))
     {
         GfLogError("Failed to create a temporary file name\n");
         return -1;
@@ -890,7 +663,7 @@ int DownloadsMenu::fetch_thumbnail(entry *e)
     static const size_t max = 1 * MB;
     writefile *w = new writefile(path.c_str(), max);
 
-    if (add(a.thumbnail.c_str(), &DownloadsMenu::thumbnail_fetched, w, max))
+    if (dispatcher.add(a.thumbnail.c_str(), max, w, thumbnail_fetched, this))
     {
         GfLogError("add failed\n");
         delete w;
@@ -936,10 +709,9 @@ int DownloadsMenu::push_entries(const Assets *a)
     return 0;
 }
 
-int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
+int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const writebuf *w,
     std::string &error)
 {
-    const writebuf *w = static_cast<const writebuf *>(s);
     char *ct;
     CURLcode code = curl_easy_getinfo(h, CURLINFO_CONTENT_TYPE, &ct);
     static const char exp_ct[] = "application/json";
@@ -1005,6 +777,15 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
     return 0;
 }
 
+int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
+    std::string &e, void *args, const transfer::headers &headers)
+{
+    DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
+    const writebuf *w = static_cast<const writebuf *>(s);
+
+    return d->assets_fetched(result, h, w, e);
+}
+
 int DownloadsMenu::fetch_assets()
 {
     const size_t max = 10 * MB;
@@ -1020,9 +801,9 @@ int DownloadsMenu::fetch_assets()
     {
         writebuf *w = new writebuf(max);
 
-        if (add(u.c_str(), &DownloadsMenu::assets_fetched, w, max))
+        if (dispatcher.add(u.c_str(), max , w, assets_fetched, this))
         {
-            GfLogError("add failed\n");
+            GfLogError("Failed to dispatch transfer\n");
             delete w;
         }
     }
@@ -1067,9 +848,9 @@ void DownloadsMenu::pressed(thumbnail *t)
         const Asset &a = e->a;
         std::string path;
 
-        if (tmppath(path))
+        if (GfTmpPath(path))
         {
-            GfLogError("tmppath failed\n");
+            GfLogError("GfTmpPath failed\n");
             return;
         }
 
@@ -1078,7 +859,7 @@ void DownloadsMenu::pressed(thumbnail *t)
         writefile *w = new writefile(path.c_str(), a.size, ::progress,
             &pargs.back());
 
-        if (add(a.url.c_str(), &DownloadsMenu::asset_fetched, w, a.size))
+        if (dispatcher.add(a.url.c_str(), a.size, w, asset_fetched, this))
         {
             GfLogError("add failed\n");
             delete w;
@@ -1230,7 +1011,6 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
     hscr(GfuiScreenCreate()),
     prev(prevMenu),
     param(GfuiMenuLoad("downloadsmenu.xml")),
-    multi(curl_multi_init()),
     offset(0)
 {
     if (!hscr)
@@ -1239,8 +1019,6 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
         throw std::runtime_error("GfuiMenuLoad failed");
     else if (!hscr)
         throw std::runtime_error("GfuiScreenCreate failed");
-    else if (!multi)
-        throw std::runtime_error("curl_multi_init failed");
     else if (!GfuiMenuCreateStaticControls(hscr, param))
         throw std::runtime_error("GfuiMenuCreateStaticControls failed");
     else if ((error_label =
@@ -1320,14 +1098,6 @@ DownloadsMenu::~DownloadsMenu()
     for (auto e : entries)
         delete e;
 
-    for (const auto &t : transfers)
-    {
-        curl_multi_remove_handle(multi, t.h);
-        curl_easy_cleanup(t.h);
-        delete t.s;
-    }
-
-    curl_multi_cleanup(multi);
     GfParmReleaseHandle(param);
     GfCars::reload();
     GfTracks::reload();

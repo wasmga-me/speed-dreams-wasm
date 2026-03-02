@@ -48,31 +48,35 @@ int Assets::parse(const cJSON *c, const char *key, enum Asset::type type)
 
 int Assets::parse(const char *s, size_t n)
 {
+    int ret = -1;
     cJSON *c = cJSON_ParseWithLength(s, n);
 
     if (!c)
     {
         GfLogError("cJSON_Parse failed\n");
-        return -1;
+        goto end;
     }
     else if (parse(c, "cars", Asset::car))
     {
         GfLogError("parse cars failed\n");
-        return -1;
+        goto end;
     }
     else if (parse(c, "tracks", Asset::track))
     {
         GfLogError("parse tracks failed\n");
-        return -1;
+        goto end;
     }
     else if (parse(c, "drivers", Asset::driver))
     {
         GfLogError("parse drivers failed\n");
-        return -1;
+        goto end;
     }
 
+    ret = 0;
+
+end:
     cJSON_Delete(c);
-    return 0;
+    return ret;
 }
 
 const std::vector<Asset> &Assets::get() const

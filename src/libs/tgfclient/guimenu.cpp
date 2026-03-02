@@ -244,14 +244,24 @@ getControlColor(void* hparm, const char* pszPath, const char* pszField)
 }
 
 static int
-createStaticImage(void* hscr, void* hparm, const char* pszName)
+createStaticImage(void* hscr, void* hparm, const char* pszName,
+                  bool bFromTemplate = false, int x = GFUI_TPL_X,
+                  int y = GFUI_TPL_Y, int w = GFUI_TPL_WIDTH,
+                  int h = GFUI_TPL_HEIGHT)
 {
     const char* pszImage = GfParmGetStr(hparm, pszName, GFMNU_ATTR_IMAGE, "");
 
-    const int x = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_X, NULL, 0.0);
-    const int y = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_Y, NULL, 0.0);
-    const int w = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_WIDTH, NULL, 100.0);
-    const int h = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_HEIGHT, NULL, 100.0);
+    if (!bFromTemplate || x == GFUI_TPL_X)
+        x = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_X, NULL, 0.0);
+
+    if (!bFromTemplate || y == GFUI_TPL_Y)
+        y = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_Y, NULL, 0.0);
+
+    if (!bFromTemplate || w == GFUI_TPL_WIDTH)
+        w = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_WIDTH, NULL, 100.0);
+
+    if (!bFromTemplate || h == GFUI_TPL_HEIGHT)
+        h = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_HEIGHT, NULL, 100.0);
 
     const bool canDeform = getControlBoolean(hparm, pszName, GFMNU_ATTR_CAN_DEFORM, true);
 
@@ -295,12 +305,17 @@ createGallery(void* hscr, void* hparm, const char* pszName)
 }
 
 int
-GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName)
+GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName,
+                                 bool bFromTemplate, int x, int y,
+                                 int width, int height)
 {
-    std::string strControlPath(GFMNU_SECT_DYNAMIC_CONTROLS"/");
+    std::string strControlPath =
+        bFromTemplate ? GFMNU_SECT_TEMPLATE_CONTROLS"/"
+        : GFMNU_SECT_DYNAMIC_CONTROLS"/";
     strControlPath += pszName;
 
-    return createStaticImage(hscr, hparm, strControlPath.c_str());
+    return createStaticImage(hscr, hparm, strControlPath.c_str(),
+        bFromTemplate, x, y, width, height);
 }
 
 void

@@ -529,8 +529,10 @@ GfuiScrollListInsertElement(void *scr, int id, const char *element, int index, v
 	tGfuiScrollList* scrollist = &(object->u.scrollist);
 
     tGfuiListElement* elt = (tGfuiListElement*)calloc(1, sizeof(tGfuiListElement));
-    elt->name = element;
-    elt->label = elt->name;  /* TODO LENGTH !!!!!*/
+    char *s = (char *)malloc(strlen(element) + 1);
+    strcpy(s, element);
+    elt->name = s;
+    elt->label = s;
     elt->userData = userData;
     elt->index = index;
 
@@ -540,6 +542,26 @@ GfuiScrollListInsertElement(void *scr, int id, const char *element, int index, v
 	gfuiScrollListUpdateScroll(scrollist, scrollist->nbElts - 1);
 
     return 0;
+}
+
+/** Insert an element to the end of a scroll list.
+    @ingroup	gui
+    @param	scr		Current screen
+    @param	id		Scroll list Id
+    @param	element		New element
+    @param	userData	User defined data
+    @return	<tt>0 ... </tt>Ok
+	<br><tt>-1 .. </tt>Error
+*/
+int
+GfuiScrollListAppendElement(void* scr, int Id, const char* element, void* userData)
+{
+  int pos = GfuiScrollListGetNumberOfElements(scr, Id);
+
+  if (pos < 0)
+    return -1;
+
+  return GfuiScrollListInsertElement(scr, Id, element, pos, userData);
 }
 
 /** Scroll the list in order to show a given element.
@@ -762,6 +784,7 @@ gfuiReleaseScrollist(tGfuiObject *curObject)
 
     scrollist = &(curObject->u.scrollist);
     while ((elt = gfuiScrollListRemElt(scrollist, 0)) != NULL) {
+		free(elt->name);
 		free(elt);
     }
     free(curObject);

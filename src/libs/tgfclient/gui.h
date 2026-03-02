@@ -153,7 +153,7 @@ typedef struct
 
 typedef struct GfuiListElement
 {
-    const char		*name;
+    char		*name;
     const char		*label;
     void			*userData;
     int				selected;

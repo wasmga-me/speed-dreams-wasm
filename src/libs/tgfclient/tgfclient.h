@@ -591,6 +591,7 @@ TGFCLIENT_API int GfuiScrollListCreate(void* scr, int font, int x, int y, int wi
                                        int scrollBarPos, int scrollBarWidth, int scrollBarButHeight,
                                        void* userDataOnSelect, tfuiCallback onSelect);
 TGFCLIENT_API int GfuiScrollListInsertElement(void* scr, int Id, const char* element, int index, void* userData);
+TGFCLIENT_API int GfuiScrollListAppendElement(void* scr, int Id, const char* element, void* userData);
 TGFCLIENT_API int GfuiScrollListMoveSelectedElement(void* scr, int Id, int delta);
 TGFCLIENT_API const char* GfuiScrollListExtractSelectedElement(void* scr, int Id, void** userData);
 TGFCLIENT_API const char* GfuiScrollListExtractElement(void* scr, int Id, int index, void** userData);
@@ -656,7 +657,11 @@ TGFCLIENT_API int GfuiMenuCreateImageButtonControl(void* hscr, void* hparm, cons
                                                    int x = GFUI_TPL_X, int y = GFUI_TPL_Y,
                                                    int width = GFUI_TPL_WIDTH,
                                                    int height = GFUI_TPL_HEIGHT);
-TGFCLIENT_API int GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName);
+TGFCLIENT_API int GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName,
+                                                   bool bFromTemplate = false,
+                                                   int x = GFUI_TPL_X, int y = GFUI_TPL_Y,
+                                                   int width = GFUI_TPL_WIDTH,
+                                                   int height = GFUI_TPL_HEIGHT);
 TGFCLIENT_API int GfuiMenuCreateLabelControl(void* hscr, void* hparm, const char* pszName,
                                              bool bFromTemplate = false,
                                              const char* text = GFUI_TPL_TEXT,
@@ -668,11 +673,14 @@ TGFCLIENT_API int GfuiMenuCreateLabelControl(void* hscr, void* hparm, const char
                                              const float* fgColor = GFUI_TPL_COLOR,
                                              const float* fgFocusColor = GFUI_TPL_FOCUSCOLOR);
 TGFCLIENT_API int GfuiMenuCreateEditControl(void* hscr, void* hparm, const char* pszName,
-                                            void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                            void* userDataOnFocus = nullptr,
+                                            tfuiCallback onFocus = nullptr,
+                                            tfuiCallback onFocusLost = nullptr);
 TGFCLIENT_API int GfuiMenuCreateScrollListControl(void* hscr, void* hparm, const char* pszName,
                                                   void* userData, tfuiCallback onSelect);
 TGFCLIENT_API int GfuiMenuCreateComboboxControl(void* hscr, void* hparm, const char* pszName,
-                                                void* userData, tfuiComboboxCallback onChange);
+                                                void* userData = nullptr,
+                                                tfuiComboboxCallback onChange = nullptr);
 TGFCLIENT_API int GfuiMenuCreateCheckboxControl(void* hscr, void* hparm, const char* pszName,
                                                 void* userData, tfuiCheckboxCallback onChange);
 TGFCLIENT_API int GfuiMenuCreateProgressbarControl(void* hscr, void* hparm, const char* pszName);

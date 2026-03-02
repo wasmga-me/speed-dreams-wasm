@@ -14,8 +14,10 @@
 #include <portability.h>
 
 #include "assets.h"
+#include "dispatcher.h"
 #include "entry.h"
 #include "sink.h"
+#include "writebuf.h"
 #include "writefile.h"
 #include "thumbnail.h"
 #include <curl/curl.h>
@@ -62,25 +64,20 @@ public:
     void confirm_exit();
 
 private:
-    struct transfer
-    {
-        typedef int (DownloadsMenu::*done)(CURLcode, CURL *,
-            const sink *, std::string &);
-        transfer(CURL *h, done f, sink *s);
+    static int assets_fetched(CURLcode result, CURL *h, const sink *s,
+        std::string &e, void *args, const transfer::headers &headers);
+    static int asset_fetched(CURLcode result, CURL *h, const sink *s,
+        std::string &e, void *args, const transfer::headers &headers);
+    static int thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
+        std::string &e, void *args, const transfer::headers &headers);
 
-        CURL *h;
-        done f;
-        sink *s;
-    };
-
-    int add(const char *url, transfer::done f, sink *s, long max);
     int fetch_assets();
     int fetch_thumbnail(entry *e);
     int check(CURLcode result, CURL *h, std::string &e) const;
-    int assets_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
     int push_entries(const Assets *a);
-    int asset_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
-    int thumbnail_fetched(CURLcode result, CURL *h, const sink *s, std::string &e);
+    int assets_fetched(CURLcode result, CURL *h, const writebuf *w, std::string &e);
+    int asset_fetched(const writefile *w, std::string &e);
+    int thumbnail_fetched(const writefile *w, std::string &error);
     int dispatch(const struct CURLMsg *m);
     void update_ui();
     bool visible(const Asset &a) const;
@@ -93,9 +90,8 @@ private:
     const char *tr(const char *s) const;
 
     typedef std::pair<thumbnail *, entry *> barg;
-    void *const hscr, *const prev, *const param;
-    CURLM *const multi;
-    std::list<transfer> transfers;
+    void *const hscr, *const prev, *const param;;
+    class dispatcher dispatcher;
     std::vector<Assets *> assets;
     std::vector<entry *> entries;
     std::vector<thumbnail *> thumbnails;

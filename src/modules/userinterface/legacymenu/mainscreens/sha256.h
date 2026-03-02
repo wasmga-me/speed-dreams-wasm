@@ -1,6 +1,6 @@
 /*
  * Speed Dreams, a free and open source motorsport simulator.
- * Copyright (C) 2024 Xavier Del Campo Romero
+ * Copyright (C) 2024-2026 Xavier Del Campo Romero
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,15 +12,20 @@
 #define SHA256_H
 
 #include "hash.h"
+#include <cstddef>
 #include <string>
 
 class sha256 : public hash
 {
 public:
-    sha256();
-    int run(const std::string &path, std::string &hash);
+    static sha256 &self();
+    int run(const std::string &path, std::string &hash) const;
+    int run(const void *in, size_t n, std::string &hash) const;
 
 private:
+    sha256();
+    ~sha256() = default;
+    int print(const unsigned char *in, size_t n, std::string &out) const;
     static bool init;
 };
 

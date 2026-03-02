@@ -1029,4 +1029,11 @@ TGF_API void GfFormFreeCommandNew(void *cmd);
 // Maximun value of a key code (Has to be the least greater  2^N - 1 >= SDLK_LAST)
 #define GF_MAX_KEYCODE	0x1FF
 
+/***********************************/
+/*   Random generation functions   */
+/***********************************/
+
+TGF_API int GfTmpPath(std::string &path);
+TGF_API int GfRandName(std::string &name);
+
 #endif /* __TGF__H__ */
