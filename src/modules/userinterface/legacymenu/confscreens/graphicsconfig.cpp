@@ -138,6 +138,14 @@ int GraphicsConfig::store_texturecompression(GfglFeatures &gl) const
     return 0;
 }
 
+int GraphicsConfig::store_speedunit(void *param) const
+{
+    const char *unit = GfuiComboboxGetPosition(hscr, speedunit) == MPH ?
+        "mph" : "kph";
+
+    return GfParmSetStr(param, "settings/speed", "unit", unit);
+}
+
 int GraphicsConfig::store_shaders(void *param) const
 {
     static const char *const values[] =
@@ -293,8 +301,10 @@ int GraphicsConfig::store() const
     int ret = -1;
     bool restart = false;
     GfglFeatures &gl = GfglFeatures::self();
+    static const char path[] = "config/osghudconfig.xml";
     void *re = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_STD),
-        *graph = GfParmReadFileLocal(GR_PARAM_FILE, GFPARM_RMODE_STD);
+        *graph = GfParmReadFileLocal(GR_PARAM_FILE, GFPARM_RMODE_STD),
+        *osghud = GfParmReadFileLocal(path, GFPARM_RMODE_STD);
 
     if (!re)
     {
@@ -306,11 +316,17 @@ int GraphicsConfig::store() const
         GfLogError("GfParmReadFileLocal %s failed\n", GR_PARAM_FILE);
         goto end;
     }
+    else if (!osghud)
+    {
+        GfLogError("GfParmReadFileLocal %s failed\n", path);
+        goto end;
+    }
     else if (store_visibility(graph)
         || store_skydome(graph)
         || store_dynamicshadows(graph)
         || store_shadowsize(graph)
         || store_shaders(graph)
+        || store_speedunit(osghud)
         || store_texturecompression(gl)
         || store_maxtexturesize(gl)
         || store_multitexturing(gl)
@@ -328,6 +344,11 @@ int GraphicsConfig::store() const
         GfLogError("GfParmWriteFileLocal %s failed\n", RACE_ENG_CFG);
         goto end;
     }
+    else if (GfParmWriteFileLocal(path, osghud, "osghudconfig"))
+    {
+        GfLogError("GfParmWriteFileLocal %s failed\n", path);
+        goto end;
+    }
 
     gl.storeSelection();
 
@@ -342,6 +363,9 @@ end:
 
     if (re)
         GfParmReleaseHandle(re);
+
+    if (osghud)
+        GfParmReleaseHandle(osghud);
 
     return ret;
 }
@@ -638,6 +662,14 @@ void GraphicsConfig::load_shaders(void *param) const
     GfuiComboboxSetSelectedIndex(hscr, shaders, lmh);
 }
 
+void GraphicsConfig::load_speedunit(void *param) const
+{
+    const char *unit= GfParmGetStr(param, "settings/speed", "unit", "kph");
+    enum speedunit su = !strcmp(unit, "mph") ? MPH : KPH;
+
+    GfuiComboboxSetSelectedIndex(hscr, speedunit, su);
+}
+
 void GraphicsConfig::load_dynamicshadows(void *param) const
 {
     const char *type = GfParmGetStr(param, GR_SCT_GRAPHIC, GR_ATT_SHADOW_TYPE,
@@ -693,8 +725,10 @@ void GraphicsConfig::load_graphicsengine(void *param)
 int GraphicsConfig::load()
 {
     int ret = -1;
+    static const char path[] = "config/osghudconfig.xml";
     void *re = GfParmReadFileLocal(RACE_ENG_CFG, GFPARM_RMODE_STD),
-        *graph = GfParmReadFileLocal(GR_PARAM_FILE, GFPARM_RMODE_STD);
+        *graph = GfParmReadFileLocal(GR_PARAM_FILE, GFPARM_RMODE_STD),
+        *osghud = GfParmReadFileLocal(path, GFPARM_RMODE_STD);
     const GfglFeatures &gl = GfglFeatures::self();
 
     if (!re)
@@ -707,6 +741,11 @@ int GraphicsConfig::load()
         GfLogError("GfParmReadFileLocal %s failed\n", GR_PARAM_FILE);
         goto end;
     }
+    else if (!osghud)
+    {
+        GfLogError("GfParmReadFileLocal %s failed\n", path);
+        goto end;
+    }
 
     load_graphicsengine(re);
     load_visibility(graph);
@@ -714,6 +753,7 @@ int GraphicsConfig::load()
     load_dynamicshadows(graph);
     load_shadowsize(gl, graph);
     load_shaders(graph);
+    load_speedunit(osghud);
     load_texturecompression(gl);
     load_maxtexturesize(gl);
     load_multitexturing(gl);
@@ -728,6 +768,9 @@ end:
 
     if (re)
         GfParmReleaseHandle(re);
+
+    if (osghud)
+        GfParmReleaseHandle(osghud);
 
     return ret;
 }
@@ -838,8 +881,6 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         "anisotropicfilter", this, setcustom);
     texturecompression = GfuiMenuCreateComboboxControl(hscr, param,
         "texturecompression", this, setcustom);
-    texturecompression_bg = GfuiMenuCreateStaticImageControl(hscr, param,
-        "texturecompression_bg");
     texturecompression_lbl = GfuiMenuCreateLabelControl(hscr, param,
         "texturecompression_lbl");
     maxtexturesize = GfuiMenuCreateComboboxControl(hscr, param,
@@ -856,6 +897,8 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         "shadowsize", this, setcustom);
     shadowsize_lbl = GfuiMenuCreateLabelControl(hscr, param,
         "shadowsize_lbl");
+    speedunit = GfuiMenuCreateComboboxControl(hscr, param, "speedunit");
+    speedunit_lbl = GfuiMenuCreateLabelControl(hscr, param, "speedunit_lbl");
 
     if (preset < 0
         || graphicsengine < 0
@@ -871,12 +914,13 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         || anisotropicfilter < 0
         || texturecompression < 0
         || texturecompression_lbl < 0
-        || texturecompression_bg < 0
         || maxtexturesize < 0
         || maxtexturesize_lbl < 0
         || multitexturing < 0
         || multitexturing_lbl < 0
-        || multitexturing_bg < 0)
+        || multitexturing_bg < 0
+        || speedunit < 0
+        || speedunit_lbl < 0)
         throw std::runtime_error("failed to create dynamic GUI elements");
     else if (GfuiMenuCreateButtonControl(hscr, param, "cancel", this, deinit) < 0)
         throw std::runtime_error("create cancel failed");
@@ -959,6 +1003,8 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     if (!SDL_GL_ExtensionSupported("GL_ARB_texture_compression"))
         GfuiEnable(hscr, texturecompression, GFUI_DISABLE);
 
+    GfuiComboboxAddText(hscr, speedunit, "kph");
+    GfuiComboboxAddText(hscr, speedunit, "mph");
     init_presets();
 
     if (load())
@@ -968,7 +1014,6 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     idtype[visibility_lbl] = SSGGRAPH;
     idtype[texturecompression] = SSGGRAPH;
     idtype[texturecompression_lbl] = SSGGRAPH;
-    idtype[texturecompression_bg] = SSGGRAPH;
     idtype[maxtexturesize] = SSGGRAPH;
     idtype[maxtexturesize_lbl] = SSGGRAPH;
     idtype[skydome] = SSGGRAPH;
@@ -982,6 +1027,8 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     idtype[shaders_lbl] = OSGGRAPH;
     idtype[shadowsize] = OSGGRAPH;
     idtype[shadowsize_lbl] = OSGGRAPH;
+    idtype[speedunit] = OSGGRAPH;
+    idtype[speedunit_lbl] = OSGGRAPH;
     GfuiScreenActivate(hscr);
     show();
 }

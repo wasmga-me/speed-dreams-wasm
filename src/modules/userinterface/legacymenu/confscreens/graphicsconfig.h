@@ -25,6 +25,7 @@ private:
     enum epreset {PRESET_LOW, PRESET_BALANCED, PRESET_HIGH, PRESET_CUSTOM};
     enum lowmidhigh {LOW, MID, HIGH};
     enum dynamicshadows {NONE, CARS, CARSTRACK};
+    enum speedunit {KPH, MPH};
     enum anisotropicfilter {AF_NONE, AF_BILINEAR, AF_TRILINEAR};
     enum engine {SSGGRAPH, OSGGRAPH};
 
@@ -72,6 +73,7 @@ private:
     void load_dynamicshadows(void *param) const;
     void load_shadowsize(const GfglFeatures &gl, void *param) const;
     void load_shaders(void *param) const;
+    void load_speedunit(void *param) const;
     void load_texturecompression(const GfglFeatures &gl) const;
     void load_maxtexturesize(const GfglFeatures &gl) const;
     void load_multitexturing(const GfglFeatures &gl) const;
@@ -85,6 +87,7 @@ private:
     int store_dynamicshadows(void *param) const;
     int store_shadowsize(void *param) const;
     int store_shaders(void *param) const;
+    int store_speedunit(void *param) const;
     int store_texturecompression(GfglFeatures &gl) const;
     int store_maxtexturesize(GfglFeatures &gl) const;
     int store_multitexturing(GfglFeatures &gl) const;
@@ -103,9 +106,9 @@ private:
         visibility_lbl, skydome, skydome_lbl, dynamicshadows,
         dynamicshadows_lbl, shaders, shaders_lbl, antialiasing,
         anisotropicfilter,
-        texturecompression, texturecompression_lbl, texturecompression_bg,
+        texturecompression, texturecompression_lbl,
         maxtexturesize, maxtexturesize_lbl, multitexturing, multitexturing_lbl,
-        multitexturing_bg, shadowsize, shadowsize_lbl;
+        multitexturing_bg, shadowsize, shadowsize_lbl, speedunit, speedunit_lbl;
     std::vector<struct preset> presets;
     std::map<int, engine> idtype;
 };
