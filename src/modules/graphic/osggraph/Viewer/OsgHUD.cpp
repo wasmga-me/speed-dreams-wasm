@@ -1570,7 +1570,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
 //speed
     temp.str("");
     //get speed in km/h
-    temp << (int)(currCar->_speed_x * 3.6);
+    temp << (int)(fabs(currCar->_speed_x) * 3.6);
     hudTextElements["speed-number"]->setText(temp.str());
 
     //set speed unit
