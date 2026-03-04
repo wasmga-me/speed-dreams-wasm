@@ -1128,6 +1128,11 @@ SDHUD::SDHUD() :
 
 void SDHUD::CreateHUD(int scrH, int scrW)
 {
+    if (paramHandle)
+        GfParmReleaseHandle(paramHandle);
+
+    paramHandle = GfParmReadFileLocal("config/osghudconfig.xml", GFPARM_RMODE_REREAD);
+
     hudScreenH = scrH;
     hudScreenW = scrW;
     // create a camera to set up the projection and model view matrices, and the subgraph to draw in the HUD
@@ -1567,16 +1572,17 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
 
     hudTextElements["gear-number"]->setText(temp.str());
 
+    const char *unit= GfParmGetStr(paramHandle, "settings/speed", "unit", "kph");
+    double absspeed = fabs(currCar->_speed_x);
+    int speed = !strcmp(unit, "kph") ? absspeed * 3.6 : absspeed * 2.237;
 //speed
     temp.str("");
     //get speed in km/h
-    temp << (int)(currCar->_speed_x * 3.6);
+    temp << speed;
     hudTextElements["speed-number"]->setText(temp.str());
 
     //set speed unit
-    temp.str("");
-    temp << "kph"; //mph
-    hudTextElements["speed-number-unit"]->setText(temp.str());
+    hudTextElements["speed-number-unit"]->setText(unit);
 
 //rpm number
     temp.str("");
