@@ -193,11 +193,6 @@ void DownloadsMenu::on_filter()
         GfuiEnable(hscr, category, GFUI_DISABLE);
     }
 
-    unsigned d = visible_entries();
-
-    while (offset && offset >= d)
-        offset -= THUMBNAILS;
-
     GfuiEnable(hscr, download_all, GFUI_DISABLE);
     update_ui();
 }
@@ -442,7 +437,12 @@ void DownloadsMenu::process(thumbnail *t, entry *e)
 
 void DownloadsMenu::update_ui()
 {
+    unsigned d = visible_entries();
+
     bargs.clear();
+
+    while (this->offset && this->offset >= d)
+        this->offset -= THUMBNAILS;
 
     auto t = thumbnails.begin();
     unsigned offset = 0;
