@@ -1,6 +1,6 @@
 /*
  * Speed Dreams, a free and open source motorsport simulator.
- * Copyright (C) 2024 Xavier Del Campo Romero
+ * Copyright (C) 2024-2026 Xavier Del Campo Romero
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ public:
     void restart(const std::vector<std::string> &repos);
     void on_filter();
     void on_category();
+    void on_clear();
     void pressed(thumbnail *t);
     void on_delete(thumbnail *t);
     void on_info(thumbnail *t);
@@ -98,8 +99,9 @@ private:
     std::vector<barg> bargs;
     std::list<pressedargs> pargs;
     int error_label, prev_arrow, next_arrow, filter, category, cur_page, npages,
-        download_all;
+        download_all, search, searchclr;
     unsigned offset;
+    double last_search;
 };
 
 #endif

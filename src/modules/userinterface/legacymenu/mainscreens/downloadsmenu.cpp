@@ -1,6 +1,6 @@
 /*
  * Speed Dreams, a free and open source motorsport simulator.
- * Copyright (C) 2024-2025 Xavier Del Campo Romero
+ * Copyright (C) 2024-2026 Xavier Del Campo Romero
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +30,10 @@
 #include <curl/curl.h>
 #include <algorithm>
 #include <cerrno>
+#include <cctype>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <memory>
 #include <stdexcept>
 
 static const size_t KB = 1024, MB = KB * KB;
@@ -263,9 +263,16 @@ int DownloadsMenu::check(CURLcode result, CURL *h, std::string &error) const
 void DownloadsMenu::recompute(unsigned ms)
 {
     std::string error;
+    double now = GfTimeClock();
 
     if (dispatcher.run(ms, error))
         GfuiLabelSetText(hscr, error_label, error.c_str());
+
+    if (now - last_search > 0.5)
+    {
+        update_ui();
+        last_search = now;
+    }
 }
 
 static int get_size(size_t n, std::string &out)
@@ -306,13 +313,32 @@ static int get_size(size_t n, std::string &out)
     return 0;
 }
 
+static std::string tolower(const std::string &s)
+{
+    std::string ret;
+
+    for (unsigned char c : s)
+        ret += ::tolower(c);
+
+    return ret;
+}
+
 bool DownloadsMenu::visible(const Asset &a) const
 {
     const char *s = GfuiComboboxGetText(hscr, filter),
-        *cat = GfuiComboboxGetText(hscr, category);
+        *cat = GfuiComboboxGetText(hscr, category),
+        *search = GfuiEditboxGetString(hscr, this->search);
+    bool name_match = true;
+
+    if (search && *search)
+    {
+        std::string lname = tolower(a.name), haystack = tolower(search);
+
+        name_match = lname.find(haystack) != std::string::npos;
+    }
 
     if (!strcmp(s, tr("alltypes")))
-        return true;
+        return name_match;
     else if (!strcmp(s, tr("updates")))
     {
         bool update;
@@ -322,7 +348,7 @@ bool DownloadsMenu::visible(const Asset &a) const
         else if (update)
             return cat == a.category || !strcmp(cat, tr("allcategories"));
 
-        return update;
+        return update && name_match;
     }
 
     bool matched = false;
@@ -342,7 +368,7 @@ bool DownloadsMenu::visible(const Asset &a) const
             break;
     }
 
-    if (matched)
+    if (matched && name_match)
         return cat == a.category || !strcmp(cat, tr("allcategories"));
 
     return false;
@@ -1007,11 +1033,25 @@ static void next_page(void *arg)
     m->next_page();
 }
 
+void DownloadsMenu::on_clear()
+{
+    GfuiEditboxSetString(hscr, search, "");
+    update_ui();
+}
+
+static void on_clear(void *arg)
+{
+    DownloadsMenu *m = static_cast<DownloadsMenu *>(arg);
+
+    m->on_clear();
+}
+
 DownloadsMenu::DownloadsMenu(void *prevMenu) :
     hscr(GfuiScreenCreate()),
     prev(prevMenu),
     param(GfuiMenuLoad("downloadsmenu.xml")),
-    offset(0)
+    offset(0),
+    last_search(GfTimeClock())
 {
     if (!hscr)
         throw std::runtime_error("GfuiScreenCreate failed");
@@ -1049,6 +1089,11 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
         throw std::runtime_error("GfuiMenuCreateLabelControl cur_page failed");
     else if ((npages = GfuiMenuCreateLabelControl(hscr, param, "total pages")) < 0)
         throw std::runtime_error("GfuiMenuCreateLabelControl npages failed");
+    else if ((search = GfuiMenuCreateEditControl(hscr, param, "search")) < 0)
+        throw std::runtime_error("GfuiMenuCreateEditControl search failed");
+    else if ((searchclr = GfuiMenuCreateButtonControl(hscr, param, "searchclr",
+        this, ::on_clear)) < 0)
+        throw std::runtime_error("GfuiMenuCreateButtonControl searchclr failed");
 
     const char *filters[] =
     {
