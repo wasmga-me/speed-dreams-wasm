@@ -210,51 +210,6 @@ void DownloadsMenu::on_category()
     update_ui();
 }
 
-int DownloadsMenu::check(CURLcode result, CURL *h, std::string &error) const
-{
-    int ret = -1;
-    long response;
-    CURLcode code;
-    char *url;
-
-    if ((code = curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE,
-        &response)) != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(code);
-
-        error = tr("failedresp") + std::string(": ");
-        error += e;
-    }
-    else if ((code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url))
-        != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(code);
-
-        error = tr("failedurl") + std::string(": ");
-        error += e;
-    }
-    else if (response != 200)
-    {
-        error = url;
-        error += std::string(": ") + tr("unexpectedhttp") + " ";
-        error += std::to_string(response);
-    }
-    else if (result != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(result);
-
-        error = tr("failedfetch") + std::string(": ");
-        error += e;
-    }
-    else
-        ret = 0;
-
-    if (ret)
-        GfLogError("%s\n", error.c_str());
-
-    return ret;
-}
-
 void DownloadsMenu::recompute(unsigned ms)
 {
     std::string error;
