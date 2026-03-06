@@ -65,18 +65,17 @@ public:
     void confirm_exit();
 
 private:
-    static int assets_fetched(CURLcode result, CURL *h, const sink *s,
+    static int assets_fetched(long status, CURL *h, const sink *s,
         std::string &e, void *args, const transfer::headers &headers);
-    static int asset_fetched(CURLcode result, CURL *h, const sink *s,
+    static int asset_fetched(long status, CURL *h, const sink *s,
         std::string &e, void *args, const transfer::headers &headers);
-    static int thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
+    static int thumbnail_fetched(long status, CURL *h, const sink *s,
         std::string &e, void *args, const transfer::headers &headers);
 
     int fetch_assets();
     int fetch_thumbnail(entry *e);
-    int check(CURLcode result, CURL *h, std::string &e) const;
     int push_entries(const Assets *a);
-    int assets_fetched(CURLcode result, CURL *h, const writebuf *w, std::string &e);
+    int assets_fetched(CURL *h, const writebuf *w, std::string &e);
     int asset_fetched(const writefile *w, std::string &e);
     int thumbnail_fetched(const writefile *w, std::string &error);
     int dispatch(const struct CURLMsg *m);

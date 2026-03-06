@@ -599,11 +599,24 @@ int DownloadsMenu::asset_fetched(const writefile *w, std::string &error)
     return ret;
 }
 
-int DownloadsMenu::asset_fetched(CURLcode result, CURL *h, const sink *s,
+int DownloadsMenu::asset_fetched(long status, CURL *h, const sink *s,
     std::string &e, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writefile *w = static_cast<const writefile *>(s);
+
+    if (status != 200)
+    {
+        pressedargs *pa = static_cast<pressedargs *>(w->args);
+        const char *fmt = d->tr("invalidstatus");
+        char buf[256];
+
+        snprintf(buf, sizeof buf, fmt, status);
+        GfLogError("Received unexpected HTTP status %ld\n", status);
+        pa->e->state = entry::download;
+        e = buf;
+        return -1;
+    }
 
     return d->asset_fetched(w, e);
 }
@@ -621,7 +634,7 @@ int DownloadsMenu::thumbnail_fetched(const writefile *w, std::string &error)
     return 0;
 }
 
-int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
+int DownloadsMenu::thumbnail_fetched(long status, CURL *h, const sink *s,
     std::string &error, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
@@ -690,7 +703,7 @@ int DownloadsMenu::push_entries(const Assets *a)
     return 0;
 }
 
-int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const writebuf *w,
+int DownloadsMenu::assets_fetched(CURL *h, const writebuf *w,
     std::string &error)
 {
     char *ct;
@@ -758,13 +771,20 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const writebuf *w,
     return 0;
 }
 
-int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
+int DownloadsMenu::assets_fetched(long status, CURL *h, const sink *s,
     std::string &e, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writebuf *w = static_cast<const writebuf *>(s);
 
-    return d->assets_fetched(result, h, w, e);
+    if (status != 200)
+    {
+        GfLogError("Received HTTP status %ld\n", status);
+        e = d->tr("invalidstatus");
+        return -1;
+    }
+
+    return d->assets_fetched(h, w, e);
 }
 
 int DownloadsMenu::fetch_assets()

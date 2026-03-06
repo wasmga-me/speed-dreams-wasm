@@ -76,19 +76,10 @@ failure:
 int transfer::check(CURLcode result, std::string &error) const
 {
     int ret = -1;
-    long response;
     CURLcode code;
     char *url;
 
-    if ((code = curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE,
-        &response)) != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(code);
-
-        error = "Failed to retrieve response code: ";
-        error += e;
-    }
-    else if ((code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url))
+    if ((code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url))
         != CURLE_OK)
     {
         const char *e = curl_easy_strerror(code);
@@ -103,12 +94,6 @@ int transfer::check(CURLcode result, std::string &error) const
         error = url;
         error += ": ";
         error += e;
-    }
-    else if (response != 200)
-    {
-        error = url;
-        error += ": unexpected HTTP status ";
-        error += std::to_string(response);
     }
     else
         ret = 0;
@@ -268,10 +253,25 @@ transfer::~transfer()
 
 int transfer::exec(CURLcode result, std::string &error) const
 {
+    long response;
+    CURLcode code;
+
     if (s)
         s->flush();
 
-    return check(result, error) || f(result, h, s, error, args, resp_headers);
+    if (check(result, error))
+        return -1;
+    else if ((code = curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE,
+        &response)) != CURLE_OK)
+    {
+        const char *e = curl_easy_strerror(code);
+
+        error = "Failed to retrieve response code: ";
+        error += e;
+        return -1;
+    }
+
+    return f(response, h, s, error, args, resp_headers);
 }
 
 transfer::transfer(sink *s, cb f, void *args) :
