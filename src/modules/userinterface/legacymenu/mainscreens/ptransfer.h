@@ -34,6 +34,9 @@ public:
     int start(const char *url, long max, const void *data, size_t n,
         const transfer::headers &headers = transfer::headers());
     int exec(CURLcode result, std::string &error) const;
+
+private:
+    int escape(const std::string &s, std::string &out) const;
 };
 
 #endif
