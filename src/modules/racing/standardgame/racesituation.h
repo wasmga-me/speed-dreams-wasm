@@ -24,7 +24,9 @@
 #define _RACESITUATION_H_
 
 #include <string>
+#include <vector>
 
+#include <car.h>
 #include "raceinit.h" // ReInfo.
 
 
@@ -122,6 +124,9 @@ private:
     //! Free the given situation
     void freezSituation(struct RmInfo*& pSituation);
 
+    //! Executed when pre-race configuration has been applied.
+    static void onCfgApply(void *args);
+
 private:
 
     //! Initial number of drivers racing
@@ -142,6 +147,11 @@ private:
 
     //! Time of the last output when using the "stable but slowed-down frame rate" mode.
     double _fLastOutputTime;
+
+    //! Hook executed when pre-race configuration has been applied.
+    void *_applyHook;
+
+    std::vector<tCarElt *> _humans;
 
 };
 

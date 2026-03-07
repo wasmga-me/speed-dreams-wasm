@@ -138,6 +138,7 @@ extern void RmScreenShutdown();
 extern void* RmInitReUpdateStateHook();
 extern void RmShutdownReUpdateStateHook();
 extern bool RmCheckPitRequest();
+extern void RmAddHumanCfg(const std::vector<tCarElt *> &cars, void *hook);
 
 extern void* RmResScreenInit();
 extern void RmResScreenShutdown();

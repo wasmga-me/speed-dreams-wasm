@@ -426,6 +426,10 @@ void TextOnlyUI::setRaceEngine(IRaceEngine& raceEngine)
 	_piRaceEngine = &raceEngine;
 }
 
+void TextOnlyUI::addHumanCfg(const std::vector<tCarElt *> &cars, void *hook)
+{
+}
+
 // Accessors to the race engine.
 IRaceEngine& TextOnlyUI::raceEngine()
 {

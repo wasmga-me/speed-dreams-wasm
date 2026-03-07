@@ -250,13 +250,10 @@ SimReConfig(tCarElt *carElt)
 
     tCar *car = &(SimCarTable[carElt->index]);
 
-    if (carElt->pitcmd.fuel > 0)
-    {
-        car->fuel += carElt->pitcmd.fuel;
+    car->fuel += carElt->pitcmd.fuel;
 
-        if (car->fuel > car->tank)
-            car->fuel = car->tank;
-    }
+    if (car->fuel > car->tank)
+        car->fuel = car->tank;
 
     car->fuel_prev = car->fuel;
 

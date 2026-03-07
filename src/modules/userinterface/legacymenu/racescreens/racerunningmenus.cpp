@@ -31,8 +31,10 @@
 #include <portability.h>
 #include <tgf.hpp>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <isoundengine.h>
+#include <car.h>
 #include <raceman.h>
 #include <robot.h>
 
@@ -41,15 +43,44 @@
 
 
 static void	*rmScreenHandle = 0;
+static void	*menuXMLDescHdle;
 static void	*hmenu;
 static int	rmPauseId;
 static int	rmMsgId;
 static int	rmMsgBgId;
 static int	rmBigMsgId;
 static int	rmBigMsgBgId;
+static int	rmCfgBgId;
+static int	rmCfgPlayerLabelId;
+static int	rmCfgPlayerComboId;
+static int	rmCfgTyresComboId;
+static int	rmCfgTyresLabelId;
+static int	rmCfgApplyBtnId;
+static int	rmCfgFuelLabelId;
+static int	rmCfgFuelProgressId;
+static int	rmCfgFuelFillLessId;
+static int	rmCfgFuelFillEmptyId;
+static int	rmCfgFuelFillMoreId;
+static int	rmCfgFuelFillMaxId;
+static int	rmCfgFuelQtyLabelId;
+
+static std::vector<tCarElt *> rmCars;
+static void *rmCfgApplyHook;
 
 static float black[4] = { 0.0, 0.0, 0.0, 0.0 };
 
+static const struct rmTyreCompound
+{
+	const char *s;
+	enum tCarPitCmd::TireSetChange value;
+} rmTyreCompounds[] =
+{
+	{SECT_SOFT, tCarPitCmd::SOFT},
+	{SECT_MEDIUM, tCarPitCmd::MEDIUM},
+	{SECT_HARD, tCarPitCmd::HARD},
+	{SECT_WET, tCarPitCmd::WET},
+	{SECT_EXTREM_WET, tCarPitCmd::EXTREM_WET}
+};
 
 // Uncomment to activate FPS limiter at compile-time.
 //#define UseFPSLimiter true
@@ -659,6 +690,296 @@ rmAddKeys()
     GfuiAddKey(rmScreenHandle, 'o', "Hide / Show mouse cursor",   (void*)0, rmHideShowMouseCursor, NULL);
 }
 
+static const char *
+tr(const char *key)
+{
+	std::string s = std::string("translatable/") + key;
+
+	return GfuiGetTranslatedText(menuXMLDescHdle, s.c_str(), "text", "");
+}
+
+static void
+rmApplyCfg(void * /* dummy */)
+{
+	const char *player = GfuiComboboxGetText(rmScreenHandle, rmCfgPlayerComboId);
+
+	if (!player || !*player)
+		return;
+
+	for (auto car : rmCars)
+	{
+		if (strcmp(car->_name, player))
+			continue;
+
+		std::string fuel = GfuiLabelGetText(rmScreenHandle, rmCfgFuelQtyLabelId);
+
+		if (!fuel.empty())
+		{
+			double v = strtod(fuel.c_str(), nullptr);
+
+			car->pitcmd.fuel = v - car->setup.fuel.value;
+			car->setup.fuel.value = v;
+		}
+
+		const char *tyres = GfuiComboboxGetText(rmScreenHandle, rmCfgTyresComboId);
+
+		if (tyres && *tyres)
+		{
+			size_t n = sizeof rmTyreCompounds / sizeof *rmTyreCompounds;
+
+			for (size_t i = 0; i < n; i++)
+			{
+				const rmTyreCompound &c = rmTyreCompounds[i];
+
+				if (!strcmp(tyres, tr(c.s)))
+				{
+					car->pitcmd.tiresetChange = c.value;
+					car->pitcmd.tireChange = tCarPitCmd::TireChange::ALL;
+					break;
+				}
+			}
+		}
+
+		break;
+	}
+
+	GfuiScreenActivate(rmCfgApplyHook);
+	GfuiScreenActivate(rmScreenHandle);
+	rmRedisplay();
+}
+
+static void
+rmFuelCfgEnable(int enable)
+{
+	GfuiEnable(rmScreenHandle, rmCfgFuelProgressId, enable);
+	GfuiEnable(rmScreenHandle, rmCfgFuelFillLessId, enable);
+	GfuiEnable(rmScreenHandle, rmCfgFuelFillEmptyId, enable);
+	GfuiEnable(rmScreenHandle, rmCfgFuelFillMaxId, enable);
+	GfuiEnable(rmScreenHandle, rmCfgFuelFillMoreId, enable);
+}
+
+static unsigned
+rmFuelLaps(const tCarElt *car)
+{
+	static const tdble MaxFuelPerMeter = 0.0005;	// [kg/m] fuel consumption.
+	// Calculations inspired by those from SetFuelAtRaceStart (rthumandriver.cpp)
+	const tTrack *track = LmRaceEngine().outData()->track;
+	const tCarSetupItem &fuel = car->setup.fuel;
+	tdble fuel_cons_factor =
+		GfParmGetNum(car->_carHandle, SECT_ENGINE, PRM_FUELCONS, NULL, 1.0f),
+		fuel_per_lap = track->length * MaxFuelPerMeter * fuel_cons_factor;
+
+	return fuel.desired_value / fuel_per_lap;
+}
+
+static void
+rmUpdatePlayerCfgUI(const tCarElt *car)
+{
+	const tCarSetupItem &tc = car->setup.tireCompound,
+		&fuel = car->setup.fuel;
+
+	if ((int)fuel.max)
+	{
+		float percent = (fuel.desired_value - fuel.min) / fuel.max * 100.0;
+		unsigned laps = rmFuelLaps(car);
+		char buf[64];
+
+		snprintf(buf, sizeof buf, "%.1f L (%u %s)", fuel.desired_value, laps, tr("laps"));
+		GfuiProgressbarSetValue(rmScreenHandle, rmCfgFuelProgressId, percent);
+		GfuiLabelSetText(rmScreenHandle, rmCfgFuelQtyLabelId, buf);
+		rmFuelCfgEnable(GFUI_ENABLE);
+	}
+
+	if ((int)tc.min != (int)tc.max)
+	{
+		for (int i = (int)tc.min; i <= (int)tc.max; i++)
+		{
+			size_t n = sizeof rmTyreCompounds / sizeof *rmTyreCompounds;
+
+			for (size_t j = 0; j < n; j++)
+			{
+				const rmTyreCompound &c = rmTyreCompounds[j];
+
+				if (i == c.value)
+					GfuiComboboxAddText(rmScreenHandle, rmCfgTyresComboId, tr(c.s));
+			}
+		}
+
+		GfuiComboboxSetSelectedIndex(rmScreenHandle, rmCfgTyresComboId, (int)tc.value - 1);
+		GfuiEnable(rmScreenHandle, rmCfgTyresComboId, GFUI_ENABLE);
+	}
+	else
+		GfuiComboboxAddText(rmScreenHandle, rmCfgTyresComboId, tr("unsupported"));
+}
+
+static void
+rmUpdateCfgUI()
+{
+	const char *player = GfuiComboboxGetText(rmScreenHandle, rmCfgPlayerComboId);
+
+	GfuiEnable(rmScreenHandle, rmCfgPlayerComboId, GFUI_DISABLE);
+	GfuiEnable(rmScreenHandle, rmCfgTyresComboId, GFUI_DISABLE);
+	GfuiComboboxClear(rmScreenHandle, rmCfgTyresComboId);
+	rmFuelCfgEnable(GFUI_DISABLE);
+
+	if (!player || !*player)
+		return;
+
+	GfuiEnable(rmScreenHandle, rmCfgPlayerComboId, GFUI_ENABLE);
+
+	for (auto car : rmCars)
+		if (!strcmp(car->_name, player))
+		{
+			rmUpdatePlayerCfgUI(car);
+			break;
+		}
+}
+
+static void
+rmChangePlayer(tComboBoxInfo *)
+{
+	rmUpdateCfgUI();
+}
+
+static void
+rmCfgSetVisible(int visible)
+{
+	GfuiVisibilitySet(rmScreenHandle, rmCfgBgId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgPlayerLabelId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgPlayerComboId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgTyresLabelId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgTyresComboId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgApplyBtnId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelLabelId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelProgressId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelFillLessId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelFillEmptyId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelFillMoreId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelFillMaxId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelQtyLabelId, visible);
+}
+
+static void
+rmFuelLess(void *args)
+{
+	const char *player = GfuiComboboxGetText(rmScreenHandle, rmCfgPlayerComboId);
+
+	if (!player || !*player)
+		return;
+
+	for (auto car : rmCars)
+		if (!strcmp(car->_name, player))
+		{
+			tCarSetupItem &fuel = car->setup.fuel;
+			float newfuel = fuel.desired_value - (fuel.max - fuel.min) * 0.05;
+
+			if (newfuel <= fuel.min)
+			{
+				newfuel = fuel.min;
+				GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_DISABLE);
+			}
+
+			fuel.desired_value = newfuel;
+			rmUpdateCfgUI();
+			break;
+		}
+}
+
+static void
+rmFuelEmpty(void *args)
+{
+	const char *player = GfuiComboboxGetText(rmScreenHandle, rmCfgPlayerComboId);
+
+	if (!player || !*player)
+		return;
+
+	for (auto car : rmCars)
+		if (!strcmp(car->_name, player))
+		{
+			tCarSetupItem &fuel = car->setup.fuel;
+
+			fuel.desired_value = fuel.min;
+			GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_DISABLE);
+			rmUpdateCfgUI();
+			break;
+		}
+}
+
+static void
+rmFuelMore(void *args)
+{
+	const char *player = GfuiComboboxGetText(rmScreenHandle, rmCfgPlayerComboId);
+
+	if (!player || !*player)
+		return;
+
+	for (auto car : rmCars)
+		if (!strcmp(car->_name, player))
+		{
+			tCarSetupItem &fuel = car->setup.fuel;
+			float newfuel = fuel.desired_value + (fuel.max - fuel.min) * 0.05;
+
+			if (newfuel > fuel.max)
+				newfuel = fuel.max;
+
+			fuel.desired_value = newfuel;
+			GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_ENABLE);
+			rmUpdateCfgUI();
+			break;
+		}
+}
+
+static void
+rmFuelMax(void *args)
+{
+	const char *player = GfuiComboboxGetText(rmScreenHandle, rmCfgPlayerComboId);
+
+	if (!player || !*player)
+		return;
+
+	for (auto car : rmCars)
+		if (!strcmp(car->_name, player))
+		{
+			tCarSetupItem &fuel = car->setup.fuel;
+
+			fuel.desired_value = fuel.max;
+			GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_ENABLE);
+			rmUpdateCfgUI();
+			break;
+		}
+}
+
+static void
+rmTyreChange(tComboBoxInfo *info)
+{
+	const char *player = GfuiComboboxGetText(rmScreenHandle, rmCfgPlayerComboId);
+
+	if (!player || !*player)
+		return;
+
+	for (auto car : rmCars)
+	{
+		if (strcmp(car->_name, player))
+			continue;
+
+		const char *text = GfuiComboboxGetText(rmScreenHandle, rmCfgTyresComboId);
+		size_t n = sizeof rmTyreCompounds / sizeof *rmTyreCompounds;
+
+		for (size_t i = 0; i < n; i++)
+		{
+			const rmTyreCompound &c = rmTyreCompounds[i];
+
+			if (!strcmp(text, tr(c.s)))
+			{
+				tCarSetupItem &tc = car->setup.tireCompound;
+
+				tc.value = c.value;
+				break;
+			}
+		}
+	}
+}
+
 void *
 RmScreenInit()
 {
@@ -667,7 +988,7 @@ RmScreenInit()
 
     // Create screen, load menu XML descriptor and create static controls.
     rmScreenHandle = GfuiScreenCreate(black, 0, rmScreenActivate, 0, 0, 0);
-    void *menuXMLDescHdle = GfuiMenuLoad("raceglscreen.xml");
+    menuXMLDescHdle = GfuiMenuLoad("raceglscreen.xml");
     GfuiMenuCreateStaticControls(rmScreenHandle, menuXMLDescHdle);
 
     // Create Message, BigMessage and Pause labels.
@@ -676,13 +997,26 @@ RmScreenInit()
     rmBigMsgBgId = GfuiMenuCreateStaticImageControl(rmScreenHandle, menuXMLDescHdle, "bigmessage-bg");
     rmBigMsgId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "bigmessage");
     rmPauseId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "pause");
+    rmCfgBgId = GfuiMenuCreateStaticImageControl(rmScreenHandle, menuXMLDescHdle, "config/bg");
+    rmCfgPlayerLabelId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "config/player/label");
+    rmCfgPlayerComboId = GfuiMenuCreateComboboxControl(rmScreenHandle, menuXMLDescHdle, "config/player/combo", nullptr, rmChangePlayer);
+    rmCfgTyresLabelId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "config/tyres/label");
+    rmCfgTyresComboId = GfuiMenuCreateComboboxControl(rmScreenHandle, menuXMLDescHdle, "config/tyres/combo", nullptr, rmTyreChange);
+    rmCfgApplyBtnId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/apply", nullptr, rmApplyCfg);
+    rmCfgFuelLabelId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/label");
+    rmCfgFuelProgressId = GfuiMenuCreateProgressbarControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/progress");
+    rmCfgFuelFillLessId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/fill/less", nullptr, rmFuelLess);
+    rmCfgFuelFillEmptyId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/fill/empty", nullptr, rmFuelEmpty);
+    rmCfgFuelFillMoreId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/fill/more", nullptr, rmFuelMore);
+    rmCfgFuelFillMaxId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/fill/max", nullptr, rmFuelMax);
+    rmCfgFuelQtyLabelId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/qty");
 
     // Hide message background by default.
     GfuiVisibilitySet(rmScreenHandle, rmMsgBgId, GFUI_INVISIBLE);
     GfuiVisibilitySet(rmScreenHandle, rmBigMsgBgId, GFUI_INVISIBLE);
 
-    // Close menu XML descriptor.
-    GfParmReleaseHandle(menuXMLDescHdle);
+    // Hide pre-race configuration by default.
+    rmCfgSetVisible(GFUI_INVISIBLE);
 
     // Register keyboard shortcuts.
     rmAddKeys();
@@ -710,8 +1044,14 @@ RmScreenShutdown()
 		rmScreenHandle = 0;
     }
 
+	if (menuXMLDescHdle) {
+		GfParmReleaseHandle(menuXMLDescHdle);
+		menuXMLDescHdle = 0;
+	}
+
 	rmStrCurMsg.clear();
 	rmStrCurBigMsg.clear();
+	rmCars.clear();
 }
 
 
@@ -751,8 +1091,12 @@ RmReadyToRace(void * /* dummy */)
       GfLogInfo("FAILED to remove <Enter> to Start key \n");
    }
 
+   rmApplyCfg(nullptr);
+
    SDL_JoystickEventState(SDL_IGNORE);
    GfuiApp().eventLoop().setJoystickButtonCB(NULL);
+   rmCfgSetVisible(GFUI_INVISIBLE);
+   GfuiMouseHide();
 
    // The menu changed.
    rmbMenuChanged = true;
@@ -1171,3 +1515,17 @@ RmResScreenRemoveText(int row)
 //
 //    GfuiApp().eventLoop().postRedisplay();
 //}
+
+void
+RmAddHumanCfg(const std::vector<tCarElt *> &cars, void *hook)
+{
+	for (auto car : cars)
+		GfuiComboboxAddText(rmScreenHandle, rmCfgPlayerComboId, car->_name);
+
+	rmCars = cars;
+	rmCfgApplyHook = hook;
+	rmCfgSetVisible(GFUI_VISIBLE);
+	rmUpdateCfgUI();
+	// Show mouse so that players can do pre-race configurations.
+	GfuiMouseShow();
+}

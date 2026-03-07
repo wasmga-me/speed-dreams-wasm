@@ -335,12 +335,25 @@ void ReSituationUpdater::runOneStep(double deltaTimeIncrement)
     webServer().updateAsyncStatus();
 }
 
+void ReSituationUpdater::onCfgApply(void *args)
+{
+    ReSituationUpdater *u = static_cast<ReSituationUpdater *>(args);
+    tRmInfo* pCurrReInfo = ReSituation::self().data();
+    tSituation *s = pCurrReInfo->s;
+
+    for (tCarElt *car : u->_humans)
+        RePhysicsEngine().reconfigureCar(car);
+
+    RePhysicsEngine().updateSituation(s, RCM_MAX_DT_SIMU);
+}
+
 ReSituationUpdater::ReSituationUpdater()
 :
     _pPrevReInfo(0),
     _fSimuTick(RCM_MAX_DT_SIMU),
     _fOutputTick(0),
-    _fLastOutputTime(0)
+    _fLastOutputTime(0),
+    _applyHook(GfuiHookCreate(this, onCfgApply))
 {
     // Save the race engine info (state + situation) pointer for the current step.
     tRmInfo* pCurrReInfo = ReSituation::self().data();
@@ -355,6 +368,7 @@ ReSituationUpdater::~ReSituationUpdater()
 void ReSituationUpdater::start()
 {
     tSituation *s = ReInfo->s;
+    std::vector<tCarElt *> humans;
 
     GfLogInfo("Starting race engine.\n");
 
@@ -363,6 +377,17 @@ void ReSituationUpdater::start()
         tRobotItf *robot = s->cars[i]->robot;
         if (robot->rbResumeRace)
             robot->rbResumeRace(robot->index, s->cars[i], s);
+
+        if (s->cars[i]->_driverType == RM_DRV_HUMAN)
+            humans.push_back(s->cars[i]);
+    }
+
+    // This function is called twice on a race start, so avoid addHumanCfg
+    // from being called twice.
+    if (!humans.empty() && _humans.empty())
+    {
+        ReUI().addHumanCfg(humans, _applyHook);
+        _humans = humans;
     }
 
     // Set the running flags.
@@ -405,6 +430,7 @@ int ReSituationUpdater::terminate()
         GfLogInfo("Last replay entry done.\n");
     }
 
+    GfuiHookRelease(_applyHook);
     return status;
 }
 

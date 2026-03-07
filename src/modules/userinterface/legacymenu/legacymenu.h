@@ -106,6 +106,9 @@ public:
 	// Setter for the race engine.
 	virtual void setRaceEngine(IRaceEngine& raceEngine);
 
+	// Add human car to pre-race configuration.
+	virtual void addHumanCfg(const std::vector<tCarElt *> &cars, void *hook);
+
 // Other services.
 public:
 

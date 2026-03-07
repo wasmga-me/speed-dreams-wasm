@@ -380,6 +380,12 @@ bool LegacyMenu::onRaceStarting()
     return bNeedStartMenu ? false : true;
 }
 
+void LegacyMenu::addHumanCfg(const std::vector<tCarElt *> &cars, void *hook)
+{
+    if (_piRaceEngine->inData()->_displayMode == RM_DISP_MODE_NORMAL)
+        RmAddHumanCfg(cars, hook);
+}
+
 void LegacyMenu::onRaceLoadingDrivers()
 {
 		// Create the game screen according to the actual display mode.
