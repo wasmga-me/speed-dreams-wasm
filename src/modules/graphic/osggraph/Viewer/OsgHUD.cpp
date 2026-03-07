@@ -1173,6 +1173,8 @@ void SDHUD::CreateHUD(int scrH, int scrW)
     //generate the hud from the relative xml file
     camera->addChild(generateHudFromXmlFile(scrH, scrW));
 
+    // reset car data from previous races
+    carData.clear();
 }
 
 void SDHUD::DispDebug(const tSituation *s, const SDFrameInfo* frame)
