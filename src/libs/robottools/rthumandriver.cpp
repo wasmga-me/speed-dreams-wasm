@@ -2329,7 +2329,7 @@ static void SetFuelAtRaceStart(tTrack* track, void *carHandle, void **carParmHan
     } else {
         // We must load and calculate parameters.
         const tdble fuel_cons_factor =
-            GfParmGetNum(*carParmHandle, SECT_ENGINE, PRM_FUELCONS, NULL, 1.0f);
+            GfParmGetNum(carHandle, SECT_ENGINE, PRM_FUELCONS, NULL, 1.0f);
         tdble fuel_per_lap = track->length * MaxFuelPerMeter * fuel_cons_factor;
         tdble fuel_for_race = fuel_per_lap * (s->_totLaps + 1.0f);// + FuelReserve;
         // aimed at timed sessions:
