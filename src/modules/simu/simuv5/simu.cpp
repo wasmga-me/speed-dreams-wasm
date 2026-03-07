@@ -258,6 +258,8 @@ SimReConfig(tCarElt *carElt)
             car->fuel = car->tank;
     }
 
+    car->fuel_prev = car->fuel;
+
     if (carElt->pitcmd.repair > 0)
     {
         car->dammage -= carElt->pitcmd.repair;
