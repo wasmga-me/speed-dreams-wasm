@@ -103,6 +103,7 @@ typedef struct
     GfuiColor fgFocusColor[3];
 
     unsigned int	state;
+    bool			is_focused;
     int			buttonType;
     int			mouseBehaviour;
     void		*userDataOnPush;

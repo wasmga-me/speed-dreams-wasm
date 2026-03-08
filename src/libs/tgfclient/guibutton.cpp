@@ -218,6 +218,25 @@ GfuiButtonStateCreate(void *scr, const char *text, int font, int x, int y, int w
 	return id;
 }//GfuiButtonStateCreate
 
+/** Returns whether a button is focused.
+    @ingroup	gui
+    @param	scr	Screen
+    @param	id	Button Id
+    @return	True if focused, false otherwise.
+ */
+bool
+GfuiButtonGetFocused(void* scr, int id)
+{
+	tGfuiObject *object = gfuiGetObject(scr, id);
+	if (object && object->widget == GFUI_BUTTON)
+	{
+		const tGfuiButton *button = &object->u.button;
+
+		return button->is_focused;
+	}
+
+	return false;
+}
 
 /** Add a text button to a screen.
     @ingroup	gui
@@ -267,6 +286,7 @@ GfuiButtonCreate(void *scr, const char *text, int font, int x, int y, int width,
     button->mouseBehaviour = mouse;
     button->buttonType = GFUI_BTN_PUSH;
     button->bShowBox = true;
+    button->is_focused = false;
 
     button->disabled = 0;
     button->enabled = 0;

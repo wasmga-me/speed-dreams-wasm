@@ -570,7 +570,7 @@ TGFCLIENT_API bool GfuiCheckboxIsChecked(void* scr, int id);
 
 
 TGFCLIENT_API void GfuiButtonSetText(void* scr, int id, const char* text);
-TGFCLIENT_API int GfuiButtonGetFocused(void);
+TGFCLIENT_API bool GfuiButtonGetFocused(void* scr, int id);
 
 /* Edit Boxes */
 TGFCLIENT_API int GfuiEditboxCreate(void* scr, const char* text, int font,
