@@ -751,6 +751,9 @@ RmReadyToRace(void * /* dummy */)
       GfLogInfo("FAILED to remove <Enter> to Start key \n");
    }
 
+   SDL_JoystickEventState(SDL_IGNORE);
+   GfuiApp().eventLoop().setJoystickButtonCB(NULL);
+
    // The menu changed.
    rmbMenuChanged = true;
 
@@ -768,8 +771,6 @@ RmReadyToRace(void * /* dummy */)
 static void
 RmOnJoystick(int joy, int button, int value)
 {
-	SDL_JoystickEventState(SDL_IGNORE);
-	GfuiApp().eventLoop().setJoystickButtonCB(NULL);
 	RmReadyToRace(NULL);
 }
 
