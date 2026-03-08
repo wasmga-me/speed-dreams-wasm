@@ -114,6 +114,7 @@ typedef struct
 
     int imgX, imgY;
     int imgWidth, imgHeight;
+    int tipLabel;
 
     // if skin used
     GLuint disabled;

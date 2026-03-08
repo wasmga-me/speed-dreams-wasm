@@ -513,7 +513,8 @@ TGFCLIENT_API void GfuiLabelSetColor(void* scr, int id, const float* color);
 TGFCLIENT_API int GfuiButtonCreate(void* scr, const char* text, int font,
                                    int x, int y, int width, int textHAlign, int mouse,
                                    void* userDataOnPush, tfuiCallback onPush,
-                                   void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                   void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                                   int tipLabel = -1);
 TGFCLIENT_API int GfuiButtonStateCreate(void* scr, const char* text, int font, int x, int y,
                                         int width, int textHAlign, int mouse,
                                         void* userDataOnPush, tfuiCallback onPush,

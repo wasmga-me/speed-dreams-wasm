@@ -560,11 +560,13 @@ createTextButton(void* hscr, void* hparm, const char* pszPath,
             aPushedColor = pushedColor.toFloatRGBA();
     }
 
+    int tipLabel = -1;
+
     if (pszTip && strlen(pszTip) > 0)
     {
         tMenuCallbackInfo * cbinfo = (tMenuCallbackInfo*)calloc(1, sizeof(tMenuCallbackInfo));
         cbinfo->screen = hscr;
-        cbinfo->labelId = GfuiTipCreate(hscr, pszTip, strlen(pszTip));
+        cbinfo->labelId = tipLabel = GfuiTipCreate(hscr, pszTip, strlen(pszTip));
         GfuiVisibilitySet(hscr, cbinfo->labelId, GFUI_INVISIBLE);
 
         // TODO: In this case, we crudely overwrite onFocus/onFocusLost !
@@ -588,7 +590,7 @@ createTextButton(void* hscr, void* hparm, const char* pszPath,
     int butId = GfuiButtonCreate(hscr, pszText, nFontId,
                                  nX, nY, nWidth, nAlign, GFUI_MOUSE_UP,
                                  userDataOnPush, onPush,
-                                 userDataOnFocus, onFocus, onFocusLost);
+                                 userDataOnFocus, onFocus, onFocusLost, tipLabel);
 
     GfuiButtonShowBox(hscr, butId, bShowbox);
 

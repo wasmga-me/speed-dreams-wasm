@@ -545,6 +545,13 @@ GfuiVisibilitySet(void *scr, int id, int visible)
         GfuiVisibilitySet(scr, checkbox->uncheckId, visible && !checked);
         GfuiVisibilitySet(scr, checkbox->labelId, visible);
     }
+    else if (curObject->widget == GFUI_BUTTON)
+    {
+        const tGfuiButton *button = &curObject->u.button;
+        bool focused = GfuiButtonGetFocused(scr, id);
+
+        GfuiVisibilitySet(scr, button->tipLabel, visible && focused);
+    }
 
     return 0;
 }
