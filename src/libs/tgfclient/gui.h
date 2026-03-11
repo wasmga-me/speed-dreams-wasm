@@ -220,6 +220,7 @@ typedef struct
     tComboBoxInfo *pInfo;
 
     GfuiColor fgColor[3];
+    bool is_focused;
     int	comboType;
     void		*userDataOnFocus;
     tfuiCallback	onFocus;

@@ -251,6 +251,7 @@ GfuiUnSelectCurrent(void)
 	break;
 	case GFUI_COMBOBOX:
 	combobox = &(obj->u.combobox);
+	combobox->is_focused = false;
 	if (combobox->onFocusLost != NULL) {
 		combobox->onFocusLost(combobox->userDataOnFocus);
 	}
@@ -313,6 +314,7 @@ gfuiLoseFocus(tGfuiObject *obj)
  		case GFUI_COMBOBOX:
 		{
 			tGfuiCombobox* combo = &(obj->u.combobox);
+			combo->is_focused = false;
 			if (combo->onFocusLost)
 				combo->onFocusLost(combo->userDataOnFocus);
 		}
@@ -380,6 +382,7 @@ gfuiSetFocus(tGfuiObject *obj)
 		case GFUI_COMBOBOX:
 		{
 			tGfuiCombobox* combo = &(obj->u.combobox);
+			combo->is_focused = true;
 			if (combo->onFocus)
 				combo->onFocus(combo->userDataOnFocus);
 			playMenuSfx(SFX_FOCUS);

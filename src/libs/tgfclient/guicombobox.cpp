@@ -74,6 +74,26 @@ gfuiRightArrow(void *idv)
 		combobox->onChange(combobox->pInfo);
 }
 
+/** Returns whether a combobox is focused.
+    @ingroup	gui
+    @param	scr		Screen
+    @param	id		Button Id
+    @return	True if focused, false otherwise.
+ */
+bool
+GfuiComboboxGetFocused(void* scr, int id)
+{
+	tGfuiObject *object = gfuiGetObject(scr, id);
+	if (object && object->widget == GFUI_COMBOBOX)
+	{
+		const tGfuiCombobox *combo = &object->u.combobox;
+
+		return combo->is_focused;
+	}
+
+	return false;
+}
+
 /** Add combo-box like control to a screen.
     @ingroup	gui
     @param	scr		Screen
@@ -117,6 +137,7 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 
 	combobox = &(object->u.combobox);
 
+    combobox->is_focused = false;
     combobox->userDataOnFocus = userDataOnFocus;
     combobox->onFocus = onFocus;
     combobox->onFocusLost = onFocusLost;

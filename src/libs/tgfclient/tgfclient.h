@@ -557,6 +557,7 @@ TGFCLIENT_API const char* GfuiComboboxGetText(void* scr, int id);
 TGFCLIENT_API void GfuiComboboxClear(void* scr, int id);
 TGFCLIENT_API const std::vector<std::string> *GfuiComboboxGetChoices(void* scr, int id);
 TGFCLIENT_API unsigned GfuiComboboxGetNumberOfChoices(void* scr, int id);
+TGFCLIENT_API bool GfuiComboboxGetFocused(void* scr, int id);
 
 /* Check Boxes */
 TGFCLIENT_API int GfuiCheckboxCreate(void* scr, int font, int x, int y,
