@@ -141,6 +141,7 @@ typedef struct
     int			mirror; // Horizontal / Vertical symetry to apply to image
     int			buttonType;
     int			mouseBehaviour;
+    int			tipLabel;
     void		*userDataOnPush;
     tfuiCallback	onPush;
     void		*userDataOnFocus;
@@ -455,7 +456,8 @@ extern void gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const 
                              const char *focused, const char *pushed,
                              int x, int y, int width, int height, int mirror, int mouse,
                              void *userDataOnPush, tfuiCallback onPush,
-                             void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                             void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                             int tipLabel);
 
 extern void gfuiReleaseLabel(tGfuiObject *obj);
 extern void gfuiReleaseButton(tGfuiObject *obj);

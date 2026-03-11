@@ -637,12 +637,13 @@ createImageButton(void* hscr, void* hparm, const char* pszPath,
     int nHeight =
         bFromTemplate && height != GFUI_TPL_HEIGHT
         ? height : (int)GfParmGetNum(hparm, pszPath, GFMNU_ATTR_HEIGHT, NULL, 0);
+    int tipLabel = -1;
 
     if (strlen(pszTip) > 0)
     {
         tMenuCallbackInfo * cbinfo = (tMenuCallbackInfo*)calloc(1, sizeof(tMenuCallbackInfo));
         cbinfo->screen = hscr;
-        cbinfo->labelId = GfuiTipCreate(hscr, pszTip, strlen(pszTip));
+        cbinfo->labelId = tipLabel = GfuiTipCreate(hscr, pszTip, strlen(pszTip));
         GfuiVisibilitySet(hscr, cbinfo->labelId, GFUI_INVISIBLE);
 
         // TODO: In this case, we crudely overwrite onFocus/onFocusLost !
@@ -661,7 +662,7 @@ createImageButton(void* hscr, void* hparm, const char* pszPath,
                            pszDisabledImage, pszEnabledImage, pszFocusedImage, pszPushedImage,
                            nX, nY, nWidth, nHeight, GFUI_MIRROR_NONE, true, GFUI_MOUSE_UP,
                            userDataOnPush, onPush,
-                           userDataOnFocus, onFocus, onFocusLost);
+                           userDataOnFocus, onFocus, onFocusLost, tipLabel);
 
     return butId;
 }

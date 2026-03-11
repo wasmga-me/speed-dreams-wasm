@@ -558,6 +558,13 @@ GfuiVisibilitySet(void *scr, int id, int visible)
 
         GfuiVisibilitySet(scr, button->tipLabel, visible && focused);
     }
+    else if (curObject->widget == GFUI_GRBUTTON)
+    {
+        const tGfuiGrButton *grbutton = &curObject->u.grbutton;
+        bool focused = GfuiGrButtonGetFocused(scr, id);
+
+        GfuiVisibilitySet(scr, grbutton->tipLabel, visible && focused);
+    }
     else if (curObject->widget == GFUI_COMBOBOX)
     {
         const tGfuiCombobox *combobox = &curObject->u.combobox;

@@ -75,6 +75,7 @@ gfuiInitButton(void)
     @param	userDataOnFocus	Parameter to the Focus (and lost) callback
     @param	onFocus		Focus callback function
     @param	onFocusLost	Focus Lost callback function
+    @param	tipLabel	Tip label identifier, or -1 if not available
     @return	Button Id
 		<br>-1 Error
  */
@@ -83,7 +84,8 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
 				 const char *focused, const char *pushed,
 				 int x, int y, int width, int height, int mirror, int mouse,
 				 void *userDataOnPush, tfuiCallback onPush,
-				 void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
+				 void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+				 int tipLabel)
 {
     button->state = GFUI_BTN_RELEASED;
 
@@ -108,6 +110,7 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
     button->userDataOnFocus = userDataOnFocus;
     button->onFocus = onFocus;
     button->onFocusLost = onFocusLost;
+    button->tipLabel = tipLabel;
 }
 
 /** Returns whether an image button is focused.
@@ -153,6 +156,7 @@ GfuiGrButtonGetFocused(void* scr, int id)
     @param	userDataOnFocus	Parameter to the Focus (and lost) callback
     @param	onFocus		Focus callback function
     @param	onFocusLost	Focus Lost callback function
+    @param	tipLabel	Tip label identifier, or -1 if not available
     @return	Button Id
 		<br>-1 Error
  */
@@ -162,7 +166,8 @@ GfuiGrButtonCreate(void *scr, const char *disabled, const char *enabled,
 				   const char *focused, const char *pushed,
 				   int x, int y, int width, int height, int mirror, bool padding, int mouse,
 				   void *userDataOnPush, tfuiCallback onPush,
-				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
+				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+				   int tipLabel)
 {
     tGfuiScreen* screen = (tGfuiScreen*)scr;
 
@@ -179,7 +184,8 @@ GfuiGrButtonCreate(void *scr, const char *disabled, const char *enabled,
 	gfuiGrButtonInit(button, disabled, enabled, focused, pushed,
 					 x + hPadding, y + vPadding,
 					 width - 2 * hPadding, height - 2 * vPadding, mirror, mouse,
-					 userDataOnPush, onPush, userDataOnFocus, onFocus, onFocusLost);
+					 userDataOnPush, onPush, userDataOnFocus, onFocus, onFocusLost,
+					 tipLabel);
 
 	object->xmin = x;
 	object->xmax = x + button->width + 2 * hPadding;

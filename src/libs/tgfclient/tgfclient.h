@@ -524,7 +524,8 @@ TGFCLIENT_API int GfuiGrButtonCreate(void* scr, const char* disabled, const char
                                      int x, int y, int width, int height,
                                      int mirror, bool padding, int mouse,
                                      void* userDataOnPush, tfuiCallback onPush,
-                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                                     int tipLabel = -1);
 TGFCLIENT_API bool GfuiGrButtonGetFocused(void* scr, int id);
 
 TGFCLIENT_API void GfuiButtonShowBox(void* scr, int id,bool bShow);
