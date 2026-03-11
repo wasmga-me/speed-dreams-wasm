@@ -92,6 +92,7 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
     button->enabled = GfTexReadTexture(enabled, &w, &h);
     button->focused = GfTexReadTexture(focused, &w, &h);
     button->pushed = GfTexReadTexture(pushed, &w, &h);
+    button->is_focused = false;
 
 	// Warning: All the images are supposed to be the same size.
 	button->width = width <= 0 ? w : width;
@@ -107,6 +108,27 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
     button->userDataOnFocus = userDataOnFocus;
     button->onFocus = onFocus;
     button->onFocusLost = onFocusLost;
+}
+
+/** Returns whether an image button is focused.
+    @ingroup	gui
+    @param	scr		Screen
+    @param	id	Button Id
+    @return	True if focused, false otherwise.
+ */
+
+bool
+GfuiGrButtonGetFocused(void* scr, int id)
+{
+	tGfuiObject *object = gfuiGetObject(scr, id);
+	if (object && object->widget == GFUI_GRBUTTON)
+	{
+		const tGfuiGrButton *grbutton = &object->u.grbutton;
+
+		return grbutton->is_focused;
+	}
+
+	return false;
 }
 
 /** Add an image button to a screen.

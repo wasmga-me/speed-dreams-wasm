@@ -128,6 +128,7 @@ typedef struct
 typedef struct
 {
     unsigned int	state;
+    bool is_focused;
 
     // Texture handles
     GLuint disabled;

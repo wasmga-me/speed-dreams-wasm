@@ -525,6 +525,7 @@ TGFCLIENT_API int GfuiGrButtonCreate(void* scr, const char* disabled, const char
                                      int mirror, bool padding, int mouse,
                                      void* userDataOnPush, tfuiCallback onPush,
                                      void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+TGFCLIENT_API bool GfuiGrButtonGetFocused(void* scr, int id);
 
 TGFCLIENT_API void GfuiButtonShowBox(void* scr, int id,bool bShow);
 TGFCLIENT_API void GfuiButtonSetColors(void *scr, int id, const GfuiColor& color,

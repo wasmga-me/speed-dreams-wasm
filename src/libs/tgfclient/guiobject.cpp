@@ -232,6 +232,7 @@ GfuiUnSelectCurrent(void)
     case GFUI_GRBUTTON:
 	grbutton = &(obj->u.grbutton);
 	grbutton->state = GFUI_BTN_RELEASED;
+	grbutton->is_focused = false;
 	if (grbutton->onFocusLost != NULL) {
 	    grbutton->onFocusLost(grbutton->userDataOnFocus);
 	}
@@ -281,6 +282,7 @@ gfuiLoseFocus(tGfuiObject *obj)
 		{
 			tGfuiGrButton* grbutton = &(obj->u.grbutton);
 			grbutton->state = GFUI_BTN_RELEASED;
+			grbutton->is_focused = false;
 			if (grbutton->onFocusLost)
 				grbutton->onFocusLost(grbutton->userDataOnFocus);
 		}
@@ -346,6 +348,7 @@ gfuiSetFocus(tGfuiObject *obj)
 		case GFUI_GRBUTTON:
 		{
 			tGfuiGrButton* grbutton = &(obj->u.grbutton);
+			grbutton->is_focused = true;
 			if (grbutton->onFocus)
 				grbutton->onFocus(grbutton->userDataOnFocus);
 			playMenuSfx(SFX_FOCUS);
