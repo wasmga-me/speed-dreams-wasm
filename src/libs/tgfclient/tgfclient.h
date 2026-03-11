@@ -547,7 +547,8 @@ TGFCLIENT_API int GfuiComboboxCreate(void* scr, int font, int x, int y, int widt
                                      const char* pszText, int maxlen,
                                      const float* fgColor, const float* fgFocusColor,
                                      void* userData, tfuiComboboxCallback onChange,
-                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                                     int tipLabel = -1);
 TGFCLIENT_API unsigned int GfuiComboboxAddText(void* scr, int id, const char* text);
 TGFCLIENT_API void GfuiComboboxSetTextColor(void* scr, int id, const GfuiColor& color);
 TGFCLIENT_API void GfuiComboboxSetSelectedIndex(void* scr, int id, unsigned int index);

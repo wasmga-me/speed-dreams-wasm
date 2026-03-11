@@ -555,6 +555,13 @@ GfuiVisibilitySet(void *scr, int id, int visible)
 
         GfuiVisibilitySet(scr, button->tipLabel, visible && focused);
     }
+    else if (curObject->widget == GFUI_COMBOBOX)
+    {
+        const tGfuiCombobox *combobox = &curObject->u.combobox;
+        bool focused = GfuiComboboxGetFocused(scr, id);
+
+        GfuiVisibilitySet(scr, combobox->tipLabel, visible && focused);
+    }
 
     return 0;
 }

@@ -222,6 +222,7 @@ typedef struct
     GfuiColor fgColor[3];
     bool is_focused;
     int	comboType;
+    int	tipLabel;
     void		*userDataOnFocus;
     tfuiCallback	onFocus;
     tfuiCallback	onFocusLost;

@@ -828,11 +828,12 @@ GfuiMenuCreateComboboxControl(void* hscr, void* hparm, const char* pszName,
     void* userDataOnFocus = 0;
     tfuiCallback onFocus = 0;
     tfuiCallback onFocusLost = 0;
+    int tipLabel = -1;
     if (pszTip && strlen(pszTip) > 0)
     {
         tMenuCallbackInfo * cbinfo = (tMenuCallbackInfo*)calloc(1, sizeof(tMenuCallbackInfo));
         cbinfo->screen = hscr;
-        cbinfo->labelId = GfuiTipCreate(hscr, pszTip, strlen(pszTip));
+        cbinfo->labelId = tipLabel = GfuiTipCreate(hscr, pszTip, strlen(pszTip));
         GfuiVisibilitySet(hscr, cbinfo->labelId, GFUI_INVISIBLE);
 
         userDataOnFocus = (void*)cbinfo;
@@ -853,7 +854,7 @@ GfuiMenuCreateComboboxControl(void* hscr, void* hparm, const char* pszName,
 
     id = GfuiComboboxCreate(hscr, font, x, y, width, nArrowsWidth, nArrowsHeight,
                             pszText, maxlen, aColor, aFocusColor,
-                            userData, onChange, userDataOnFocus, onFocus, onFocusLost);
+                            userData, onChange, userDataOnFocus, onFocus, onFocusLost, tipLabel);
 
     return id;
 }

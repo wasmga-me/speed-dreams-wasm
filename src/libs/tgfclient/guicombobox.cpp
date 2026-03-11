@@ -113,6 +113,7 @@ GfuiComboboxGetFocused(void* scr, int id)
     @param	userDataOnFocus	Parameter to the Focus (and lost) callback
     @param	onFocus		Focus callback function
     @param	onFocusLost	Focus Lost callback function
+    @param	tipLabel	Tip label identifier, or -1 if not available
     @return	ComboBox Id
 		<br>-1 Error
  */
@@ -123,7 +124,8 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 				   const char *pszText, int maxlen,
 				   const float *fgColor, const float *fgFocusColor,
 				   void *userData, tfuiComboboxCallback onChange,
-				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
+				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+				   int tipLabel)
 {
     tGfuiCombobox	*combobox;
     tGfuiObject		*object;
@@ -142,6 +144,7 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
     combobox->onFocus = onFocus;
     combobox->onFocusLost = onFocusLost;
 	combobox->onChange = onChange;
+	combobox->tipLabel = tipLabel;
 
     combobox->pInfo = new tComboBoxInfo;
 	combobox->pInfo->nPos = 0;
