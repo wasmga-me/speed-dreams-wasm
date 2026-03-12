@@ -22,6 +22,7 @@
 #ifndef __IUSERINTERFACE__H__
 #define __IUSERINTERFACE__H__
 
+#include <car.h>
 #include <string>
 #include <vector>
 
@@ -85,6 +86,9 @@ public:
 
 	//! Race engine setter.
 	virtual void setRaceEngine(IRaceEngine& raceEngine) = 0;
+
+	// Add human cars to pre-race configuration.
+	virtual void addHumanCfg(const std::vector<tCarElt *> &cars, void *hook = nullptr) = 0;
 };
 
 #include <iraceengine.h>

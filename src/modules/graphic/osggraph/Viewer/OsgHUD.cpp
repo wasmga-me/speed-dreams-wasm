@@ -1173,6 +1173,8 @@ void SDHUD::CreateHUD(int scrH, int scrW)
     //generate the hud from the relative xml file
     camera->addChild(generateHudFromXmlFile(scrH, scrW));
 
+    // reset car data from previous races
+    carData.clear();
 }
 
 void SDHUD::DispDebug(const tSituation *s, const SDFrameInfo* frame)
@@ -1828,10 +1830,11 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
 
         //set the temperature unit
         temp.str("");
-        temp << "C";
+        temp << "°C";
         tireNameText.str("");
         tireNameText << "tire-" << tireName.str().c_str()  << "-temps-unit";
-        hudTextElements[tireNameText.str().c_str()]->setText(temp.str());
+        hudTextElements[tireNameText.str().c_str()]->setText(temp.str(),
+            osgText::String::Encoding::ENCODING_UTF8);
 
         //pressures string
         temp.str("");

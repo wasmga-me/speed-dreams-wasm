@@ -224,6 +224,7 @@ GfuiUnSelectCurrent(void)
     case GFUI_BUTTON:
 	button = &(obj->u.button);
 	button->state = GFUI_BTN_RELEASED;
+	button->is_focused = false;
 	if (button->onFocusLost != NULL) {
 	    button->onFocusLost(button->userDataOnFocus);
 	}
@@ -231,6 +232,7 @@ GfuiUnSelectCurrent(void)
     case GFUI_GRBUTTON:
 	grbutton = &(obj->u.grbutton);
 	grbutton->state = GFUI_BTN_RELEASED;
+	grbutton->is_focused = false;
 	if (grbutton->onFocusLost != NULL) {
 	    grbutton->onFocusLost(grbutton->userDataOnFocus);
 	}
@@ -250,6 +252,7 @@ GfuiUnSelectCurrent(void)
 	break;
 	case GFUI_COMBOBOX:
 	combobox = &(obj->u.combobox);
+	combobox->is_focused = false;
 	if (combobox->onFocusLost != NULL) {
 		combobox->onFocusLost(combobox->userDataOnFocus);
 	}
@@ -269,6 +272,7 @@ gfuiLoseFocus(tGfuiObject *obj)
 		{
 			tGfuiButton* button = &(obj->u.button);
 			button->state = GFUI_BTN_RELEASED;
+			button->is_focused = false;
 			if (button->onFocusLost)
 				button->onFocusLost(button->userDataOnFocus);
 		}
@@ -278,6 +282,7 @@ gfuiLoseFocus(tGfuiObject *obj)
 		{
 			tGfuiGrButton* grbutton = &(obj->u.grbutton);
 			grbutton->state = GFUI_BTN_RELEASED;
+			grbutton->is_focused = false;
 			if (grbutton->onFocusLost)
 				grbutton->onFocusLost(grbutton->userDataOnFocus);
 		}
@@ -311,6 +316,7 @@ gfuiLoseFocus(tGfuiObject *obj)
  		case GFUI_COMBOBOX:
 		{
 			tGfuiCombobox* combo = &(obj->u.combobox);
+			combo->is_focused = false;
 			if (combo->onFocusLost)
 				combo->onFocusLost(combo->userDataOnFocus);
 		}
@@ -332,6 +338,7 @@ gfuiSetFocus(tGfuiObject *obj)
 		case GFUI_BUTTON:
 		{
 			tGfuiButton* button = &(obj->u.button);
+			button->is_focused = true;
 			if (button->onFocus)
 				button->onFocus(button->userDataOnFocus);
 			playMenuSfx(SFX_FOCUS);
@@ -341,6 +348,7 @@ gfuiSetFocus(tGfuiObject *obj)
 		case GFUI_GRBUTTON:
 		{
 			tGfuiGrButton* grbutton = &(obj->u.grbutton);
+			grbutton->is_focused = true;
 			if (grbutton->onFocus)
 				grbutton->onFocus(grbutton->userDataOnFocus);
 			playMenuSfx(SFX_FOCUS);
@@ -377,6 +385,7 @@ gfuiSetFocus(tGfuiObject *obj)
 		case GFUI_COMBOBOX:
 		{
 			tGfuiCombobox* combo = &(obj->u.combobox);
+			combo->is_focused = true;
 			if (combo->onFocus)
 				combo->onFocus(combo->userDataOnFocus);
 			playMenuSfx(SFX_FOCUS);
@@ -541,6 +550,27 @@ GfuiVisibilitySet(void *scr, int id, int visible)
         GfuiVisibilitySet(scr, checkbox->checkId, visible && checked);
         GfuiVisibilitySet(scr, checkbox->uncheckId, visible && !checked);
         GfuiVisibilitySet(scr, checkbox->labelId, visible);
+    }
+    else if (curObject->widget == GFUI_BUTTON)
+    {
+        const tGfuiButton *button = &curObject->u.button;
+        bool focused = GfuiButtonGetFocused(scr, id);
+
+        GfuiVisibilitySet(scr, button->tipLabel, visible && focused);
+    }
+    else if (curObject->widget == GFUI_GRBUTTON)
+    {
+        const tGfuiGrButton *grbutton = &curObject->u.grbutton;
+        bool focused = GfuiGrButtonGetFocused(scr, id);
+
+        GfuiVisibilitySet(scr, grbutton->tipLabel, visible && focused);
+    }
+    else if (curObject->widget == GFUI_COMBOBOX)
+    {
+        const tGfuiCombobox *combobox = &curObject->u.combobox;
+        bool focused = GfuiComboboxGetFocused(scr, id);
+
+        GfuiVisibilitySet(scr, combobox->tipLabel, visible && focused);
     }
 
     return 0;

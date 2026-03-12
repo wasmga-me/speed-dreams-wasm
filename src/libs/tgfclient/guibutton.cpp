@@ -75,6 +75,7 @@ gfuiInitButton(void)
     @param	userDataOnFocus	Parameter to the Focus (and lost) callback
     @param	onFocus		Focus callback function
     @param	onFocusLost	Focus Lost callback function
+    @param	tipLabel	Tip label identifier, or -1 if not available
     @return	Button Id
 		<br>-1 Error
  */
@@ -83,7 +84,8 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
 				 const char *focused, const char *pushed,
 				 int x, int y, int width, int height, int mirror, int mouse,
 				 void *userDataOnPush, tfuiCallback onPush,
-				 void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
+				 void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+				 int tipLabel)
 {
     button->state = GFUI_BTN_RELEASED;
 
@@ -92,6 +94,7 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
     button->enabled = GfTexReadTexture(enabled, &w, &h);
     button->focused = GfTexReadTexture(focused, &w, &h);
     button->pushed = GfTexReadTexture(pushed, &w, &h);
+    button->is_focused = false;
 
 	// Warning: All the images are supposed to be the same size.
 	button->width = width <= 0 ? w : width;
@@ -107,6 +110,28 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
     button->userDataOnFocus = userDataOnFocus;
     button->onFocus = onFocus;
     button->onFocusLost = onFocusLost;
+    button->tipLabel = tipLabel;
+}
+
+/** Returns whether an image button is focused.
+    @ingroup	gui
+    @param	scr		Screen
+    @param	id	Button Id
+    @return	True if focused, false otherwise.
+ */
+
+bool
+GfuiGrButtonGetFocused(void* scr, int id)
+{
+	tGfuiObject *object = gfuiGetObject(scr, id);
+	if (object && object->widget == GFUI_GRBUTTON)
+	{
+		const tGfuiGrButton *grbutton = &object->u.grbutton;
+
+		return grbutton->is_focused;
+	}
+
+	return false;
 }
 
 /** Add an image button to a screen.
@@ -131,6 +156,7 @@ gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const char *enable
     @param	userDataOnFocus	Parameter to the Focus (and lost) callback
     @param	onFocus		Focus callback function
     @param	onFocusLost	Focus Lost callback function
+    @param	tipLabel	Tip label identifier, or -1 if not available
     @return	Button Id
 		<br>-1 Error
  */
@@ -140,7 +166,8 @@ GfuiGrButtonCreate(void *scr, const char *disabled, const char *enabled,
 				   const char *focused, const char *pushed,
 				   int x, int y, int width, int height, int mirror, bool padding, int mouse,
 				   void *userDataOnPush, tfuiCallback onPush,
-				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
+				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+				   int tipLabel)
 {
     tGfuiScreen* screen = (tGfuiScreen*)scr;
 
@@ -157,7 +184,8 @@ GfuiGrButtonCreate(void *scr, const char *disabled, const char *enabled,
 	gfuiGrButtonInit(button, disabled, enabled, focused, pushed,
 					 x + hPadding, y + vPadding,
 					 width - 2 * hPadding, height - 2 * vPadding, mirror, mouse,
-					 userDataOnPush, onPush, userDataOnFocus, onFocus, onFocusLost);
+					 userDataOnPush, onPush, userDataOnFocus, onFocus, onFocusLost,
+					 tipLabel);
 
 	object->xmin = x;
 	object->xmax = x + button->width + 2 * hPadding;
@@ -218,6 +246,25 @@ GfuiButtonStateCreate(void *scr, const char *text, int font, int x, int y, int w
 	return id;
 }//GfuiButtonStateCreate
 
+/** Returns whether a button is focused.
+    @ingroup	gui
+    @param	scr	Screen
+    @param	id	Button Id
+    @return	True if focused, false otherwise.
+ */
+bool
+GfuiButtonGetFocused(void* scr, int id)
+{
+	tGfuiObject *object = gfuiGetObject(scr, id);
+	if (object && object->widget == GFUI_BUTTON)
+	{
+		const tGfuiButton *button = &object->u.button;
+
+		return button->is_focused;
+	}
+
+	return false;
+}
 
 /** Add a text button to a screen.
     @ingroup	gui
@@ -239,13 +286,15 @@ GfuiButtonStateCreate(void *scr, const char *text, int font, int x, int y, int w
     @param	userDataOnFocus	Parameter to the Focus (and lost) callback
     @param	onFocus		Focus callback function
     @param	onFocusLost	Focus Lost callback function
+    @param	tipLabel	Tip label identifier, or -1 if not available
     @return	Button Id
 		<br>-1 Error
  */
 int
 GfuiButtonCreate(void *scr, const char *text, int font, int x, int y, int width, int textHAlign,
 				 int mouse, void *userDataOnPush, tfuiCallback onPush,
-				 void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
+				 void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+				 int tipLabel)
 {
     tGfuiButton	*button;
     tGfuiObject	*object;
@@ -267,6 +316,8 @@ GfuiButtonCreate(void *scr, const char *text, int font, int x, int y, int width,
     button->mouseBehaviour = mouse;
     button->buttonType = GFUI_BTN_PUSH;
     button->bShowBox = true;
+    button->is_focused = false;
+    button->tipLabel = tipLabel;
 
     button->disabled = 0;
     button->enabled = 0;

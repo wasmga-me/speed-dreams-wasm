@@ -74,6 +74,26 @@ gfuiRightArrow(void *idv)
 		combobox->onChange(combobox->pInfo);
 }
 
+/** Returns whether a combobox is focused.
+    @ingroup	gui
+    @param	scr		Screen
+    @param	id		Button Id
+    @return	True if focused, false otherwise.
+ */
+bool
+GfuiComboboxGetFocused(void* scr, int id)
+{
+	tGfuiObject *object = gfuiGetObject(scr, id);
+	if (object && object->widget == GFUI_COMBOBOX)
+	{
+		const tGfuiCombobox *combo = &object->u.combobox;
+
+		return combo->is_focused;
+	}
+
+	return false;
+}
+
 /** Add combo-box like control to a screen.
     @ingroup	gui
     @param	scr		Screen
@@ -93,6 +113,7 @@ gfuiRightArrow(void *idv)
     @param	userDataOnFocus	Parameter to the Focus (and lost) callback
     @param	onFocus		Focus callback function
     @param	onFocusLost	Focus Lost callback function
+    @param	tipLabel	Tip label identifier, or -1 if not available
     @return	ComboBox Id
 		<br>-1 Error
  */
@@ -103,7 +124,8 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 				   const char *pszText, int maxlen,
 				   const float *fgColor, const float *fgFocusColor,
 				   void *userData, tfuiComboboxCallback onChange,
-				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
+				   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+				   int tipLabel)
 {
     tGfuiCombobox	*combobox;
     tGfuiObject		*object;
@@ -117,10 +139,12 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 
 	combobox = &(object->u.combobox);
 
+    combobox->is_focused = false;
     combobox->userDataOnFocus = userDataOnFocus;
     combobox->onFocus = onFocus;
     combobox->onFocusLost = onFocusLost;
 	combobox->onChange = onChange;
+	combobox->tipLabel = tipLabel;
 
     combobox->pInfo = new tComboBoxInfo;
 	combobox->pInfo->nPos = 0;
@@ -134,13 +158,15 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 					 "data/img/arrowleft-disabled.png", "data/img/arrowleft-normal.png",
 					 "data/img/arrowleft-focused.png", "data/img/arrowleft-pushed.png",
 					 x, y, arrowsWidth, arrowsHeight, GFUI_MIRROR_NONE,
-					 GFUI_MOUSE_UP,	 object, gfuiLeftArrow, 0, 0, 0);
+					 GFUI_MOUSE_UP,	 object, gfuiLeftArrow, 0, 0, 0,
+					 tipLabel);
 	gfuiGrButtonInit(&combobox->rightButton,
 					 "data/img/arrowright-disabled.png", "data/img/arrowright-normal.png",
 					 "data/img/arrowright-focused.png", "data/img/arrowright-pushed.png",
 					 x + width - combobox->leftButton.width, y,
 					 arrowsWidth, arrowsHeight, GFUI_MIRROR_NONE,
-					 GFUI_MOUSE_UP, object, gfuiRightArrow, 0, 0, 0);
+					 GFUI_MOUSE_UP, object, gfuiRightArrow, 0, 0, 0,
+					 tipLabel);
 
 
 
@@ -181,7 +207,7 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 					 width - 2 * combobox->leftButton.width, //width
 					 arrowsHeight, //height: same as the arrows
 					 GFUI_MIRROR_NONE,
-					 GFUI_MOUSE_UP, NULL, 0, 0, 0, 0);
+					 GFUI_MOUSE_UP, NULL, 0, 0, 0, 0, tipLabel);
 
 	// Add the combo control to the display list.
     gfuiAddObject(screen, object);

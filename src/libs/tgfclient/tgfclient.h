@@ -513,7 +513,8 @@ TGFCLIENT_API void GfuiLabelSetColor(void* scr, int id, const float* color);
 TGFCLIENT_API int GfuiButtonCreate(void* scr, const char* text, int font,
                                    int x, int y, int width, int textHAlign, int mouse,
                                    void* userDataOnPush, tfuiCallback onPush,
-                                   void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                   void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                                   int tipLabel = -1);
 TGFCLIENT_API int GfuiButtonStateCreate(void* scr, const char* text, int font, int x, int y,
                                         int width, int textHAlign, int mouse,
                                         void* userDataOnPush, tfuiCallback onPush,
@@ -523,7 +524,9 @@ TGFCLIENT_API int GfuiGrButtonCreate(void* scr, const char* disabled, const char
                                      int x, int y, int width, int height,
                                      int mirror, bool padding, int mouse,
                                      void* userDataOnPush, tfuiCallback onPush,
-                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                                     int tipLabel = -1);
+TGFCLIENT_API bool GfuiGrButtonGetFocused(void* scr, int id);
 
 TGFCLIENT_API void GfuiButtonShowBox(void* scr, int id,bool bShow);
 TGFCLIENT_API void GfuiButtonSetColors(void *scr, int id, const GfuiColor& color,
@@ -546,7 +549,8 @@ TGFCLIENT_API int GfuiComboboxCreate(void* scr, int font, int x, int y, int widt
                                      const char* pszText, int maxlen,
                                      const float* fgColor, const float* fgFocusColor,
                                      void* userData, tfuiComboboxCallback onChange,
-                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                                     void* userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                                     int tipLabel = -1);
 TGFCLIENT_API unsigned int GfuiComboboxAddText(void* scr, int id, const char* text);
 TGFCLIENT_API void GfuiComboboxSetTextColor(void* scr, int id, const GfuiColor& color);
 TGFCLIENT_API void GfuiComboboxSetSelectedIndex(void* scr, int id, unsigned int index);
@@ -556,6 +560,7 @@ TGFCLIENT_API const char* GfuiComboboxGetText(void* scr, int id);
 TGFCLIENT_API void GfuiComboboxClear(void* scr, int id);
 TGFCLIENT_API const std::vector<std::string> *GfuiComboboxGetChoices(void* scr, int id);
 TGFCLIENT_API unsigned GfuiComboboxGetNumberOfChoices(void* scr, int id);
+TGFCLIENT_API bool GfuiComboboxGetFocused(void* scr, int id);
 
 /* Check Boxes */
 TGFCLIENT_API int GfuiCheckboxCreate(void* scr, int font, int x, int y,
@@ -570,7 +575,7 @@ TGFCLIENT_API bool GfuiCheckboxIsChecked(void* scr, int id);
 
 
 TGFCLIENT_API void GfuiButtonSetText(void* scr, int id, const char* text);
-TGFCLIENT_API int GfuiButtonGetFocused(void);
+TGFCLIENT_API bool GfuiButtonGetFocused(void* scr, int id);
 
 /* Edit Boxes */
 TGFCLIENT_API int GfuiEditboxCreate(void* scr, const char* text, int font,

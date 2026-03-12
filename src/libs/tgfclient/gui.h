@@ -103,6 +103,7 @@ typedef struct
     GfuiColor fgFocusColor[3];
 
     unsigned int	state;
+    bool			is_focused;
     int			buttonType;
     int			mouseBehaviour;
     void		*userDataOnPush;
@@ -113,6 +114,7 @@ typedef struct
 
     int imgX, imgY;
     int imgWidth, imgHeight;
+    int tipLabel;
 
     // if skin used
     GLuint disabled;
@@ -126,6 +128,7 @@ typedef struct
 typedef struct
 {
     unsigned int	state;
+    bool is_focused;
 
     // Texture handles
     GLuint disabled;
@@ -138,6 +141,7 @@ typedef struct
     int			mirror; // Horizontal / Vertical symetry to apply to image
     int			buttonType;
     int			mouseBehaviour;
+    int			tipLabel;
     void		*userDataOnPush;
     tfuiCallback	onPush;
     void		*userDataOnFocus;
@@ -218,7 +222,9 @@ typedef struct
     tComboBoxInfo *pInfo;
 
     GfuiColor fgColor[3];
+    bool is_focused;
     int	comboType;
+    int	tipLabel;
     void		*userDataOnFocus;
     tfuiCallback	onFocus;
     tfuiCallback	onFocusLost;
@@ -450,7 +456,8 @@ extern void gfuiGrButtonInit(tGfuiGrButton* button, const char *disabled, const 
                              const char *focused, const char *pushed,
                              int x, int y, int width, int height, int mirror, int mouse,
                              void *userDataOnPush, tfuiCallback onPush,
-                             void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost);
+                             void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost,
+                             int tipLabel);
 
 extern void gfuiReleaseLabel(tGfuiObject *obj);
 extern void gfuiReleaseButton(tGfuiObject *obj);
