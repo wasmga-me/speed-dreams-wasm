@@ -157,6 +157,7 @@ void RmGarageMenu::onAcceptCB(void *pGarageMenu)
 {
 	// Get the RmGarageMenu instance from call-back user data.
 	RmGarageMenu* pMenu = static_cast<RmGarageMenu*>(pGarageMenu);
+	void *next = pMenu->getNextMenuHandle();
 
 	// Assign new skin choice to the driver.
 	GfDriver* pDriver = pMenu->getDriver();
@@ -166,8 +167,12 @@ void RmGarageMenu::onAcceptCB(void *pGarageMenu)
 	if (pDriver->isHuman())
 		pDriver->setCar(pMenu->getSelectedCarModel());
 
-	// Back to previous screen.
-	GfuiScreenActivate(pMenu->getPreviousMenuHandle());
+	if (next)
+		// Go to next screen.
+		GfuiScreenActivate(next);
+	else
+		// Back to previous screen.
+		GfuiScreenActivate(pMenu->getPreviousMenuHandle());
 
     delete pMenu->_pCarSetupMenu;
     pMenu->_pCarSetupMenu = nullptr;
