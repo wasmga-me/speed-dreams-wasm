@@ -338,9 +338,17 @@ public:
     {
         prevMenuHdle = hdle;
     }
+    void setNextMenuHandle(void* hdle)
+    {
+        nextMenuHdle = hdle;
+    }
     void* getPreviousMenuHandle() const
     {
         return prevMenuHdle;
+    }
+    void* getNextMenuHandle() const
+    {
+        return nextMenuHdle;
     }
 
     bool openXMLDescriptor();
@@ -421,6 +429,7 @@ public:
 private:
     void *menuHdle = nullptr;
     void *prevMenuHdle = nullptr;
+    void *nextMenuHdle = nullptr;
     std::string strXMLDescFileName;
     void *xmlDescParmHdle = nullptr;
     std::map<std::string, int> mapControlIds;
