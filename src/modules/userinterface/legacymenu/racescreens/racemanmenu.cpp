@@ -33,6 +33,7 @@
 
 #include <racemanagers.h>
 #include <race.h>
+#include <robot.h>
 #include <tracks.h>
 #include <drivers.h>
 #include <cars.h>
@@ -45,6 +46,7 @@
 #endif
 
 #include "legacymenu.h"
+#include "humanselect.h"
 #include "racescreens.h"
 
 
@@ -404,11 +406,13 @@ rmOnSelectCompetitor(void * /* dummy */)
 static void
 rmOnPlayerConfig(void * /* dummy */)
 {
-	/* Here, we need to call OptionOptionInit each time the firing button
-	   is pressed, and not only once at the Raceman menu initialization,
-	   because the previous menu has to be saved (ESC, Back) and because it can be this menu,
-	   as well as the Main menu */
-	GfuiScreenActivate(PlayerConfigMenuInit(ScrHandle));
+	GfRace* pRace = LmRaceEngine().race();
+	GfRaceManager* pRaceMan = pRace->getManager();
+
+	if (pRaceMan->acceptsDriverType(ROB_VAL_HUMAN))
+		new HumanSelect(ScrHandle, pRace, true);
+	else
+		RmDriversSelect(ScrHandle);
 
 	// Keep this in mind for when we go back here.
 	PlayerConfigOpen = true;
@@ -577,8 +581,7 @@ RmRacemanMenu()
 	// Create Configure race, Configure players and Back buttons.
 	GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "ConfigureRaceButton",
 								NULL, RmConfigureRace);
-	if (SupportsHumanDrivers)
-		GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "ConfigurePlayersButton",
+	GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "ConfigurePlayersButton",
 								NULL, rmOnPlayerConfig);
 
 	GfuiMenuCreateButtonControl(ScrHandle, menuXMLDescHdle, "BackButton",
