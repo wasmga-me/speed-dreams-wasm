@@ -806,6 +806,11 @@ unsigned GfRace::getCompetitorsCount() const
     return _pPrivate->vecCompetitors.size();
 }
 
+unsigned GfRace::getMaxCompetitors() const
+{
+    return _pPrivate->nMaxCompetitors;
+}
+
 bool GfRace::acceptsMoreCompetitors() const
 {
     return _pPrivate->vecCompetitors.size() < _pPrivate->nMaxCompetitors;
