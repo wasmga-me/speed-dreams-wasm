@@ -27,6 +27,7 @@
 
 #include "cars.h"
 #include "drivers.h"
+#include "playerpref.h"
 #include "tracks.h"
 #include "racemanagers.h"
 #include "race.h"
@@ -655,6 +656,55 @@ void GfRace::store()
         GfParmSetStr(hparmRaceMan, strDrvSec.c_str(), RM_ATTR_MODULE,
                      (*itComp)->getModuleName().c_str());
 
+        const GfDriverSkin& skin = (*itComp)->getSkin();
+        const std::string& name = skin.getName();
+
+        if (!name.empty())
+        {
+            void* handle;
+            std::string fpath;
+            const char *cfpath, *mod = (*itComp)->getModuleName().c_str();
+
+            if ((*itComp)->isHuman())
+                fpath = HM_DRV_FILE;
+            else
+            {
+                ossDrvSecPath.str("");
+                ossDrvSecPath << "drivers/" << mod << '/'
+                    << (*itComp)->getInterfaceIndex() << "/driver.xml";
+                fpath = ossDrvSecPath.str();
+            }
+
+            cfpath = fpath.c_str();
+
+            if (!(handle = GfParmReadFileLocal(cfpath, GFPARM_RMODE_STD)))
+                GfLogError("GfParmReadFileLocal %s failed\n", cfpath);
+            else
+            {
+                std::string path;
+                const char *cpath;
+
+                if ((*itComp)->isHuman())
+                {
+                    ossDrvSecPath.str("");
+                    ossDrvSecPath << ROB_SECT_ROBOTS << '/' << ROB_LIST_INDEX
+                        << '/' << (*itComp)->getInterfaceIndex();
+                    path = ossDrvSecPath.str();
+                }
+                else
+                    path = "driver";
+
+                cpath = path.c_str();
+
+                if (GfParmSetStr(handle, cpath, ROB_ATTR_LIVERY, name.c_str()))
+                    GfLogError("GfParmSetStr %s failed\n", cpath);
+                else if (GfParmWriteFile(NULL, handle, mod))
+                    GfLogError("GfParmWriteFile %s failed\n", cfpath);
+
+                GfParmReleaseHandle(handle);
+            }
+        }
+
         const GfCar* pCar = (*itComp)->getCar();
         if (pCar && (*itComp)->isHuman())
         {
@@ -688,7 +738,6 @@ void GfRace::store()
         }
 
         // Skin and skin targets.
-        const GfDriverSkin& skin = (*itComp)->getSkin();
         GfParmSetNum(hparmRaceMan, strDrvSec.c_str(), RM_ATTR_SKINTARGETS, NULL,
                      (tdble)skin.getTargets());
         if ((!skin.getName().empty())
