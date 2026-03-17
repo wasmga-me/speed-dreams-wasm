@@ -36,6 +36,7 @@ public:
 
 	RmGarageMenu();
 	void runMenu(GfRace* pRace, GfDriver* pDriver);
+	bool initialize();
 
 	std::string resetCarCategoryComboBox(const std::string& strSelCatName = "");
 	GfCar* resetCarModelComboBox(const std::string& strCatName,
@@ -47,8 +48,6 @@ public:
 	void setSkin(GfDriver *pDriver) const;
 
 protected:
-
-	bool initialize();
 
 	void setDriver(GfDriver* pDriver);
 	const GfDriver* getDriver() const;
