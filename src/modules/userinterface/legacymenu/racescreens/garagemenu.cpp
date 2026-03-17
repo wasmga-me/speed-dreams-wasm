@@ -25,10 +25,12 @@
 #include <sstream>
 #include <iomanip>
 
+#include <legacymenu.h>
 #include <tgfclient.h>
 #include <translation.h>
 
 #include <race.h>
+#include <raceman.h>
 #include <cars.h>
 #include <drivers.h>
 
@@ -186,6 +188,8 @@ void RmGarageMenu::onAcceptCB(void *pGarageMenu)
 	// Get the RmGarageMenu instance from call-back user data.
 	RmGarageMenu* pMenu = static_cast<RmGarageMenu*>(pGarageMenu);
 	void *next = pMenu->getNextMenuHandle();
+	tRmInfo *reInfo = LmRaceEngine().inData();
+	void *params = reInfo->params;
 
 	// Assign new skin choice to the driver.
 	GfDriver* pDriver = pMenu->getDriver();
@@ -194,6 +198,9 @@ void RmGarageMenu::onAcceptCB(void *pGarageMenu)
 	// Assign new car choice to the driver (only human drivers can change it).
 	if (pDriver->isHuman())
 		pDriver->setCar(pMenu->getSelectedCarModel());
+
+	pMenu->_pRace->store();
+	GfParmWriteFile(NULL, params, reInfo->_reName);
 
 	if (next)
 		// Go to next screen.
