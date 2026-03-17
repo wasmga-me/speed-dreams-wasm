@@ -429,7 +429,9 @@ void RmGarageMenu::resetCarPreviewImage(const GfDriverSkin& selSkin)
 	std::string local = std::string(GfLocalDir()) + filename;
 
 	// Load the preview image.
-	if (GfFileExists(local.c_str()))
+	if (filename.empty())
+		GfuiStaticImageSet(getMenuHandle(), nCarImageId, "data/img/nocarpreview.png");
+	else if (GfFileExists(local.c_str()))
 		GfuiStaticImageSet(getMenuHandle(), nCarImageId, local.c_str());
 	else if (GfFileExists(filename.c_str()))
 		GfuiStaticImageSet(getMenuHandle(), nCarImageId, filename.c_str());
