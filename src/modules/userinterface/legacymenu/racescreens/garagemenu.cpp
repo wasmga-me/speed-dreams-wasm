@@ -42,6 +42,34 @@ const char *RmGarageMenu::tr(const char *key) const
 	return GfuiGetTranslatedText(getXMLDescriptor(), s.c_str(), "text", "");
 }
 
+void RmGarageMenu::setSkin(GfDriver *pDriver) const
+{
+	std::vector<GfDriverSkin> skins = pDriver->getPossibleSkins();
+	int nCarImageId = getDynamicControlId("PreviewImage");
+	void *h = getMenuHandle();
+
+	for (const auto &s : skins)
+	{
+		if (s.getName() == pDriver->getSkin().getName())
+		{
+			const std::string &filename = s.getCarPreviewFileName();
+			std::string localname = std::string(GfLocalDir()) + filename;
+
+			if (GfFileExists(localname.c_str()))
+				GfuiStaticImageSet(h, nCarImageId, localname.c_str());
+			else if (GfFileExists(filename.c_str()))
+				GfuiStaticImageSet(h, nCarImageId, filename.c_str());
+			else
+				continue;
+
+			pDriver->setSkin(s);
+			return;
+		}
+	}
+
+	GfuiStaticImageSet(h, nCarImageId, "data/img/nocarpreview.png");
+}
+
 void RmGarageMenu::onActivateCB(void *pGarageMenu)
 {
 	GfLogTrace("Entering Garage menu\n");

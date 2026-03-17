@@ -44,6 +44,7 @@ public:
 	void resetSkinComboBox(const std::string& strCarName,
 						   const GfDriverSkin* pSelSkin = 0);
 	void resetCarPreviewImage(const GfDriverSkin& selSkin);
+	void setSkin(GfDriver *pDriver) const;
 
 protected:
 
