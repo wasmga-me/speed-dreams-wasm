@@ -25,10 +25,12 @@
 #include <sstream>
 #include <iomanip>
 
+#include <legacymenu.h>
 #include <tgfclient.h>
 #include <translation.h>
 
 #include <race.h>
+#include <raceman.h>
 #include <cars.h>
 #include <drivers.h>
 
@@ -40,6 +42,34 @@ const char *RmGarageMenu::tr(const char *key) const
 	std::string s = std::string("translatable/") + key;
 
 	return GfuiGetTranslatedText(getXMLDescriptor(), s.c_str(), "text", "");
+}
+
+void RmGarageMenu::setSkin(GfDriver *pDriver) const
+{
+	std::vector<GfDriverSkin> skins = pDriver->getPossibleSkins();
+	int nCarImageId = getDynamicControlId("PreviewImage");
+	void *h = getMenuHandle();
+
+	for (const auto &s : skins)
+	{
+		if (s.getName() == pDriver->getSkin().getName())
+		{
+			const std::string &filename = s.getCarPreviewFileName();
+			std::string localname = std::string(GfLocalDir()) + filename;
+
+			if (GfFileExists(localname.c_str()))
+				GfuiStaticImageSet(h, nCarImageId, localname.c_str());
+			else if (GfFileExists(filename.c_str()))
+				GfuiStaticImageSet(h, nCarImageId, filename.c_str());
+			else
+				continue;
+
+			pDriver->setSkin(s);
+			return;
+		}
+	}
+
+	GfuiStaticImageSet(h, nCarImageId, "data/img/nocarpreview.png");
 }
 
 void RmGarageMenu::onActivateCB(void *pGarageMenu)
@@ -157,6 +187,9 @@ void RmGarageMenu::onAcceptCB(void *pGarageMenu)
 {
 	// Get the RmGarageMenu instance from call-back user data.
 	RmGarageMenu* pMenu = static_cast<RmGarageMenu*>(pGarageMenu);
+	void *next = pMenu->getNextMenuHandle();
+	tRmInfo *reInfo = LmRaceEngine().inData();
+	void *params = reInfo->params;
 
 	// Assign new skin choice to the driver.
 	GfDriver* pDriver = pMenu->getDriver();
@@ -166,8 +199,15 @@ void RmGarageMenu::onAcceptCB(void *pGarageMenu)
 	if (pDriver->isHuman())
 		pDriver->setCar(pMenu->getSelectedCarModel());
 
-	// Back to previous screen.
-	GfuiScreenActivate(pMenu->getPreviousMenuHandle());
+	pMenu->_pRace->store();
+	GfParmWriteFile(NULL, params, reInfo->_reName);
+
+	if (next)
+		// Go to next screen.
+		GfuiScreenActivate(next);
+	else
+		// Back to previous screen.
+		GfuiScreenActivate(pMenu->getPreviousMenuHandle());
 
     delete pMenu->_pCarSetupMenu;
     pMenu->_pCarSetupMenu = nullptr;
@@ -396,7 +436,9 @@ void RmGarageMenu::resetCarPreviewImage(const GfDriverSkin& selSkin)
 	std::string local = std::string(GfLocalDir()) + filename;
 
 	// Load the preview image.
-	if (GfFileExists(local.c_str()))
+	if (filename.empty())
+		GfuiStaticImageSet(getMenuHandle(), nCarImageId, "data/img/nocarpreview.png");
+	else if (GfFileExists(local.c_str()))
 		GfuiStaticImageSet(getMenuHandle(), nCarImageId, local.c_str());
 	else if (GfFileExists(filename.c_str()))
 		GfuiStaticImageSet(getMenuHandle(), nCarImageId, filename.c_str());

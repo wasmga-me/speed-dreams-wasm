@@ -38,7 +38,6 @@
 
 // Data for the race configuration menus.
 static tRmTrackSelect  ts;
-static tRmDriverSelect ds;
 static tRmRaceParam    rp;
 #ifdef CLIENT_SERVER
 static tRmNetworkSetting cs;
@@ -49,11 +48,21 @@ static tRmNetworkSetting ss;
 static void
 rmConfigBack(void)
 {
+	char path[256];
 	void* params = LmRaceEngine().inData()->params;
+	unsigned num = GfParmGetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, 1);
+	const char* conf;
 
 	/* Go back one step in the conf */
-	GfParmSetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL,
-				 GfParmGetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, 1) - 2);
+	GfParmSetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, num - 2);
+	num = GfParmGetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, 1);
+
+	snprintf(path, sizeof(path), "%s/%d", RM_SECT_CONF, num);
+	conf = GfParmGetStr(params, path, RM_ATTR_TYPE, "");
+
+	if (!strcmp(conf, RM_VAL_DRVSEL))
+		// Driver selection menu is accessed from HumanSelect instead - skip it.
+		GfParmSetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, num - 1);
 
 	RmConfigRunState();
 }
@@ -113,6 +122,7 @@ RmConfigRunState(bool bStart)
 	if (bStart)
 		GfParmSetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, 1);
 
+next:
 	// If configuration finished, save race config to disk and go back to the raceman menu.
 	curConf = (int)GfParmGetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, 1);
 	if (curConf > GfParmGetEltNb(params, RM_SECT_CONF)) {
@@ -150,17 +160,9 @@ RmConfigRunState(bool bStart)
 		RmTrackSelect(&ts);
 
 	} else if (!strcmp(conf, RM_VAL_DRVSEL)) {
-
-		// Drivers select menu
-		ds.nextScreen = rmConfigHookInit();
-		if (curConf == 1) {
-			ds.prevScreen = RmGetRacemanMenuHandle();
-		} else {
-			ds.prevScreen = rmConfigBackHookInit();
-		}
-		ds.pRace = LmRaceEngine().race();
-		RmDriversSelect(&ds);
-
+		// Driver selection menu is accessed from HumanSelect instead - skip it.
+		GfParmSetNum(params, RM_SECT_CONF, RM_ATTR_CUR_CONF, NULL, ++curConf);
+		goto next;
 	} else if (!strcmp(conf, RM_VAL_RACECONF)) {
 
 		// Race (= session) Options menu

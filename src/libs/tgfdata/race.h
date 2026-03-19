@@ -102,6 +102,7 @@ public:
     void forceResultsOnly();
 
     unsigned getCompetitorsCount() const;
+    unsigned getMaxCompetitors() const;
     const std::vector<GfDriver*>& getCompetitors() const;
     bool hasHumanCompetitors() const;
     bool acceptsMoreCompetitors() const;
