@@ -2748,7 +2748,7 @@ osg::ref_ptr <osg::Group> SDHUD::generateHudFromXmlFile(int scrH, int scrW)
                             //read data into local variables
                             const std::string &elementId = subSectionName;
                             std::string textStr =          GfuiGetTranslatedText (paramHandle, subSectionPath.c_str(), GFMNU_ATTR_TEXT, "" );
-                            std::string fontFileUrl =      GfParmGetStr (paramHandle, subSectionPath.c_str(),"fontFileUrl", "" );
+                            std::string fontFileUrl =      GfuiGetTranslatedText(paramHandle, subSectionPath.c_str(),"fontFileUrl", "" );
                             std::string colorString =      GfParmGetStr (paramHandle, subSectionPath.c_str(),"color", "" );
                             float fontSize =               GfParmGetNum (paramHandle, subSectionPath.c_str(),"fontSize", "",0 ) * hudScale;
                             std::string textAlign =        GfParmGetStr (paramHandle, subSectionPath.c_str(),"textAlign", "" );
