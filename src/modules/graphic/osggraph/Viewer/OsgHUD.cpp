@@ -1175,6 +1175,7 @@ void SDHUD::CreateHUD(int scrH, int scrW)
 
     // reset car data from previous races
     carData.clear();
+    prevSteerAngle = 0.0f;
 }
 
 void SDHUD::DispDebug(const tSituation *s, const SDFrameInfo* frame)
