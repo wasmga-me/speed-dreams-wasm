@@ -1948,8 +1948,6 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
     temp.str("");
     temp << K2C(currCar->_airtemp);
     hudTextElements["trackdata-airtemp-data"]->setText(temp.str());
-    temp.str("C");
-    hudTextElements["trackdata-airtemp-unit"]->setText(temp.str());
 
     //timeof day
     temp.str("");
