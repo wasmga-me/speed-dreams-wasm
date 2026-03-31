@@ -1528,7 +1528,7 @@ std::vector<GfDriverSkin> GfDriver::getPossibleSkins(const std::string& strAltCa
     getPossibleSkinsInFolder(strCarId, ossDirPath.str(), vecPossSkins);
 
     if (vecPossSkins.empty())
-        GfLogError("No skin at all found for '%s/%d/%s' : "
+        GfLogInfo("No skin at all found for '%s/%d/%s' : "
             "adding dummy '%s' one\n", _strModName.c_str(), _nItfIndex,
             strCarId.c_str(), "standard");
 
