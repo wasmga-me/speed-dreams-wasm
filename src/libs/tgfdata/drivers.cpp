@@ -1449,11 +1449,21 @@ void GfDriver::processSkins(std::vector<GfDriverSkin> &skins,
         ossPreviewName << "cars/models/" << car << '/' << car << pszPreviewTexSufx;
         stdSkin.setCarPreviewFileName(ossPreviewName.str());
 
-        if (!GfFileExists(ossPreviewName.str().c_str()))
-            GfLogWarning("No preview file %s found for dummy '%s' skin\n",
-                         ossPreviewName.str().c_str(), "standard");
+        if (GfFileExists(ossPreviewName.str().c_str()))
+            skins.push_back(stdSkin);
+        else
+        {
+            std::ostringstream ossLocalPreviewName;
 
-        skins.push_back(stdSkin);
+            ossLocalPreviewName << GfLocalDir() << ossPreviewName.str();
+            stdSkin.setCarPreviewFileName(ossLocalPreviewName.str());
+
+            if (GfFileExists(ossLocalPreviewName.str().c_str()))
+                skins.push_back(stdSkin);
+            else
+                GfLogWarning("No preview file %s found for dummy '%s' skin\n",
+                    ossPreviewName.str().c_str(), "standard");
+        }
     }
 }
 
