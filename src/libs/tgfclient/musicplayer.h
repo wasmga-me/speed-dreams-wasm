@@ -52,5 +52,6 @@ TGFCLIENT_API void setMusicVolume(float volume = 100.0f);
 TGFCLIENT_API float getMusicVolume();
 TGFCLIENT_API void playMusic(char* filename);
 TGFCLIENT_API const musicTrack &getMusicTrack();
+TGFCLIENT_API bool isMusicEnabled();
 
 #endif //__musicplayer_h__

@@ -45,7 +45,7 @@ std::map<std::string,SDL2MusicPlayer*> mapSDL2Players;
 
 static void readConfig();
 
- static bool isEnabled()
+bool isMusicEnabled()
 {
 	return enabled;
 }
@@ -71,7 +71,7 @@ static SDL2MusicPlayer* getMusicPlayer(char* oggFilePath)
 void initMusic()
 {
 	readConfig();
-	if (isEnabled()) {
+	if (isMusicEnabled()) {
 		GfLogInfo("(Re-)Initializing music player \n");
 		mapMutex = SDL_CreateMutex();
 		if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) >= 0 ){
@@ -116,7 +116,7 @@ void shutdownMusic()
 
 void playMusic(char* filename)
 {
-	if (isEnabled()) {
+	if (isMusicEnabled()) {
 		SDL2MusicPlayer* player = NULL;
 		if(filename != NULL)
 		{
@@ -320,7 +320,7 @@ float getMusicVolume()
 
 void enableMusic(bool enable /* true */)
 {
-	if (isEnabled())
+	if (isMusicEnabled())
 	{
 		if(enable == false)
 			shutdownMusic();
