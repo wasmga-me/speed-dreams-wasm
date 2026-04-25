@@ -1098,10 +1098,7 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
     GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this,
         ::confirm_exit, NULL);
     GfuiEnable(hscr, download_all, GFUI_DISABLE);
-    GfuiScreenActivate(hscr);
-    // This must be done after GfuiScreenActivate because this function
-    // overwrites the recompute callback to a null pointer.
-    GfuiApp().eventLoop().setRecomputeCB(::recompute, this);
+    GfuiScreenActivate(hscr, ::recompute, this);
 
     if (fetch_assets())
         throw std::runtime_error("fetch_assets failed");

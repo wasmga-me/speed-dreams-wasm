@@ -706,6 +706,18 @@ GfuiScreenActivate(void *screen)
 	}
 }
 
+/** Activate a screen and make it current. Also, set up recompute callback.
+    @ingroup	gui
+    @param	screen	Screen to activate
+    @param	func	Recompute callback
+    @param	args	User-defined arguments
+    @warning	The current screen at the call time is deactivated.
+ */
+void GfuiScreenActivate(void *screen, void (*func)(unsigned, void *), void *args)
+{
+	GfuiScreenActivate(screen);
+	GfuiApp().eventLoop().setRecomputeCB(func, args);
+}
 
 /** Activate a screen and make it current plus release the current screen.
     @ingroup	gui

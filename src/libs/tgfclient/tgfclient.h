@@ -284,6 +284,7 @@ TGFCLIENT_API void* GfuiScreenCreate(float *bgColor = 0,
                                      int mouseAllowed = 1);
 TGFCLIENT_API void GfuiScreenRelease(void *screen);
 TGFCLIENT_API void GfuiScreenActivate(void *screen);
+TGFCLIENT_API void GfuiScreenActivate(void *screen, void (*func)(unsigned, void *), void *args);
 TGFCLIENT_API int  GfuiScreenIsActive(void *screen);
 TGFCLIENT_API void* GfuiGetScreen(void);
 TGFCLIENT_API void GfuiScreenReplace(void *screen);
