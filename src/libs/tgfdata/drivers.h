@@ -238,7 +238,6 @@ protected:
 	} names[];
 
 	static const size_t n_names;
-	enum nationality {JA, EN, DE, CRO, IT, FR};
 };
 
 #endif /* __TGFDRIVERS_H__ */
