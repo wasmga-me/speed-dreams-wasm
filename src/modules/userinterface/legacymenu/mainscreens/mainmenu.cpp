@@ -141,19 +141,22 @@ MainMenuInit(bool SupportsHumanDrivers)
     GfuiMenuDefaultKeysAdd(MenuHandle);
     GfuiAddKey(MenuHandle, GFUIK_ESCAPE, "Quit the game", NULL, onExitMenuActivate, NULL);
 
-    const musicTrack &track = getMusicTrack();
-    std::string artist = GfuiGetTranslatedText(menuDescHdle,
-            TRACK_METADATA_SECT "/artist", "text", ""),
-        title = GfuiGetTranslatedText(menuDescHdle,
-            TRACK_METADATA_SECT "/title", "text", ""),
-        license = GfuiGetTranslatedText(menuDescHdle,
-            TRACK_METADATA_SECT "/license", "text", ""),
-        trackinfo = "\n";
+    if (isMusicEnabled())
+    {
+        const musicTrack &track = getMusicTrack();
+        std::string artist = GfuiGetTranslatedText(menuDescHdle,
+                TRACK_METADATA_SECT "/artist", "text", ""),
+            title = GfuiGetTranslatedText(menuDescHdle,
+                TRACK_METADATA_SECT "/title", "text", ""),
+            license = GfuiGetTranslatedText(menuDescHdle,
+                TRACK_METADATA_SECT "/license", "text", ""),
+            trackinfo = "\n";
 
-    trackinfo += artist + ": " + track.author + '\n';
-    trackinfo += title + ": " + track.name + '\n';
-    trackinfo += license + ": " + track.license;
-    notifications.msglist.push_back(trackinfo);
+        trackinfo += artist + ": " + track.author + '\n';
+        trackinfo += title + ": " + track.name + '\n';
+        trackinfo += license + ": " + track.license;
+        notifications.msglist.push_back(trackinfo);
+    }
 
     int version = GfuiMenuCreateLabelControl(MenuHandle, menuDescHdle, "version");
 
