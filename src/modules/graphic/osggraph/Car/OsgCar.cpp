@@ -60,8 +60,14 @@ SDCar::SDCar(void) :
     DRMSelector2(NULL),
     DriverSelector(NULL),
     SteerSelector(NULL),
+    SpeedometerSelector(NULL),
+    TachometerSelector(NULL),
     SteerRot(NULL),
     SteerRot2(NULL),
+    SpeedometerBranch(NULL),
+    SpeedometerRot(NULL),
+    TachometerBranch(NULL),
+    TachometerRot(NULL),
     RearWingSelector(NULL),
     car_shaded_body(NULL),
     carEntity(NULL),
@@ -79,6 +85,8 @@ SDCar::SDCar(void) :
     _wing1 = false;
     _wing3 = false;
     _steer = false;
+    _speedometer = false;
+    _tachometer = false;
     _carLOD = false;
 
     _carShader = 0;
@@ -601,6 +609,112 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
         this->DriverSelector->setSingleChildOn(0);
     }
 
+    /* add speedometer needle */
+    snprintf(path, nMaxTexPathSize, "%s/%s", SECT_GROBJECTS, SECT_SPEEDOMETERNEEDLE);
+    param = GfParmGetStr(handle, path, PRM_SMN_MODEL, NULL);
+
+    if (param)
+    {
+        _speedometer = true;
+        snprintf(buf, nMaxTexPathSize, "cars/models/%s/%s", car->_carName, param);
+
+        std::string carname = buf;
+        osg::ref_ptr<osg::Node> speedometerNeedleEntity;
+        if (!(speedometerNeedleEntity = loader.Load3dFile(loaded, GfLocalDir() + carname, true, "", ""))
+            && !(speedometerNeedleEntity = loader.Load3dFile(loaded, carname, true, "", "")))
+            GfLogError("Failed to load %s\n", carname.c_str());
+        else
+        {
+            this->SpeedometerSelector = new osg::Switch;
+            this->SpeedometerSelector->setName("SPEEDOMETER");
+            this->SpeedometerBranch = new osg::MatrixTransform;
+
+            car->_speedometerMinAngle = -GfParmGetNum(handle, path, PRM_SMN_MIN_ANGLE, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MINANG, "deg", 225.f * 180.f / PI)) * PI / 180.f;
+
+            tdble speedometerMaxAngle = -GfParmGetNum(handle, path, PRM_SMN_MAX_ANGLE, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MAXANG, "deg", -45.f * 180.f / PI)) * PI / 180.f;
+            tdble speedometerMinValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MINVAL, (char*)NULL, 0);
+            tdble speedometerMaxValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MAXVAL, (char*)NULL, 100);
+
+            car->_speedometerNeedleFactor = (speedometerMaxAngle - car->_speedometerMinAngle)/ (speedometerMaxValue-speedometerMinValue);
+
+            tdble xpos = GfParmGetNum(handle, path, PRM_XPOS, NULL, 0.0);
+            tdble ypos = GfParmGetNum(handle, path, PRM_YPOS, NULL, 0.0);
+            tdble zpos = GfParmGetNum(handle, path, PRM_ZPOS, NULL, 0.0);
+            float angl = GfParmGetNum(handle, path, PRM_SMN_ANGLE, NULL, 0.0);
+
+            this->SpeedometerRot = new osg::MatrixTransform;
+            osg::Matrix pos = osg::Matrix::translate(0.0, 0.0, 0.0);
+            this->SpeedometerRot->setMatrix( pos);
+            this->SpeedometerRot->setName("SPEEDOMETERNEEDLEBR");
+            this->SpeedometerRot->addChild(speedometerNeedleEntity.get());
+
+            angl = SD_DEGREES_TO_RADIANS * angl;
+            pos = osg::Matrix::translate(xpos, ypos, zpos);
+            osg::Matrix rot = osg::Matrix::rotate(angl, osg::Y_AXIS);
+            pos = rot * pos;
+            this->SpeedometerBranch->setMatrix(pos);
+            this->SpeedometerBranch->addChild(this->SpeedometerRot.get());
+            this->SpeedometerSelector->addChild(this->SpeedometerBranch);
+            this->SpeedometerSelector->setSingleChildOn(0);
+        }
+        GfLogDebug("Loading speedometer needle \n");
+    }
+
+    /* add tachometer needle */
+    snprintf(path, nMaxTexPathSize, "%s/%s", SECT_GROBJECTS, SECT_TACHOMETERNEEDLE);
+    param = GfParmGetStr(handle, path, PRM_TMN_MODEL, NULL);
+
+    if (param)
+    {
+        _tachometer = true;
+        snprintf(buf, nMaxTexPathSize, "cars/models/%s/%s", car->_carName, param);
+
+        std::string carname = buf;
+        osg::ref_ptr<osg::Node> tachometerNeedleEntity;
+        if (!(tachometerNeedleEntity = loader.Load3dFile(loaded, GfLocalDir() + carname, true, "", ""))
+            && !(tachometerNeedleEntity = loader.Load3dFile(loaded, carname, true, "", "")))
+            GfLogError("Failed to load %s\n", carname.c_str());
+        else
+        {
+            car->_tachometerMinAngle = -GfParmGetNum(handle, path, PRM_TACHO_MINANG, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MINANG, "deg", 225.f * 180.f / PI)) * PI / 180.f;
+
+            tdble tachometerMaxAngle = -GfParmGetNum(handle, path, PRM_TACHO_MAXANG, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MAXANG, "deg", -45.f * 180.f / PI)) * PI / 180.f;
+            tdble tachometerMinValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MINVAL, (char*)NULL, 0);
+            tdble tachometerMaxValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MAXVAL, (char*)NULL, RPM2RADS(10000));
+
+            car->_tachometerNeedleFactor = (tachometerMaxAngle - car->_tachometerMinAngle) / (tachometerMaxValue - tachometerMinValue);
+
+            this->TachometerSelector = new osg::Switch;
+            this->TachometerSelector->setName("TACHOMETER");
+            this->TachometerBranch = new osg::MatrixTransform;
+
+            tdble xpos = GfParmGetNum(handle, path, PRM_XPOS, NULL, 0.0);
+            tdble ypos = GfParmGetNum(handle, path, PRM_YPOS, NULL, 0.0);
+            tdble zpos = GfParmGetNum(handle, path, PRM_ZPOS, NULL, 0.0);
+            float angl = GfParmGetNum(handle, path, PRM_TMN_ANGLE, NULL, 0.0);
+
+            this->TachometerRot = new osg::MatrixTransform;
+            osg::Matrix pos = osg::Matrix::translate(0.0, 0.0, 0.0);
+            this->TachometerRot->setMatrix( pos);
+            this->TachometerRot->setName("TACHOMETERNEEDLEBR");
+            this->TachometerRot->addChild(tachometerNeedleEntity.get());
+
+            angl = SD_DEGREES_TO_RADIANS * angl;
+            pos = osg::Matrix::translate(xpos, ypos, zpos);
+            osg::Matrix rot = osg::Matrix::rotate(angl, osg::Y_AXIS);
+            pos = rot * pos;
+            this->TachometerBranch->setMatrix(pos);
+            this->TachometerBranch->addChild(this->TachometerRot.get());
+            this->TachometerSelector->addChild(this->TachometerBranch);
+            this->TachometerSelector->setSingleChildOn(0);
+        }
+        GfLogDebug("Loading tachometer needle \n");
+    }
+
     this->car_shaded_body->addChild(pCar.get());
 
     if(_wing1)
@@ -616,6 +730,12 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
 
     if(_steer && SteerSelector)
         gCar->addChild(SteerSelector.get());
+
+    if(_speedometer && SpeedometerSelector)
+        gCar->addChild(SpeedometerSelector.get());
+
+    if(_tachometer && TachometerSelector)
+        gCar->addChild(TachometerSelector.get());
 
     pBody->addChild(gCar.get(), true);
     pBody->setSingleChildOn(1);
@@ -880,6 +1000,24 @@ void SDCar::updateCar(tSituation *s, tCarElt *CurCar, int current, int driver)
                     this->DRMSelector->setSingleChildOn(12);
             }
         }
+    }
+
+    if (_speedometer && SpeedometerSelector)
+    {
+        tdble speedometerNeedleAngle = (this->car->_speedometerMinAngle + std::abs(this->car->_speed_x) * this->car->_speedometerNeedleFactor) * PI / 180.0f;
+
+        this->SpeedometerSelector->setSingleChildOn(0);
+        osg::Matrix rotation = osg::Matrix::rotate(speedometerNeedleAngle, osg::X_AXIS);
+        this->SpeedometerRot->setMatrix(rotation);
+    }
+
+    if (_tachometer && TachometerSelector)
+    {
+        tdble tachometerNeedleAngle = (this->car->_tachometerMinAngle + this->car->_enginerpm * this->car->_tachometerNeedleFactor) * PI / 180.0f;
+
+        this->TachometerSelector->setSingleChildOn(0);
+        osg::Matrix rotation = osg::Matrix::rotate(tachometerNeedleAngle, osg::X_AXIS);
+        this->TachometerRot->setMatrix(rotation);
     }
 
     if(_steer && SteerSelector)

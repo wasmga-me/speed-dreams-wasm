@@ -50,8 +50,14 @@ private :
     osg::ref_ptr<osg::Switch>          DRMSelector2;
     osg::ref_ptr<osg::Switch>          DriverSelector;
     osg::ref_ptr<osg::Switch>          SteerSelector;
+    osg::ref_ptr<osg::Switch>          SpeedometerSelector;
+    osg::ref_ptr<osg::Switch>          TachometerSelector;
     osg::ref_ptr<osg::MatrixTransform> SteerRot;
     osg::ref_ptr<osg::MatrixTransform> SteerRot2;
+    osg::ref_ptr<osg::MatrixTransform> SpeedometerBranch;
+    osg::ref_ptr<osg::MatrixTransform> SpeedometerRot;
+    osg::ref_ptr<osg::MatrixTransform> TachometerBranch;
+    osg::ref_ptr<osg::MatrixTransform> TachometerRot;
     osg::ref_ptr<osg::Switch>          RearWingSelector;
     osg::ref_ptr<osg::Group>           car_shaded_body;
     osg::ref_ptr<osg::Group>           carEntity;
@@ -98,6 +104,8 @@ public :
     bool    _wing1;
     bool    _wing3;
     bool    _steer;
+    bool    _speedometer;
+    bool    _tachometer;
     bool    _carLOD;
 
     int     _carShader;
