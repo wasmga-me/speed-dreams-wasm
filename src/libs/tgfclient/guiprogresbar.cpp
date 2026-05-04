@@ -51,6 +51,8 @@ int GfuiProgressbarCreate(void *scr, int x, int y, int w, int h,
 	tGfuiObject *object;
 	tGfuiScreen *screen = (tGfuiScreen*)scr;
 
+	int _x = x + screen->xmargin;
+
 	object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
 	object->widget = GFUI_PROGRESSBAR;
 	object->focusMode = (onFocus || onFocusLost) ? GFUI_FOCUS_MOUSE_MOVE : GFUI_FOCUS_NONE;
@@ -85,8 +87,8 @@ int GfuiProgressbarCreate(void *scr, int x, int y, int w, int h,
     progress->onFocus = onFocus;
     progress->onFocusLost = onFocusLost;
 
-	object->xmin = x;
-	object->xmax = x + w;
+	object->xmin = _x;
+	object->xmax = _x + w;
 	object->ymin = y;
 	object->ymax = y + h;
 

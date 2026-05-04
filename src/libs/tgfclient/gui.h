@@ -372,6 +372,7 @@ typedef struct
 {
     int			ScreenID; /* Identify screen in registration */
     float		width, height; /* in menu/screen objects coordinate system */
+    float		xmargin; /* used for centering menu on the screen horizontally */
     GfuiColor		bgColor; /* RGBA */
     tGfBgImg	bg; /* Background images */
 

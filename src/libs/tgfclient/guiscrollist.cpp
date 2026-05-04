@@ -140,14 +140,16 @@ GfuiScrollListCreate(void *scr, int font, int x, int y, int width, int height,
     tGfuiObject		*object;
     tGfuiScreen		*screen = (tGfuiScreen*)scr;
 
+    int _x = x + screen->xmargin;
+
     object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
     object->widget = GFUI_SCROLLIST;
     object->focusMode = GFUI_FOCUS_MOUSE_MOVE;
     object->id = screen->curId++;
     object->visible = 1;
 
-    object->xmin = x;
-    object->xmax = x + width;
+    object->xmin = _x;
+    object->xmax = _x + width;
     object->ymin = y;
     object->ymax = y + height;
 
@@ -165,14 +167,14 @@ GfuiScrollListCreate(void *scr, int font, int x, int y, int width, int height,
     switch (scrollBarPos) {
 		case GFUI_SB_RIGHT:
 			scrollist->scrollBar =
-				GfuiScrollBarCreate(scr, x + width, y,
+				GfuiScrollBarCreate(scr, _x + width, y,
 									height, scrollBarWidth, scrollBarButHeight,
 									GFUI_VERT_SCROLLBAR, GFUI_SB_RIGHT,
 									0, 10, 10, 10, object, gfuiScroll);
 			break;
 		case GFUI_SB_LEFT:
 			scrollist->scrollBar =
-				GfuiScrollBarCreate(scr, x - scrollBarWidth, y,
+				GfuiScrollBarCreate(scr, _x - scrollBarWidth, y,
 									height, scrollBarWidth, scrollBarButHeight,
 									GFUI_VERT_SCROLLBAR, GFUI_SB_LEFT,
 									0, 10, 10, 10, object, gfuiScroll);
