@@ -1338,6 +1338,100 @@ grInitCar(tCarElt *car)
             DRMSel->select( grCarInfo[index].DRMSelectMask[0] );
     }
 
+    /* add speedometer needle */
+    snprintf(path, nMaxTexPathSize, "%s/%s", SECT_GROBJECTS, SECT_SPEEDOMETERNEEDLE);
+    param = GfParmGetStr(handle, path, PRM_SMN_MODEL, NULL);
+    if (param)
+    {
+        snprintf(buf, nMaxTexPathSize, "cars/models/%s/%s", car->_carName, param);
+
+        ssgEntity *speedometerNeedleEntity = grssgCarLoadAC3D(param, NULL, index);
+
+        if (speedometerNeedleEntity)
+        {
+            grCarInfo[index].speedometerSelector = new ssgSelector;
+            ssgBranch *speedometerBranch = new ssgBranch;
+            ssgTransform *speedometerLoc = new ssgTransform;
+            grCarInfo[index].speedometerRot = new ssgTransform;
+            sgCoord speedometerPos;
+
+            car->_speedometerMinAngle = -GfParmGetNum(handle, path, PRM_SMN_MIN_ANGLE, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MINANG, "deg", 225.f * 180.f / PI)) * PI / 180.f;
+
+            tdble speedometerMaxAngle = -GfParmGetNum(handle, path, PRM_SMN_MAX_ANGLE, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MAXANG, "deg", -45.f * 180.f / PI)) * PI / 180.f;
+            tdble speedometerMinValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MINVAL, (char*)NULL, 0);
+            tdble speedometerMaxValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_SPEEDO_MAXVAL, (char*)NULL, 100);
+
+            car->_speedometerNeedleFactor = (speedometerMaxAngle - car->_speedometerMinAngle)/ (speedometerMaxValue-speedometerMinValue);
+
+            tdble xpos = GfParmGetNum(handle, path, PRM_XPOS, NULL, 0.0);
+            tdble ypos = GfParmGetNum(handle, path, PRM_YPOS, NULL, 0.0);
+            tdble zpos = GfParmGetNum(handle, path, PRM_ZPOS, NULL, 0.0);
+            float angl = GfParmGetNum(handle, path, PRM_SMN_ANGLE, NULL, 0.0);
+
+            sgSetCoord(&speedometerPos, 0, 0, 0, 0, 0, 0);
+            grCarInfo[index].speedometerRot->setTransform(&speedometerPos);
+            grCarInfo[index].speedometerRot->addKid(speedometerNeedleEntity);
+
+            sgSetCoord(&speedometerPos, xpos, ypos, zpos, 0, 0, angl);
+            speedometerLoc->setTransform(&speedometerPos);
+            speedometerLoc->addKid(grCarInfo[index].speedometerRot);
+
+            speedometerBranch->addKid(speedometerLoc);
+            grCarInfo[index].speedometerSelector->addKid(speedometerBranch);
+            grCarInfo[index].speedometerSelector->select(1);
+        }
+        grCarInfo[index].carTransform->addKid( grCarInfo[index].speedometerSelector );
+    }
+
+    /* add tachometer needle */
+    snprintf(path, nMaxTexPathSize, "%s/%s", SECT_GROBJECTS, SECT_TACHOMETERNEEDLE);
+    param = GfParmGetStr(handle, path, PRM_TMN_MODEL, NULL);
+    if (param)
+    {
+        snprintf(buf, nMaxTexPathSize, "cars/models/%s/%s", car->_carName, param);
+
+        ssgEntity *tachometerNeedleEntity = grssgCarLoadAC3D(param, NULL, index);
+
+        if (tachometerNeedleEntity)
+        {
+            grCarInfo[index].tachometerSelector = new ssgSelector;
+            ssgBranch *tachometerBranch = new ssgBranch;
+            ssgTransform *tachometerLoc = new ssgTransform;
+            grCarInfo[index].tachometerRot = new ssgTransform;
+            sgCoord tachometerPos;
+
+            car->_tachometerMinAngle = -GfParmGetNum(handle, path, PRM_TMN_MIN_ANGLE, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MINANG, "deg", 225.f * 180.f / PI)) * PI / 180.f;
+
+            tdble tachometerMaxAngle = -GfParmGetNum(handle, path, PRM_TMN_MAX_ANGLE, "deg",
+                                                        GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MAXANG, "deg", -45.f * 180.f / PI)) * PI / 180.f;
+            tdble tachometerMinValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MINVAL, (char*)NULL, 0);
+            tdble tachometerMaxValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MAXVAL, (char*)NULL, RPM2RADS(10000));
+
+            car->_tachometerNeedleFactor = (tachometerMaxAngle - car->_tachometerMinAngle)/ (tachometerMaxValue-tachometerMinValue);
+
+            tdble xpos = GfParmGetNum(handle, path, PRM_XPOS, NULL, 0.0);
+            tdble ypos = GfParmGetNum(handle, path, PRM_YPOS, NULL, 0.0);
+            tdble zpos = GfParmGetNum(handle, path, PRM_ZPOS, NULL, 0.0);
+            float angl = GfParmGetNum(handle, path, PRM_TMN_ANGLE, NULL, 0.0);
+
+            sgSetCoord(&tachometerPos, 0, 0, 0, 0, 0, 0);
+            grCarInfo[index].tachometerRot->setTransform(&tachometerPos);
+            grCarInfo[index].tachometerRot->addKid(tachometerNeedleEntity);
+
+            sgSetCoord(&tachometerPos, xpos, ypos, zpos, 0, 0, angl);
+            tachometerLoc->setTransform(&tachometerPos);
+            tachometerLoc->addKid(grCarInfo[index].tachometerRot);
+
+            tachometerBranch->addKid(tachometerLoc);
+            grCarInfo[index].tachometerSelector->addKid(tachometerBranch);
+            grCarInfo[index].tachometerSelector->select(1);
+        }
+        grCarInfo[index].carTransform->addKid( grCarInfo[index].tachometerSelector );
+    }
+
     CarsAnchor->addKid(grCarInfo[index].carTransform);
 
 
@@ -1460,7 +1554,7 @@ tdble grGetDistToStart(tCarElt *car)
 void
 grDrawCar(tSituation *s, tCarElt *car, tCarElt *curCar, int dispCarFlag, int dispDrvFlag, double curTime, class cGrPerspCamera *curCam)
 {
-    sgCoord wheelpos;
+    sgCoord wheelpos, speedometerPos, tachometerPos;
     int index, i, j;
     static float maxVel[3] = { 20.0, 40.0, 70.0 };
     float lod;
@@ -1589,6 +1683,20 @@ grDrawCar(tSituation *s, tCarElt *car, tCarElt *curCar, int dispCarFlag, int dis
             if (grCarInfo[index].nDRM2 > 0)
                 grCarInfo[index].DRMSelector2->select(0);
         }
+    }
+
+    if (grCarInfo[index].speedometerSelector)
+    {
+        grCarInfo[index].speedometerSelector->select(1);
+        sgSetCoord( &speedometerPos, 0, 0, 0, 0, car->_speedometerMinAngle + std::abs(car->_speed_x) * car->_speedometerNeedleFactor, 0 );
+        grCarInfo[index].speedometerRot->setTransform( &speedometerPos );
+    }
+
+    if (grCarInfo[index].tachometerSelector)
+    {
+        grCarInfo[index].tachometerSelector->select(1);
+        sgSetCoord( &tachometerPos, 0, 0, 0, 0, car->_tachometerMinAngle + car->_enginerpm * car->_tachometerNeedleFactor, 0 );
+        grCarInfo[index].tachometerRot->setTransform( &tachometerPos );
     }
 
     if (grCarInfo[index].nSteer)

@@ -72,6 +72,8 @@ public:
     ssgSelector			*rearwingSelector;
     ssgSelector         *rpmlightsSelector;
     ssgSelector         *gearSelector;
+    ssgSelector         *speedometerSelector;
+    ssgSelector         *tachometerSelector;
     bool				driverSelectorinsg;
     bool				rearwingSelectorinsg;
     bool                rpmlightsSelectorinsg;
@@ -82,6 +84,8 @@ public:
     ssgTransform		*wheelPos[4];
     ssgTransform		*wheelRot[4];
     ssgTransform		*steerRot[2];
+    ssgTransform        *speedometerRot;
+    ssgTransform        *tachometerRot;
     ssgColourArray		*brkColor[4];
     ssgSelector			*wheelselector[4];
     ssgState			*wheelTexture;

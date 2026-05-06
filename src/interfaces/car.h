@@ -500,6 +500,8 @@ typedef struct
     tDashboardItem dashboardRequest[NR_DI_REQUEST];
     int		dashboardRequestNb;	     /**< number and list of items requested to change during next pit stop */
     int		dashboardActiveItem;	 /**< active item in dashboard, 0 .. dashboardInstantNb+dashboardRequestNb-1 */
+    tdble speedometerMinAngle, speedometerNeedleFactor;
+    tdble tachometerMinAngle, tachometerNeedleFactor;
 } tPrivCar;
 /* structure access */
 #define _fuelTotal      priv.fuel_consumption_total
@@ -551,6 +553,11 @@ typedef struct
 #define _dashboardRequest	priv.dashboardRequest
 #define _dashboardRequestNb	priv.dashboardRequestNb
 #define _dashboardActiveItem	priv.dashboardActiveItem
+
+#define _speedometerMinAngle    priv.speedometerMinAngle
+#define _speedometerNeedleFactor    priv.speedometerNeedleFactor
+#define _tachometerMinAngle priv.tachometerMinAngle
+#define _tachometerNeedleFactor priv.tachometerNeedleFactor
 
 /** Info returned by driver during the race */
 /** New order to get better alignment, additional parameters for new features */
@@ -902,6 +909,18 @@ typedef struct CarElt
 #define PRM_SW_MODEL        "model"
 #define PRM_SW_MODELHR      "hi res model"
 #define PRM_SW_ANGLE        "angle"
+
+#define SECT_SPEEDOMETERNEEDLE	    "Speedometer Needle"
+#define PRM_SMN_MIN_ANGLE   "min angle"
+#define PRM_SMN_MAX_ANGLE   "max angle"
+#define PRM_SMN_MODEL        "model"
+#define PRM_SMN_ANGLE        "angle"
+
+#define SECT_TACHOMETERNEEDLE      "Tachometer Needle"
+#define PRM_TMN_MIN_ANGLE   "min angle"
+#define PRM_TMN_MAX_ANGLE   "max angle"
+#define PRM_TMN_MODEL        "model"
+#define PRM_TMN_ANGLE        "angle"
 
 #define SECT_COMPOUND_MODEL "compound model"
 #define PRM_SOFTMODEL       "model soft"
