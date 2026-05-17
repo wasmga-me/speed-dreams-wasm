@@ -108,7 +108,8 @@ private:
         anisotropicfilter,
         texturecompression, texturecompression_lbl,
         maxtexturesize, maxtexturesize_lbl, multitexturing, multitexturing_lbl,
-        multitexturing_bg, shadowsize, shadowsize_lbl, speedunit, speedunit_lbl;
+        multitexturing_bg, shadowsize, shadowsize_lbl, speedunit, speedunit_lbl,
+        warning_lbl, warningp2_lbl, warning_bg;
     std::vector<struct preset> presets;
     std::map<int, engine> idtype;
 };
