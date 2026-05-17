@@ -612,9 +612,6 @@ GfTexWriteImageToPNG(unsigned char *img, const char *filename, int width, int he
 	png_uint_32 rowbytes;
 	int i;
 	unsigned char *cur_ptr;
-	float		screen_gamma;
-#define DEFGAMMA 1.0
-#define ReadGammaFromSettingsFile 1
 
 	if (!img) {
 		GfError("GfTexWriteImageToPNG(%s) : Null image buffer pointer\n", filename);
@@ -649,14 +646,6 @@ GfTexWriteImageToPNG(unsigned char *img, const char *filename, int width, int he
 	png_init_io(png_ptr, fp);
 	png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
 			PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-#if (ReadGammaFromSettingsFile)
-    void *handle = GfParmReadFileLocal(GFSCR_CONF_FILE, GFPARM_RMODE_STD | GFPARM_RMODE_CREAT);
-    screen_gamma = (float)GfParmGetNum(handle, GFSCR_SECT_VALIDPROPS, GFSCR_ATT_GAMMA, (char*)NULL, DEFGAMMA);
-    GfParmReleaseHandle(handle);
-#else
-	screen_gamma = DEFGAMMA;
-#endif
-	png_set_gAMA(png_ptr, info_ptr, screen_gamma);
 	/* png_set_bgr(png_ptr);    TO INVERT THE COLORS !!!! */
 	png_write_info(png_ptr, info_ptr);
 	png_write_flush(png_ptr);
