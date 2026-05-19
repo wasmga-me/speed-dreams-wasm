@@ -899,6 +899,9 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         "shadowsize_lbl");
     speedunit = GfuiMenuCreateComboboxControl(hscr, param, "speedunit");
     speedunit_lbl = GfuiMenuCreateLabelControl(hscr, param, "speedunit_lbl");
+    warning_bg = GfuiMenuCreateStaticImageControl(hscr, param, "warning_bg");
+    warning_lbl = GfuiMenuCreateLabelControl(hscr, param, "warning_lbl");
+    warningp2_lbl = GfuiMenuCreateLabelControl(hscr, param, "warningp2_lbl");
 
     if (preset < 0
         || graphicsengine < 0
@@ -920,7 +923,10 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         || multitexturing_lbl < 0
         || multitexturing_bg < 0
         || speedunit < 0
-        || speedunit_lbl < 0)
+        || speedunit_lbl < 0
+        || warning_bg < 0
+        || warning_lbl < 0
+        || warningp2_lbl < 0)
         throw std::runtime_error("failed to create dynamic GUI elements");
     else if (GfuiMenuCreateButtonControl(hscr, param, "cancel", this, deinit) < 0)
         throw std::runtime_error("create cancel failed");
@@ -1003,6 +1009,14 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     if (!SDL_GL_ExtensionSupported("GL_ARB_texture_compression"))
         GfuiEnable(hscr, texturecompression, GFUI_DISABLE);
 
+    const char *env = getenv("WAYLAND_DISPLAY");
+
+    if (env && *env)
+    {
+        GfuiLabelSetText(hscr, warning_lbl, tr("wayland/1"));
+        GfuiLabelSetText(hscr, warningp2_lbl, tr("wayland/2"));
+    }
+
     GfuiComboboxAddText(hscr, speedunit, "kph");
     GfuiComboboxAddText(hscr, speedunit, "mph");
     init_presets();
@@ -1029,6 +1043,9 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     idtype[shadowsize_lbl] = OSGGRAPH;
     idtype[speedunit] = OSGGRAPH;
     idtype[speedunit_lbl] = OSGGRAPH;
+    idtype[warning_bg] = SSGGRAPH;
+    idtype[warning_lbl] = SSGGRAPH;
+    idtype[warningp2_lbl] = SSGGRAPH;
     GfuiScreenActivate(hscr);
     show();
 }
