@@ -171,7 +171,7 @@ ADD_SDLIB_LIBRARY(legacymenu
 target_compile_features(legacymenu PRIVATE cxx_std_11)
 set_target_properties(legacymenu PROPERTIES CXX_STANDARD 11 CXX_EXTENSIONS OFF)
 
-ADD_PLIB_LIBRARY(legacymenu)
+ADD_PLIB_LIBRARY(legacymenu sg)
 ADD_SDL2_LIBRARY(legacymenu)
 ADD_ENET_LIBRARY(legacymenu)
 ADD_CURL_LIBRARY(legacymenu)

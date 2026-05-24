@@ -11,6 +11,7 @@
 #ifndef GRAPHICSCONFIG_H
 #define GRAPHICSCONFIG_H
 
+#include <config.h>
 #include <tgfclient.h>
 #include <glfeatures.h>
 #include <map>
@@ -22,7 +23,11 @@ public:
     GraphicsConfig(void *prevMenu);
 
 private:
-    enum epreset {PRESET_LOW, PRESET_BALANCED, PRESET_HIGH, PRESET_CUSTOM};
+    enum epreset {
+#if HAVE_LIBPLIBSG
+        PRESET_LOW,
+#endif
+        PRESET_BALANCED, PRESET_HIGH, PRESET_CUSTOM};
     enum lowmidhigh {LOW, MID, HIGH};
     enum dynamicshadows {NONE, CARS, CARSTRACK};
     enum speedunit {KPH, MPH};

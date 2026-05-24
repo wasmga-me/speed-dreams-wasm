@@ -36,8 +36,6 @@ SD_ADD_LIBRARY(ephemeris SHARED ${EPHEMERIS_SOURCES} ${EPHEMERIS_HEADERS})
 # Might not work with GCC 4.5 or + (non-robot modules crash at 1st reload = after 1 dlclose)
 #SET_TARGET_PROPERTIES(ephemeris PROPERTIES VERSION ${VERSION} SOVERSION 0.0.0)
 
-ADD_PLIB_LIBRARY(ephemeris ul sg)
-
 ADD_SDLIB_LIBRARY(ephemeris portability math)
 
 IF(WIN32)

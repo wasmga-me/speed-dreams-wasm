@@ -5,6 +5,10 @@ SET(_SOURCES constants.h linalg_t.h straight2_t.h  v2_t.h v3_t.h  v4_t.h
              SGLimits.h SGMath.h SGMathFwd.h SGMatrix.h SGMisc.h
              SGQuat.h SGVec3.h SGVec4.h)
 
+if(OPTION_OSGGRAPH)
+    set(_SOURCES ${_SOURCES} OsgMath.h)
+endif()
+
 SD_INSTALL_FILES(INCLUDE tmath FILES ${_SOURCES})
 
 # Fictive = no-output target, for having source files available in IDEs.

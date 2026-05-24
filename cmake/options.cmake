@@ -55,6 +55,8 @@ MACRO(ADD_SD_COMPILE_OPTIONS)
 
     SET(OPTION_3RDPARTY_SQLITE3 false CACHE BOOL "Use SQLite3 as database for record/replay")
 
+    SET(OPTION_SSGGRAPH true CACHE BOOL "Build PLib-based ssggraph graphics module")
+
     SET(OPTION_OSGGRAPH true CACHE BOOL "Build OpenScenGraph-based WIP osggraph graphics module")
 
     SET(OPTION_TINYGLTF false CACHE BOOL "Use tinygltf library")

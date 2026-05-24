@@ -25,7 +25,6 @@ ADD_SDLIB_INCLUDEDIR(networking portability tgf math)
 
 ADD_PLIB_INCLUDEDIR()
 ADD_ENET_INCLUDEDIR()
-ADD_PLIB_LIBRARY(networking ul sg)
 ADD_ENET_LIBRARY(networking)
 ADD_SDL2_LIBRARY(networking)
 

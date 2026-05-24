@@ -23,7 +23,7 @@
 #define FILTER_SLOT 2
 
 
-#include <plib/sg.h>
+#include <sgcompat.h>
 
 #include "sound_defines.h"
 

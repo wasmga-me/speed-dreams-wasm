@@ -28,6 +28,7 @@
 #include "OsgNodeMask.h"
 
 #include <car.h>
+#include <sgcompat.h>
 
 namespace osggraph {
 

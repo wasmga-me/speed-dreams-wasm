@@ -23,8 +23,6 @@ SD_ADD_LIBRARY(trackv1 MODULE ${TRACK_SOURCES} ${TRACK_HEADERS})
 # Might not work with GCC 4.5 or + (non-robot modules crash at 1st reload = after 1 dlclose)
 #SET_TARGET_PROPERTIES(trackv1 PROPERTIES VERSION ${VERSION} SOVERSION 0.0.0)
 
-ADD_PLIB_LIBRARY(trackv1 ul sg)
-
 ADD_SDLIB_LIBRARY(trackv1 portability tgf robottools)
 
 SD_INSTALL_FILES(LIB modules/track TARGETS trackv1)

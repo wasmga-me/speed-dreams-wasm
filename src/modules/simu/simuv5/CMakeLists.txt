@@ -27,10 +27,11 @@ ADD_SDLIB_INCLUDEDIR(math tgf robottools)
 
 # Note: Headers needed for having them available in IDEs.
 SD_ADD_LIBRARY(simuv5 MODULE ${SIMU_SOURCES} ${SIMU_HEADERS})
+ADD_PLIB_LIBRARY(simuv5 sg)
 
 # Might not work with GCC 4.5 or + (non-robot modules crash at 1st reload = after 1 dlclose)
 #SET_TARGET_PROPERTIES(simuv2.1 PROPERTIES VERSION ${VERSION} SOVERSION 0.0.0)
 
-ADD_SDLIB_LIBRARY(simuv5 portability tgf robottools solid)
+ADD_SDLIB_LIBRARY(simuv5 portability tgf robottools solid math)
 
 SD_INSTALL_FILES(LIB modules/simu TARGETS simuv5)

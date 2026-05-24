@@ -11,6 +11,7 @@
 #include "graphicsconfig.h"
 #include "osggraphinfo.h"
 #include "ssggraphinfo.h"
+#include <config.h>
 #include <glfeatures.h>
 #include <graphic.h>
 #include <guiscreen.h>
@@ -56,10 +57,12 @@ void GraphicsConfig::toggle(void *args)
 
 void GraphicsConfig::engine_changed(tComboBoxInfo *info)
 {
+#if HAVE_LIBPLIBSG
     GraphicsConfig *cfg = static_cast<GraphicsConfig *>(info->userData);
 
     cfg->sel_engine = info->nPos;
     cfg->setcustom();
+#endif
 }
 
 void GraphicsConfig::engine_info(void *userData)
@@ -448,6 +451,7 @@ void GraphicsConfig::setpreset(tComboBoxInfo *info)
     GraphicsConfig *gfx = static_cast<GraphicsConfig *>(info->userData);
     const char *text = GfuiComboboxGetText(gfx->hscr, gfx->preset);
 
+#if HAVE_LIBPLIBSG
     if (!strcmp(text, gfx->tr("low")))
     {
         const struct preset &p = gfx->presets.at(PRESET_LOW);
@@ -457,7 +461,9 @@ void GraphicsConfig::setpreset(tComboBoxInfo *info)
         gfx->setpreset(gfx->anisotropicfilter, p.anisotropicfilter);
         gfx->setpreset(p.u.ssggraph);
     }
-    else if (!strcmp(text, gfx->tr("balanced")))
+    else
+#endif
+    if (!strcmp(text, gfx->tr("balanced")))
     {
         const struct preset &p = gfx->presets.at(PRESET_BALANCED);
 
@@ -715,11 +721,15 @@ void GraphicsConfig::load_visibility(void *param) const
 
 void GraphicsConfig::load_graphicsengine(void *param)
 {
+#if HAVE_LIBPLIBSG
     const char *value = GfParmGetStr(param, RM_SECT_MODULES,
         RM_ATTR_MOD_GRAPHIC, RM_VAL_MOD_SSGRAPH);
 
     sel_engine = !strcmp(value, RM_VAL_MOD_SSGRAPH) ? SSGGRAPH : OSGGRAPH;
     GfuiComboboxSetSelectedIndex(hscr, graphicsengine, sel_engine);
+#else
+    sel_engine = OSGGRAPH;
+#endif
 }
 
 int GraphicsConfig::load()
@@ -827,6 +837,9 @@ void GraphicsConfig::init_presets()
     high.u.osggraph.shadowsize = GR_ATT_SHADOW_2048;
 
     presets.push_back(low);
+#ifndef HAVE_LIBPLIBSG
+    presets.pop_back();
+#endif
     presets.push_back(balanced);
     presets.push_back(high);
 }
@@ -845,7 +858,11 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     sel_engine(SSGGRAPH)
 {
     static const char *const presets[PRESET_CUSTOM + 1] =
-        {"low", "balanced", "high", "custom"},
+        {
+#if HAVE_LIBPLIBSG
+            "low",
+#endif
+            "balanced", "high", "custom"},
         *const lmh[HIGH + 1] = {"low", "mid", "high"},
         *const offon[] = {"off", "on"},
         *const shadows[CARSTRACK + 1] = {"none", "carsonly", "carstrack"};
@@ -933,7 +950,12 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     else if (GfuiMenuCreateButtonControl(hscr, param, "apply", this, apply) < 0)
         throw std::runtime_error("create next failed");
 
+#if HAVE_LIBPLIBSG
     GfuiComboboxAddText(hscr, graphicsengine, tr("ssggraph"));
+#else
+    GfuiEnable(hscr, graphicsengine, GFUI_DISABLE);
+#endif
+
     GfuiComboboxAddText(hscr, graphicsengine, tr("osggraph"));
     GfuiMenuDefaultKeysAdd(hscr);
     GfuiAddKey(hscr, GFUIK_RETURN, "Apply changes", this, apply, NULL);
@@ -1035,6 +1057,10 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     idtype[multitexturing] = SSGGRAPH;
     idtype[multitexturing_lbl] = SSGGRAPH;
     idtype[multitexturing_bg] = SSGGRAPH;
+    idtype[warning_bg] = SSGGRAPH;
+    idtype[warning_lbl] = SSGGRAPH;
+    idtype[warningp2_lbl] = SSGGRAPH;
+
     idtype[dynamicshadows] = OSGGRAPH;
     idtype[dynamicshadows_lbl] = OSGGRAPH;
     idtype[shaders] = OSGGRAPH;
@@ -1043,9 +1069,7 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     idtype[shadowsize_lbl] = OSGGRAPH;
     idtype[speedunit] = OSGGRAPH;
     idtype[speedunit_lbl] = OSGGRAPH;
-    idtype[warning_bg] = SSGGRAPH;
-    idtype[warning_lbl] = SSGGRAPH;
-    idtype[warningp2_lbl] = SSGGRAPH;
+
     GfuiScreenActivate(hscr);
     show();
 }
