@@ -234,13 +234,6 @@ PORTABILITY_API int SD_snprintf(char *str, size_t size, const char *format, ...)
 
 #endif // _MSC_VER
 
-// MinGW compiler ---------------------------------------------------
-#ifdef __MINGW32__
-
-#define isnan(x) ((x) != (x))
-
-#endif
-
 namespace portability
 {
     PORTABILITY_API int rmdir_r(const char *path);
