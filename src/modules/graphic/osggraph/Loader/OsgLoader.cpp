@@ -110,6 +110,7 @@ osg::Node *osgLoader::Load3dFile(loadedModels &loaded,
                      0.0f,  0.0f, 0.0f, 1.0f);
     rot->setMatrix(mat);
     rot->addChild(pNode);
+    l.node = rot;
     loaded.push_back(l);
     return rot;
 }
