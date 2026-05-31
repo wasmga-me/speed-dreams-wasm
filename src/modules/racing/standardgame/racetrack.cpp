@@ -680,7 +680,7 @@ reTrackInitRealWeather(void)
             d = 10000.0;
 
         if (webMetarVisibility.getModifier() == ReWebMetarVisibility::GREATER_THAN)
-            d += 2000.0;// * sg_random();
+            d += 2000.0;
 
         if(d > 15000)
             d = 12000.0;

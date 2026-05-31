@@ -60,8 +60,6 @@ target_include_directories(tgfclient PUBLIC ${CMAKE_CURRENT_LIST_DIR}
 # Might not work with GCC 4.5 or + (non-robot modules crash at 1st reload = after 1 dlclose)
 #SET_TARGET_PROPERTIES(tgfclient PROPERTIES VERSION ${VERSION} SOVERSION 0.0.0)
 
-ADD_PLIB_LIBRARY(tgfclient ul sg)
-
 #ADD_SDLIB_LIBRARY(tgfclient portability tgf networking)
 ADD_SDLIB_LIBRARY(tgfclient portability tgf)
 

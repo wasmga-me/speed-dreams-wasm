@@ -28,12 +28,10 @@
 #define _CONSTANTS_H
 
 #include <cmath>
-#include <plib/sg.h>
-
 
 // Make sure PI is defined in its various forms
 
-// SG_PI and SGD_PI (float and double) come from plib/sg.h
+// SG_PI and SGD_PI (float and double) come from plib/sg.h, or are defined below
 
 /** 2 * PI */
 #define SGD_2PI      6.28318530717958647692
@@ -151,5 +149,57 @@
 /** for backwards compatibility */
 #define SG_SCENERY_FILE_FORMAT "0.4"
 
+/* The constants below are adapted from PLib. */
+
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 1998,2002  Steve Baker
+
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+
+     For further information visit http://plib.sourceforge.net
+
+     $Id: sg.h 2121 2007-09-15 03:36:21Z fayjf $
+*/
+
+#ifndef SG_PI
+#ifndef M_PI
+#define SG_PI  3.1415926535f
+#else
+#define SG_PI  ((float) M_PI)
+#endif
+#endif
+
+#ifndef SG_180
+#define SG_180   180.0f
+#endif
+
+#ifndef SG_DEGREES_TO_RADIANS
+#define SG_DEGREES_TO_RADIANS  (SG_PI/SG_180)
+#endif
+
+#ifndef SG_RADIANS_TO_DEGREES
+#define SG_RADIANS_TO_DEGREES  (SG_180/SG_PI)
+#endif
+
+#ifndef SGD_DEGREES_TO_RADIANS
+#define SGD_DEGREES_TO_RADIANS  SG_RADIANS_TO_DEGREES
+#endif
+
+#ifndef SGD_RADIANS_TO_DEGREES
+#define SGD_RADIANS_TO_DEGREES  SG_RADIANS_TO_DEGREES
+#endif
 
 #endif // _SG_CONSTANTS_H

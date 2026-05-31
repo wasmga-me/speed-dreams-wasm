@@ -19,7 +19,7 @@
 #ifndef _CAR__H_
 #define _CAR__H_
 
-#include <plib/sg.h>
+#include <sgcompat.h>
 #include <SOLID/solid.h>
 
 

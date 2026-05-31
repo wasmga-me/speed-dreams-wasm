@@ -12,16 +12,17 @@ SET(_HEADERS snddefault.h
                        SoundInterface.h
                        OpenalSoundInterface.h
                        grsound.h)
-IF(NOT OPTION_USE_MACPORTS)
+FIND_PACKAGE(PLIB)
+IF(PLIB_FOUND AND OPTION_SSGGRAPH)
    SET(_SOURCES ${_SOURCES} PlibSound.cpp PlibSoundInterface.cpp)
    SET(_HEADERS ${_HEADERS} PlibSound.h PlibSoundInterface.h)
-ENDIF(NOT OPTION_USE_MACPORTS)
+   ADD_PLIB_INCLUDEDIR()
+ENDIF(PLIB_FOUND AND OPTION_SSGGRAPH)
 
 SET(_OTHER_SOURCES )
 
 ADD_INTERFACE_INCLUDEDIR()
 ADD_SDLIB_INCLUDEDIR(portability math tgf tgfclient robottools)
-ADD_PLIB_INCLUDEDIR()
 
 ADD_SDL2_INCLUDEDIR()
 
@@ -50,11 +51,7 @@ SD_ADD_LIBRARY(snddefault MODULE ${_SOURCES} ${_HEADERS} ${_OTHER_SOURCES})
 # Might not work with GCC 4.5 or + (non-robot modules crash at 1st reload = after 1 dlclose)
 #SET_TARGET_PROPERTIES(snddefault PROPERTIES VERSION ${VERSION} SOVERSION 0.0.0)
 
-IF(OPTION_USE_MACPORTS)
-   ADD_PLIB_LIBRARY(snddefault ul sg ssg ssgaux)
-ELSE(OPTION_USE_MACPORTS)
-   ADD_PLIB_LIBRARY(snddefault ul sg sl ssg ssgaux)
-ENDIF(OPTION_USE_MACPORTS)
+ADD_PLIB_LIBRARY(snddefault sl)
 
 ADD_SDL2_LIBRARY(snddefault)
 

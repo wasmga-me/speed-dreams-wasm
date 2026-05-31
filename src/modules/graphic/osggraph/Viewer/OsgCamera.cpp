@@ -34,6 +34,7 @@
 #include <raceman.h>
 #include <robottools.h>
 #include <portability.h>
+#include <sgcompat.h>
 #include <tgf.h>
 #include <guiscreen.h>
 #include <graphic.h>

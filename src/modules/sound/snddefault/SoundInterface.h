@@ -18,7 +18,7 @@
 #ifndef SOUND_INTERFACE_H
 #define SOUND_INTERFACE_H
 
-#include <plib/sg.h>
+#include <sgcompat.h>
 #include <vector>
 
 #include "Sound.h"

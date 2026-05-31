@@ -155,9 +155,6 @@ MACRO(ROBOT_MODULE)
     SET_TARGET_PROPERTIES(${RBM_NAME} PROPERTIES VERSION ${RBM_VERSION})
   ENDIF()
 
-  # Link/Run-time dependencies
-  ADD_PLIB_LIBRARY(${RBM_NAME} sg)
-
   ADD_SDLIB_LIBRARY(${RBM_NAME} portability tgf robottools)
 
   # Install target robot module shared library

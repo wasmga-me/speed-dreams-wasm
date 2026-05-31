@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <config.h>
 #include <tgfclient.h>
 #include <sound.h>
 #include <musicplayer.h>
@@ -35,7 +36,9 @@
 
 // list of options.
 static const char *soundOptionList[] = {SND_ATT_SOUND_STATE_OPENAL,
+#if HAVE_LIBPLIBUL
 								  SND_ATT_SOUND_STATE_PLIB,
+#endif
 								  SND_ATT_SOUND_STATE_DISABLED};
 static const int nbOptions = sizeof(soundOptionList) / sizeof(soundOptionList[0]);
 static int curOption = 0;

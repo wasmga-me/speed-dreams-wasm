@@ -3,7 +3,13 @@ INCLUDE(../../cmake/macros.cmake)
 SD_ADD_SUBDIRECTORY(accc)
 SD_ADD_SUBDIRECTORY(nfs2ac)
 SD_ADD_SUBDIRECTORY(nfsperf)
-SD_ADD_SUBDIRECTORY(trackgen)
+
+IF(OPTION_SSGGRAPH)
+	SD_ADD_SUBDIRECTORY(trackgen)
+ELSE()
+	MESSAGE(STATUS "Skipping trackgen since ssggraph is not built")
+ENDIF(OPTION_SSGGRAPH)
+
 SD_ADD_SUBDIRECTORY(translate)
 
 IF(OPTION_TRACKEDITOR)

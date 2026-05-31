@@ -27,15 +27,8 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <cmath>
+#include <math.h>
 #include <cfloat>
-#ifndef _WIN32
-// std::isnan should be available as of C++11 (201103L) but some compiler
-// vendors set this even though support is incomplete
-#if __cplusplus>=201402L // compiler claims to be C++14 compliant
-#define isnan std::isnan
-#endif
-#endif // _WIN32
 
 #include "accc.h"
 

@@ -27,7 +27,6 @@ ADD_SDLIB_INCLUDEDIR(csnetworking portability tgf math)
 
 ADD_PLIB_INCLUDEDIR()
 ADD_ENET_INCLUDEDIR()
-ADD_PLIB_LIBRARY(csnetworking ul sg)
 ADD_ENET_LIBRARY(csnetworking)
 ADD_SDL2_LIBRARY(csnetworking)
 

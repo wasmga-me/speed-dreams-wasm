@@ -30,6 +30,7 @@
 #include <car.h>
 #include <raceman.h>
 #include <robottools.h>
+#include <sgcompat.h>
 
 #include "carstruct.h"
 

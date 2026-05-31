@@ -3,7 +3,6 @@ INCLUDE(../../../../cmake/macros.cmake)
 SET(OSGGRAPH_HEADERS Utils/OsgVectorArrayAdapter.h
                      Utils/OsgAtomic.h
                      Utils/OsgColor.h
-                     Utils/OsgMath.h
                      Utils/OsgNodeMask.h
                      Utils/OsgLightTransform.h
                      #Utils/OsgPrecipitation.h
@@ -44,8 +43,7 @@ SET(OSGGRAPH_HEADERS Utils/OsgVectorArrayAdapter.h
                      OsgGraph.h
                      OsgMain.h)
 
-SET(OSGGRAPH_SOURCES Utils/OsgMath.cpp
-                     Utils/OsgLightTransform.cpp
+SET(OSGGRAPH_SOURCES Utils/OsgLightTransform.cpp
                      #Utils/OsgPrecipitation.cpp
 
                      Sky/OsgSphere.cpp
@@ -119,6 +117,8 @@ ENDIF(MSVC)
 # Note: Other sources and headers needed for having them available in IDEs.
 SD_ADD_LIBRARY(osggraph MODULE ${OSGGRAPH_SOURCES} ${OSGGRAPH_HEADERS} ${OSGGRAPH_OTHER_SOURCES})
 
+ADD_PLIB_LIBRARY(osggraph sg)
+
 # Might not work with GCC 4.5 or + (non-robot modules crash at 1st reload = after 1 dlclose)
 #SET_TARGET_PROPERTIES(osggraph PROPERTIES VERSION ${VERSION} SOVERSION 0.0.0)
 
@@ -127,9 +127,6 @@ ADD_OSG_LIBRARY(osggraph)
 ADD_SDL2_LIBRARY(osggraph)
 
 ADD_OPENGL_LIBRARY(osggraph)
-
-# Temporary, but should not remain !
-ADD_PLIB_LIBRARY(osggraph ul sg)
 
 ADD_SDLIB_LIBRARY(osggraph tgf tgfclient robottools)
 

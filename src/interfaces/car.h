@@ -28,7 +28,7 @@
 #define __CARV1_H__
 
 #include <track.h>
-#include <plib/sg.h>
+#include "sgcompat.h"
 
 #define CAR_IDENT	0
 

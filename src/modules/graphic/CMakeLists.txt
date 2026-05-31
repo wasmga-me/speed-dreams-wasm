@@ -1,6 +1,8 @@
 INCLUDE(../../../cmake/macros.cmake)
 
-ADD_SUBDIRECTORY(ssggraph)
+IF(OPTION_SSGGRAPH)
+	ADD_SUBDIRECTORY(ssggraph)
+ENDIF()
 
 IF(OPTION_OSGGRAPH)
 	ADD_SUBDIRECTORY(osggraph)

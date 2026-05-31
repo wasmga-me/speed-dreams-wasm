@@ -39,8 +39,6 @@ ADD_SDLIB_LIBRARY(tgfdata portability txml tgf tgfclient) # txml ignored if OPTI
 
 target_include_directories(tgfdata PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-ADD_PLIB_LIBRARY(tgfdata sg ul)
-
 IF(WIN32)
     SD_INSTALL_FILES(BIN TARGETS tgfdata)
 ELSE(WIN32)
