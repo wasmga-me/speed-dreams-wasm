@@ -73,6 +73,7 @@ public:
 	bool bottom_crash;
 	bool bang;
 	bool crash;
+	bool backfire;
 
 public:
 

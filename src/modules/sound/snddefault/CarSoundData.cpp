@@ -226,6 +226,11 @@ void CarSoundData::calculateEngineSound (tCarElt* car)
 /// Calculate the frequency and amplitude of a looped backfiring sound.
 void CarSoundData::calculateBackfireSound (tCarElt* car)
 {
+    if (!backfire) {
+        engine_backfire.a = engine_backfire.f = 0.0f;
+        return;
+    }
+
     if (car->_state & RM_CAR_STATE_NO_SIMU) {
         engine_backfire.a = 0.0f;
         engine_backfire.f = 1.0f;
