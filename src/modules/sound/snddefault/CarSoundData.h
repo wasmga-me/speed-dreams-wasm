@@ -74,6 +74,7 @@ public:
 	bool bang;
 	bool crash;
 	bool backfire;
+	bool gear;
 
 public:
 

@@ -456,7 +456,7 @@ void CarSoundData::calculateTyreSound(tCarElt* car)
 
 
 void CarSoundData::calculateGearChangeSound (tCarElt* car) {
-    if (car->_gear != prev_gear) {
+    if (gear && car->_gear != prev_gear) {
         prev_gear = car->_gear;
         gear_changing = true;
     } else {
