@@ -96,8 +96,11 @@ void grInitSound(tSituation* s, int ncars)
 
 		// ENGINE PARAMS
 		tdble rpm_scale;
+		const char *backfire, *gear;
 		param = GfParmGetStr(handle, "Sound", "engine sample", "engine-1.wav");
 		rpm_scale = GfParmGetNum(handle, "Sound", "rpm scale", NULL, 1.0);
+		backfire = GfParmGetStr(handle, "Sound", "backfire", "true");
+		gear = GfParmGetStr(handle, "Sound", "gear", "true");
 		sprintf(filename, "cars/models/%s/%.*s",
 			car->_carName,
 			(int)(sizeof(filename) - strlen(car->_carName) - strlen("cars/models//")),
@@ -130,6 +133,8 @@ void grInitSound(tSituation* s, int ncars)
 		float turbo_rpm = GfParmGetNum(handle, SECT_ENGINE, PRM_TURBO_RPM, NULL, default_turbo_rpm);
 		float turbo_lag = GfParmGetNum(handle, SECT_ENGINE, PRM_TURBO_LAG, NULL, 1.0f);
 		car_sound_data[i]->setTurboParameters (turbo_on, turbo_rpm, turbo_lag);
+		car_sound_data[i]->backfire = !strcmp(backfire, "true");
+		car_sound_data[i]->gear = !strcmp(gear, "true");
 	}
 
 	sound_interface->setSkidSound("data/sound/skid_tyres.wav");

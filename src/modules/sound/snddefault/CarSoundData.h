@@ -30,7 +30,7 @@ typedef struct WheelSoundData_
 class CarSoundData
 {
 protected:
-	
+
 	sgVec3 listener_position;
 	sgVec3 position;
 	sgVec3 speed;
@@ -44,7 +44,7 @@ protected:
 	void calculateCollisionSound (tCarElt* car);
 
 public:
-	
+
 	SoundPri eng_pri;
 	WheelSoundData wheel[4];
 	float attenuation; ///< global distance attenuation
@@ -73,9 +73,11 @@ public:
 	bool bottom_crash;
 	bool bang;
 	bool crash;
+	bool backfire;
+	bool gear;
 
 public:
-	
+
 	CarSoundData (int id, SoundInterface* sound_interface);
 	void setEngineSound (Sound* engine_sound, float rpm_scale);
 	void setTurboParameters (bool turbo_on, float turbo_rpm, float turbo_lag);
