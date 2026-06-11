@@ -771,9 +771,15 @@ GfuiScreenCreate(float *bgColor,
 	float originalScreenWidth = GfParmGetNum(hparmScreen, GFSCR_SECT_GLDETSPECS, GFSCR_ATT_WIN_X, (char *)NULL, 640);
 	float originalScreenHeight = GfParmGetNum(hparmScreen, GFSCR_SECT_GLDETSPECS, GFSCR_ATT_WIN_Y, (char *)NULL, 480);
 
-	screen->width = 480.0 * originalScreenWidth / originalScreenHeight;
+	float originalScreenRatio = originalScreenWidth / originalScreenHeight;
 	screen->height = 480.0;
-	screen->xmargin = (screen->width - 640.0) / 2.0;
+	if (originalScreenRatio > 1.78f) { // if screen is wider than 16:9
+		screen->width = 480.0 * originalScreenRatio;
+		screen->xmargin = (screen->width - 640.0) / 2.0;
+	} else {
+		screen->width = 640.0;
+		screen->xmargin = 0.f;
+	}
 
 	screen->bgColor = bgColor ? GfuiColor::build(bgColor) : GfuiColor::build(GFUI_BGCOLOR);
 
