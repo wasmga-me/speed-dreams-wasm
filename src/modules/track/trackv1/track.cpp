@@ -132,7 +132,17 @@ TrackBuildEx(const char *trackfile)
  */
 static void
 GetTrackHeader(void *TrackHandle) {
+    std::string path = "tracks/categories/";
+    const char *disabledPenalties = "", *cpath;
     // Read header
+    theTrack->category = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_CAT, "road");
+    path += theTrack->category + std::string(PARAMEXT);
+    cpath = path.c_str();
+
+    if ((theTrack->catParams = GfParmReadFileLocal(cpath, GFPARM_RMODE_STD))
+        || (theTrack->catParams = GfParmReadFile(cpath, GFPARM_RMODE_STD)))
+        disabledPenalties = GfParmGetStr(theTrack->catParams, TRK_SECT_HDR, TRK_ATT_DISABLED_PENALTIES, "");
+
     theTrack->name = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_NAME, "no name");
     theTrack->descr = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_DESCR, "no description");
     theTrack->version = (int)GfParmGetNum(TrackHandle, TRK_SECT_HDR, TRK_ATT_VERSION, (char*)NULL, 0);
@@ -140,9 +150,8 @@ GetTrackHeader(void *TrackHandle) {
     theTrack->authors = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_AUTHOR, "none");
     theTrack->email = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_EMAIL, "none");
     theTrack->copyright = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_COPYRIGHT, "none");
-    theTrack->category = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_CAT, "road");
     theTrack->subcategory = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_SUBCAT, "none");
-    theTrack->disabledpenalties = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_DISABLED_PENALTIES, "");
+    theTrack->disabledpenalties = GfParmGetStr(TrackHandle, TRK_SECT_HDR, TRK_ATT_DISABLED_PENALTIES, disabledPenalties);
 
     // Read Local Info section
     tTrackLocalInfo *local = &theTrack->local;
@@ -413,6 +422,8 @@ TrackShutdown(void)
     free(theTrack->filename);
     if (theTrack->sectors)
         free(theTrack->sectors);
+    if (theTrack->catParams)
+        GfParmReleaseHandle(theTrack->catParams);
     free(theTrack);
 
     GfParmReleaseHandle(TrackHandle);
