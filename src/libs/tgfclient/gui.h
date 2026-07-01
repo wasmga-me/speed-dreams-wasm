@@ -49,7 +49,7 @@ extern float	gfuiColors[GFUI_COLORNB][4];
 #define GFUI_EDITENABLED		19
 #define GFUI_EDITDISABLED		20
 #define GFUI_EDITCURSORCLR		21
-#define GFUI_BASECOLORBGIMAGE	22
+#define GFUI_BASECOLORBGIMAGE	22 /* obsolete */
 #define GFUI_PROGRESSCOLOR		23
 
 #define GFUI_IMAGE		200
@@ -311,32 +311,60 @@ typedef struct GfuiKey
     struct GfuiKey	*next;
 } tGfuiKey;
 
-typedef class TGFCLIENT_API tGfuiGallery
+typedef struct tGfBgImg
+{
+    float colors[4];
+    float overscan, xoffset, yoffset; /* For moving backgrounds */
+    GLuint image; /* Should always be 2^N x 2^P  (for low-end graphic hardwares) */
+    int width, height; /* Original bg image size (may be not 2^N x 2^P) */
+} tGfBgImg;
+
+typedef class TGFCLIENT_API tGfuiGalleryElm
 {
 public:
-    tGfuiGallery(const char *dirname);
+    tGfuiGalleryElm(const char *dirname);
     const std::string &dir() const;
     const std::string &file() const;
+    const tGfBgImg &getbg() const;
     int open();
     int update();
+    int start(const std::string &prev = "");
+    enum {WAIT, INIT, FADEIN, SHOW, FADEOUT} state;
 
 private:
+    int wait();
     int init();
     int init_direction();
     int fadein();
     int show();
     int fadeout();
     void move();
-    void setcolor() const;
-    enum {INIT, FADEIN, SHOW, FADEOUT} state;
+    tGfBgImg bg;
     enum {DIR_LEFT, DIR_RIGHT, DIR_UP, DIR_DOWN, N_DIRECTIONS};
+    std::string imagePath; /* Path to current background image. */
     unsigned direction;
-    std::string dirname, fullpath;
+    std::string dirname, fullpath, prev;
     std::vector<std::string> files;
     const float overscan;
-    float color;
+    float alpha;
     float xoffset, yoffset;
     double time;
+} tGfuiGalleryElm;
+
+typedef class TGFCLIENT_API tGfuiGallery
+{
+public:
+    tGfuiGallery(const char *dirname);
+    const std::string &dir() const;
+    const std::string &file() const;
+    std::vector<const tGfBgImg *> bgs() const;
+    int update();
+    int open();
+    int active_idx() const;
+
+private:
+    tGfuiGalleryElm elms[2];
+    int idx;
 } tGfuiGallery;
 
 /* screen definition */
@@ -344,10 +372,8 @@ typedef struct
 {
     int			ScreenID; /* Identify screen in registration */
     float		width, height; /* in menu/screen objects coordinate system */
-    float       overscan, xoffset, yoffset; /* For moving backgrounds */
     GfuiColor		bgColor; /* RGBA */
-    GLuint		bgImage; /* Should always be 2^N x 2^P  (for low-end graphic hardwares) */
-    int			bgWidth, bgHeight; /* Original bg image size (may be not 2^N x 2^P) */
+    tGfBgImg	bg; /* Background images */
 
     /* sub-objects */
     tGfuiObject		*objects;
@@ -379,9 +405,6 @@ typedef struct
 
     /* Ogg music file to play while screen is displayed */
     char		*musicFilename;
-
-    /* Path to current background image. */
-    std::string bgImagePath;
 
     /* A valid pointer if the screen cointains an animated gallery,
      * null otherwise. */

@@ -266,6 +266,80 @@ GfuiDisplay(void)
 	GfuiSwapBuffers();
 }
 
+static void
+GfuiRedrawBg(const tGfBgImg &bg)
+{
+	// Display backround image if any.
+	if (!bg.image)
+		return;
+
+	// Prepare texture display.
+	glEnable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+
+	glColor4f(bg.colors[0],
+				bg.colors[1],
+				bg.colors[2],
+				bg.colors[3]);
+
+	glBindTexture(GL_TEXTURE_2D, bg.image);
+
+	// Get real 2^N x 2^P texture size (may have been 0 padded at load time
+	// if the original image was not 2^N x 2^P)
+	// This 2^N x 2^P stuff is needed by some low-end OpenGL hardware/drivers.
+	int bgPow2Width = 1, bgPow2Height = 1;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &bgPow2Width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &bgPow2Height);
+
+	// Compute the initial width of the right area and the height of the bottom area
+	// of the texture that will not be displayed
+	// (We display only the top left rectangle of the 2^N x 2^P texture
+	//  that corresponds to the original image).
+	GLfloat tx1 = 0.0f;
+	GLfloat tx2 = bg.width / (GLfloat)bgPow2Width;
+
+	GLfloat ty1 = 1.0f - bg.height / (GLfloat)bgPow2Height;
+	GLfloat ty2 = 1.0;
+
+	// Compute the width/height of the symetrical left/right / top/bottom
+	// areas of original image that will need to be clipped
+	// in order to keep its aspect ratio.
+	const GLfloat rfactor = bg.width * (GLfloat)ViewH
+							/ bg.height / (GLfloat)ViewW;
+
+	if (rfactor >= 1.0f) {
+		// If aspect ratio of view is smaller than image's one, "cut off" sides.
+		const GLfloat tdx = bg.width * (rfactor - 1.0f) / bgPow2Width / 2.0f;
+		tx1 += tdx;
+		tx2 -= tdx;
+	} else {
+		// If aspect ratio of view is larger than image's one,
+		// "cut off" top and bottom.
+		const GLfloat tdy = bg.height * rfactor / bgPow2Height / 2.0f;
+		ty2 = (ty1+1)/2 + tdy;
+		ty1 = (ty1+1)/2 - tdy;
+	}
+
+	// Display texture.
+
+	glBegin(GL_QUADS);
+
+	float x1 = bg.xoffset - bg.overscan,
+		x2 = x1 + GfuiScreen->width + bg.overscan,
+		y1 = bg.yoffset - bg.overscan,
+		y2 = y1 + GfuiScreen->height + bg.overscan;
+
+	glTexCoord2f(tx1, ty1); glVertex3f(x1, y1, 0.0);
+	glTexCoord2f(tx1, ty2); glVertex3f(x1, y2, 0.0);
+	glTexCoord2f(tx2, ty2); glVertex3f(x2, y2, 0.0);
+	glTexCoord2f(tx2, ty1); glVertex3f(x2, y1, 0.0);
+
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
+
 /** Redraw the current screen
      @ingroup	gui
  */
@@ -273,6 +347,7 @@ void
 GfuiRedraw(void)
 {
 	tGfuiObject	*curObj;
+	tGfuiGallery *gallery = GfuiScreen->gallery;
 
 	glUseProgram(0);
 	glActiveTexture(GL_TEXTURE0);
@@ -305,77 +380,11 @@ GfuiRedraw(void)
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
-	// Display backround image if any.
-	if (GfuiScreen->bgImage) {
-
-		// Prepare texture display.
-		glDisable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
-
-		glColor3f(gfuiColors[GFUI_BASECOLORBGIMAGE][0],
-				  gfuiColors[GFUI_BASECOLORBGIMAGE][1],
-				  gfuiColors[GFUI_BASECOLORBGIMAGE][2]);
-
-		glBindTexture(GL_TEXTURE_2D, GfuiScreen->bgImage);
-
-		// Get real 2^N x 2^P texture size (may have been 0 padded at load time
-		// if the original image was not 2^N x 2^P)
-		// This 2^N x 2^P stuff is needed by some low-end OpenGL hardware/drivers.
-		int bgPow2Width = 1, bgPow2Height = 1;
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &bgPow2Width);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &bgPow2Height);
-
-		// Compute the initial width of the right area and the height of the bottom area
-		// of the texture that will not be displayed
-		// (We display only the top left rectangle of the 2^N x 2^P texture
-		//  that corresponds to the original image).
-		GLfloat tx1 = 0.0f;
-		GLfloat tx2 = GfuiScreen->bgWidth / (GLfloat)bgPow2Width;
-
-		GLfloat ty1 = 1.0f - GfuiScreen->bgHeight / (GLfloat)bgPow2Height;
- 		GLfloat ty2 = 1.0;
-
-		// Compute the width/height of the symetrical left/right / top/bottom
-		// areas of original image that will need to be clipped
-		// in order to keep its aspect ratio.
-		const GLfloat rfactor = GfuiScreen->bgWidth * (GLfloat)ViewH
-		                        / GfuiScreen->bgHeight / (GLfloat)ViewW;
-
-		if (rfactor >= 1.0f) {
-			// If aspect ratio of view is smaller than image's one, "cut off" sides.
-			const GLfloat tdx = GfuiScreen->bgWidth * (rfactor - 1.0f) / bgPow2Width / 2.0f;
-			tx1 += tdx;
-			tx2 -= tdx;
-		} else {
-			// If aspect ratio of view is larger than image's one,
-			// "cut off" top and bottom.
-			const GLfloat tdy = GfuiScreen->bgHeight * rfactor / bgPow2Height / 2.0f;
-			ty2 = (ty1+1)/2 + tdy;
-			ty1 = (ty1+1)/2 - tdy;
-		}
-
-		// Display texture.
-
-		glBegin(GL_QUADS);
-
-		float x1 = GfuiScreen->xoffset - GfuiScreen->overscan,
-			x2 = x1 + GfuiScreen->width + GfuiScreen->overscan,
-			y1 = GfuiScreen->yoffset - GfuiScreen->overscan,
-			y2 = y1 + GfuiScreen->height + GfuiScreen->overscan;
-
-		glTexCoord2f(tx1, ty1); glVertex3f(x1, y1, 0.0);
-		glTexCoord2f(tx1, ty2); glVertex3f(x1, y2, 0.0);
-		glTexCoord2f(tx2, ty2); glVertex3f(x2, y2, 0.0);
-		glTexCoord2f(tx2, ty1); glVertex3f(x2, y1, 0.0);
-
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
-
-
-		glEnable(GL_BLEND);
-	}
+	if (gallery)
+		for (auto bg : gallery->bgs())
+			GfuiRedrawBg(*bg);
+	else
+		GfuiRedrawBg(GfuiScreen->bg);
 
 	// Display other screen objects
 	curObj = GfuiScreen->objects;
@@ -665,11 +674,11 @@ GfuiScreenActivate(void *screen)
 		}
 		else
 		{
-			// Reset to default RGB and X/Y/OV values for static background image.
-			gfuiColors[GFUI_BASECOLORBGIMAGE][0] = 1;
-			gfuiColors[GFUI_BASECOLORBGIMAGE][1] = 1;
-			gfuiColors[GFUI_BASECOLORBGIMAGE][2] = 1;
-			GfuiScreen->xoffset = GfuiScreen->yoffset = GfuiScreen->overscan = 0;
+			tGfBgImg &bg = GfuiScreen->bg;
+
+			// Reset to default RGBA and X/Y/OV values for static background image.
+			bg.colors[0] = bg.colors[1] = bg.colors[2] = bg.colors[3] = 1;
+			bg.xoffset = bg.yoffset = bg.overscan = 0;
 			GfuiApp().eventLoop().setPredisplayCB(NULL);
 		}
 
@@ -793,9 +802,7 @@ GfuiScreenRelease(void *scr)
 		GfuiScreenDeactivate();
 	}
 
-	if (screen->bgImage != 0) {
-		glDeleteTextures(1, &screen->bgImage);
-	}
+	glDeleteTextures(1, &screen->bg.image);
 
 	curObject = screen->objects;
 	if (curObject != NULL) {
@@ -1196,6 +1203,21 @@ GfuiScreenShot(void * /* notused */)
 	}
 }
 
+void
+GfuiSetBgImg(tGfBgImg &bg, const char *filename)
+{
+	int pow2Width, pow2Height;
+
+	if (bg.image) {
+		GfTexFreeTexture(bg.image);
+	}
+
+	// Note: Here, we save the original image size (may be not 2^N x 2^P)
+	//       in order to be able to hide padding pixels added in texture to enforce 2^N x 2^P.
+	//       and we request this 2^N x 2^P enforcment by passing &pow2Width and &pow2Height.
+	bg.image = GfTexReadTexture(filename, &bg.width, &bg.height, &pow2Width, &pow2Height);
+}
+
 /** Add an image background to a screen.
     @ingroup	gui
     @param	scr		Screen
@@ -1206,20 +1228,8 @@ void
 GfuiScreenAddBgImg(void *scr, const char *filename)
 {
 	tGfuiScreen	*screen = (tGfuiScreen*)scr;
-	int pow2Width, pow2Height;
 
-	if (screen->bgImage) {
-		GfTexFreeTexture(screen->bgImage);
-	}
-
-	// Note: Here, we save the original image size (may be not 2^N x 2^P)
-	//       in order to be able to hide padding pixels added in texture to enforce 2^N x 2^P.
-	//       and we request this 2^N x 2^P enforcment by passing &pow2Width and &pow2Height.
-	screen->bgImage =
-		GfTexReadTexture(filename, &screen->bgWidth, &screen->bgHeight, &pow2Width, &pow2Height);
-
-	if (screen->bgImage)
-		screen->bgImagePath = filename;
+	GfuiSetBgImg(screen->bg, filename);
 }
 
 /** Set the path to a gallery directory with one or more images.
@@ -1239,7 +1249,6 @@ GfuiScreenSetGallery(void *scr, const char *dirname)
 		if (gallery.dir() == dirname)
 		{
 			screen->gallery = &gallery;
-			GfuiScreenAddBgImg(screen, gallery.file().c_str());
 			return;
 		}
 	}
