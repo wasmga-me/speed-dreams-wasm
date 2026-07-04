@@ -273,6 +273,7 @@ TGFCLIENT_API void GfuiGallery(void);
 
 struct RmInfo;
 typedef struct RmInfo tRmInfo;
+typedef struct tGfBgImg tGfBgImg;
 TGFCLIENT_API void (*tfuiIdleCB(tRmInfo *info))(void);
 
 /* Screen management */
@@ -300,6 +301,7 @@ TGFCLIENT_API void GfuiSetKeyAutoRepeat(void *scr, int on);
 TGFCLIENT_API void GfuiHelpScreen(void *targetScreen);
 TGFCLIENT_API void GfuiHelpScreen(void *targetScreen, void *returnScreen);
 TGFCLIENT_API void GfuiScreenShot(void *notused);
+TGFCLIENT_API void GfuiSetBgImg(tGfBgImg &bg, const char *filename);
 TGFCLIENT_API void GfuiScreenAddBgImg(void *scr, const char *filename);
 TGFCLIENT_API void GfuiScreenSetGallery(void *scr, const char *dirname);
 TGFCLIENT_API void GfuiScreenAddMusic(void *scr, const char *filename);

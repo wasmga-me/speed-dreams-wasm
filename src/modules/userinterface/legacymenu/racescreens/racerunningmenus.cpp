@@ -55,6 +55,7 @@ static int	rmCfgPlayerLabelId;
 static int	rmCfgPlayerComboId;
 static int	rmCfgTyresComboId;
 static int	rmCfgTyresLabelId;
+static int	rmCfgCloseBtnId;
 static int	rmCfgApplyBtnId;
 static int	rmCfgFuelLabelId;
 static int	rmCfgFuelProgressId;
@@ -238,6 +239,8 @@ static RmMovieCapture rmMovieCapture =
 	0,     // currentCapture
 	0      // currentFrame
 };
+
+static void rmCloseCfg(void *);
 
 static void
 rmInitMovieCapture()
@@ -850,6 +853,7 @@ rmCfgSetVisible(int visible)
 	GfuiVisibilitySet(rmScreenHandle, rmCfgTyresLabelId, visible);
 	GfuiVisibilitySet(rmScreenHandle, rmCfgTyresComboId, visible);
 	GfuiVisibilitySet(rmScreenHandle, rmCfgApplyBtnId, visible);
+	GfuiVisibilitySet(rmScreenHandle, rmCfgCloseBtnId, visible);
 	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelLabelId, visible);
 	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelProgressId, visible);
 	GfuiVisibilitySet(rmScreenHandle, rmCfgFuelFillLessId, visible);
@@ -877,6 +881,7 @@ rmFuelLess(void *args)
 			{
 				newfuel = fuel.min;
 				GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_DISABLE);
+				GfuiEnable(rmScreenHandle, rmCfgCloseBtnId, GFUI_DISABLE);
 			}
 
 			fuel.desired_value = newfuel;
@@ -900,6 +905,7 @@ rmFuelEmpty(void *args)
 
 			fuel.desired_value = fuel.min;
 			GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_DISABLE);
+			GfuiEnable(rmScreenHandle, rmCfgCloseBtnId, GFUI_DISABLE);
 			rmUpdateCfgUI();
 			break;
 		}
@@ -924,6 +930,7 @@ rmFuelMore(void *args)
 
 			fuel.desired_value = newfuel;
 			GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_ENABLE);
+			GfuiEnable(rmScreenHandle, rmCfgCloseBtnId, GFUI_ENABLE);
 			rmUpdateCfgUI();
 			break;
 		}
@@ -944,6 +951,7 @@ rmFuelMax(void *args)
 
 			fuel.desired_value = fuel.max;
 			GfuiEnable(rmScreenHandle, rmCfgApplyBtnId, GFUI_ENABLE);
+			GfuiEnable(rmScreenHandle, rmCfgCloseBtnId, GFUI_ENABLE);
 			rmUpdateCfgUI();
 			break;
 		}
@@ -1003,6 +1011,7 @@ RmScreenInit()
     rmCfgTyresLabelId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "config/tyres/label");
     rmCfgTyresComboId = GfuiMenuCreateComboboxControl(rmScreenHandle, menuXMLDescHdle, "config/tyres/combo", nullptr, rmTyreChange);
     rmCfgApplyBtnId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/apply", nullptr, rmApplyCfg);
+    rmCfgCloseBtnId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/close", nullptr, rmCloseCfg);
     rmCfgFuelLabelId = GfuiMenuCreateLabelControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/label");
     rmCfgFuelProgressId = GfuiMenuCreateProgressbarControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/progress");
     rmCfgFuelFillLessId = GfuiMenuCreateButtonControl(rmScreenHandle, menuXMLDescHdle, "config/fuel/fill/less", nullptr, rmFuelLess);
@@ -1110,6 +1119,12 @@ RmReadyToRace(void * /* dummy */)
    }
 
    LmRaceEngine().stopPreracePause();
+}
+
+static void
+rmCloseCfg(void * /* dummy */)
+{
+	RmReadyToRace(NULL);
 }
 
 static void
