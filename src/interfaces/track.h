@@ -730,6 +730,7 @@ typedef struct Track
 
 	tTrackLocalInfo local;      /**< Local info (weather, timeof day ...) */
 	const char    *disabledpenalties; /**< Semicolon-separated list of disabled penalties. */
+	void		  *catParams;	/**< Category-specific parameters. */
 } tTrack;
 
 /* For Type 3 tracks (now obsolete) */
