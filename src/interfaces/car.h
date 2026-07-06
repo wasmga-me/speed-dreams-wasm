@@ -84,7 +84,7 @@ typedef struct {
     char	name[MAX_NAME_LEN];         /**< Driver's name */
     char	sname[MAX_NAME_LEN];        /**< Driver's short name */
     char	codename[3+1];              /**< Driver's 3-letter codename */
-    char    nationname[2+1];            /**< Driver's nationality 2-letter codename */
+    char	nationname[sizeof "xx-yyy"];/**< Driver's nationality codename */
     char	teamname[MAX_NAME_LEN];     /**< Team name */
     char	carName[MAX_NAME_LEN];      /**< Car object name */
     char	category[MAX_NAME_LEN];     /**< Car's category */

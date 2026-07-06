@@ -612,20 +612,20 @@ static tCarElt* reLoadSingleCar( int carindex, int listindex, int modindex, int 
             strncpy(elt->_name, GfParmGetStr(robhdle, path, ROB_ATTR_NAME, "none"), MAX_NAME_LEN - 1);
             strncpy(elt->_sname, GfParmGetStr(robhdle, path, ROB_ATTR_SNAME, "none"), MAX_NAME_LEN - 1);
             strncpy(elt->_cname, GfParmGetStr(robhdle, path, ROB_ATTR_CODE, "---"), 3);
-            strncpy(elt->_nationname, GfParmGetStr(robhdle, path, ROB_ATTR_NATION, "none"), 2);
+            strncpy(elt->_nationname, GfParmGetStr(robhdle, path, ROB_ATTR_NATION, "none"), sizeof elt->_nationname - 1);
         }
         else
         {
             strncpy(elt->_name, GfParmGetStr(ReInfo->params, path2, ROB_ATTR_NAME, "none"), MAX_NAME_LEN - 1);
             strncpy(elt->_sname, GfParmGetStr(ReInfo->params, path2, ROB_ATTR_SNAME, "none"), MAX_NAME_LEN - 1);
             strncpy(elt->_cname, GfParmGetStr(ReInfo->params, path2, ROB_ATTR_CODE, "---"), 3);
-            strncpy(elt->_nationname, GfParmGetStr(ReInfo->params, path2, ROB_ATTR_NATION, "EU"), 2);
+            strncpy(elt->_nationname, GfParmGetStr(ReInfo->params, path2, ROB_ATTR_NATION, "EU"), sizeof elt->_nationname - 1);
         }
 
         elt->_name[MAX_NAME_LEN - 1] = 0;
         elt->_sname[MAX_NAME_LEN - 1] = 0;
         elt->_cname[3] = 0;
-        elt->_nationname[2] = 0;
+        elt->_nationname[sizeof elt->_nationname - 1] = 0;
 
         teamname = GfParmGetStr(robhdle, path, ROB_ATTR_TEAM, "none");
         teamname = GfParmGetStr(ReInfo->params, path2, ROB_ATTR_TEAM, teamname ); //Use the name in params if it has a team name
