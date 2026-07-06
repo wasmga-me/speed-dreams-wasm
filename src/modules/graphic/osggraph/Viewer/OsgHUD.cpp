@@ -1396,7 +1396,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
             else if ((*car)->_laps > currCar->_laps)
             {
                 tempStr << ((*car)->_laps - currCar->_laps);
-                tempStr << " laps";
+                tempStr << ' ' << tr("laps");
             }
 
             hudTextElements[mapKey.str()]->setText(tempStr.str());
