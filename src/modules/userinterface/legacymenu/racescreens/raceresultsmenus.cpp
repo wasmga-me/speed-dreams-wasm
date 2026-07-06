@@ -30,6 +30,7 @@
 #include <tracks.h>
 #include <race.h>
 #include <racemanagers.h>
+#include <nation.h>
 
 #include "legacymenu.h"
 #include "racescreens.h"
@@ -351,8 +352,11 @@ rmRaceResults(void *prevHdle, tRmInfo *info, int start)
                                    GfParmGetStr(results, path, RE_ATTR_CAR, ""), GFUI_TPL_X, y);
 
         //Nation
-        GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "Nation", true, // From template.
-                                   GfParmGetStr(results, path, RE_ATTR_NATION, ""), GFUI_TPL_X, y);
+        const char *nation =  GfParmGetStr(results, path, RE_ATTR_NATION, "");
+        GfuiMenuCreateStaticImageControl(rmScrHdle, hmenu, "Nation",
+                                   true /* From template */, GFUI_TPL_X, y,
+                                   GFUI_TPL_WIDTH, GFUI_TPL_HEIGHT,
+                                   NationPath(nation).c_str());
 
         //Total Time
         if (GfParmGetNum(results, path, RE_ATTR_DNF, NULL, 0))
@@ -496,8 +500,11 @@ rmQualifResults(void *prevHdle, tRmInfo *info, const char* pszTitle, int start)
                                    GfParmGetStr(results, path, RE_ATTR_SNAME, ""), GFUI_TPL_X, y);
 
         //Nation
-        GfuiMenuCreateLabelControl(rmScrHdle, hmenu, "Nation", true, // From template.
-                                   GfParmGetStr(results, path, RE_ATTR_NATION, ""), GFUI_TPL_X, y);
+        const char *nation =  GfParmGetStr(results, path, RE_ATTR_NATION, "");
+        GfuiMenuCreateStaticImageControl(rmScrHdle, hmenu, "Nation",
+                                   true /* From template */, GFUI_TPL_X, y,
+                                   GFUI_TPL_WIDTH, GFUI_TPL_HEIGHT,
+                                   NationPath(nation).c_str());
 
         //Driver type
         const std::string strModName = GfParmGetStr(results, path, RE_ATTR_MODULE, "");

@@ -40,6 +40,7 @@
 #include "guimenu.h"
 #include "translation.h"
 #include "tgfclient.h"
+#include "nation.h"
 
 #include "forcefeedback.h"
 extern TGFCLIENT_API ForceFeedbackManager forceFeedback;
@@ -47,7 +48,6 @@ extern TGFCLIENT_API ForceFeedbackManager forceFeedback;
 #include <sstream>
 #include <iomanip> //setprecision
 
-#include <algorithm> //tolower
 #include <string> //tolower
 #include <cctype> //tolower
 
@@ -1323,6 +1323,10 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_NONE);
 
         mapKey.str("");
+        mapKey << "board-player" << id << "-flag";
+        hudImgElements[mapKey.str()]->setNodeMask(NODE_MASK_NONE);
+
+        mapKey.str("");
         mapKey << "board-player" << id << "-name";
         hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_NONE);
 
@@ -1362,6 +1366,12 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         mapKey << "board-player" << id << "-number";
         hudTextElements[mapKey.str()]->setText(position.str());
         hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
+
+        //update board names flags
+        mapKey.str("");
+        mapKey << "board-player" << id << "-flag";
+        hudImgElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
+        changeImageTexture(hudImgElements[mapKey.str()], NationPath((*car)->_nationname));
 
         //update board names texts
         mapKey.str("");
@@ -2327,19 +2337,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         }else{
             hudImgElements["driverinfo-flag"]->setNodeMask(1);
         }
-        //update the flag texture
-        std::string nationname = currCar->_nationname;
-        //to lowercase
-        std::transform(nationname.begin(), nationname.end(), nationname.begin(), [](unsigned char c) {
-            return std::tolower(c);
-        });
-        temp.str("");
-        std::string uk = "uk";
-        if (nationname == uk){
-			nationname = "gb";
-		}
-        temp << "data/img/flags/4x3png/" << nationname.c_str() <<".png";
-        changeImageTexture(hudImgElements["driverinfo-flag"], temp.str());
+        changeImageTexture(hudImgElements["driverinfo-flag"], NationPath(currCar->_nationname));
 
 //edithud
     if (hudEditModeEnabled){
@@ -2874,7 +2872,7 @@ osg::ref_ptr <osg::Group> SDHUD::generateHudFromXmlFile(int scrH, int scrW)
                            // GfLogError ("OSGHUD: Forced image width %f: \n", forcedImageWidth);
                            // GfLogError ("for %s: \n", url.c_str());
                             if (forcedImageWidth > 0.0f){
-                                GfLogError ("OSGHUD: Force a different image size for image: %s\n", url.c_str());
+                                GfLogDebug ("OSGHUD: Force a different image size for image: %s\n", url.c_str());
                                 imgWidth = forcedImageWidth * hudScale;
                                 imgHeight = forcedImageHeight * hudScale;
                             }
