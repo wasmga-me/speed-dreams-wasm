@@ -172,6 +172,7 @@ TGFCLIENT_API void GfuiMenuVolumeDown(void*);
 #define GFUI_TPL_COLOR        (const float*)-1
 #define GFUI_TPL_FOCUSCOLOR   (const float*)-1
 #define GFUI_TPL_PUSHEDCOLOR  (const float*)-1
+#define GFUI_TPL_IMAGE        (const char*)-1
 
 // Some keyboard key modifier codes, to avoid SDLK constants everywhere.
 // Note: Don't care with the L here, for tgfclient, it means L or R (no difference).
@@ -677,7 +678,8 @@ TGFCLIENT_API int GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, cons
                                                    bool bFromTemplate = false,
                                                    int x = GFUI_TPL_X, int y = GFUI_TPL_Y,
                                                    int width = GFUI_TPL_WIDTH,
-                                                   int height = GFUI_TPL_HEIGHT);
+                                                   int height = GFUI_TPL_HEIGHT,
+                                                   const char *pszImage = GFUI_TPL_IMAGE);
 TGFCLIENT_API int GfuiMenuCreateLabelControl(void* hscr, void* hparm, const char* pszName,
                                              bool bFromTemplate = false,
                                              const char* text = GFUI_TPL_TEXT,

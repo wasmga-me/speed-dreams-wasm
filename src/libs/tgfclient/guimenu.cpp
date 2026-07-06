@@ -247,9 +247,11 @@ static int
 createStaticImage(void* hscr, void* hparm, const char* pszName,
                   bool bFromTemplate = false, int x = GFUI_TPL_X,
                   int y = GFUI_TPL_Y, int w = GFUI_TPL_WIDTH,
-                  int h = GFUI_TPL_HEIGHT)
+                  int h = GFUI_TPL_HEIGHT,
+                  const char* pszImage = GFUI_TPL_IMAGE)
 {
-    const char* pszImage = GfParmGetStr(hparm, pszName, GFMNU_ATTR_IMAGE, "");
+    if (pszImage == GFUI_TPL_IMAGE)
+        pszImage = GfParmGetStr(hparm, pszName, GFMNU_ATTR_IMAGE, "");
 
     if (!bFromTemplate || x == GFUI_TPL_X)
         x = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_X, NULL, 0.0);
@@ -307,7 +309,8 @@ createGallery(void* hscr, void* hparm, const char* pszName)
 int
 GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName,
                                  bool bFromTemplate, int x, int y,
-                                 int width, int height)
+                                 int width, int height,
+                                 const char* pszImage)
 {
     std::string strControlPath =
         bFromTemplate ? GFMNU_SECT_TEMPLATE_CONTROLS"/"
@@ -315,7 +318,7 @@ GfuiMenuCreateStaticImageControl(void* hscr, void* hparm, const char* pszName,
     strControlPath += pszName;
 
     return createStaticImage(hscr, hparm, strControlPath.c_str(),
-        bFromTemplate, x, y, width, height);
+        bFromTemplate, x, y, width, height, pszImage);
 }
 
 void
