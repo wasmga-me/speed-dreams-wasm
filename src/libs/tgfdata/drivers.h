@@ -215,8 +215,8 @@ protected:
 	int genskill(const std::string &driver, const std::string &dir) const;
 	bool supports_aggression(const std::string &driver) const;
 	int pickdriver(std::string &seldriver) const;
-	int pickcar(const std::string &category, std::string &car,
-		std::string &livery) const;
+	int picklivery(const std::string &car, std::string &livery) const;
+	int pickcar(const std::string &category, std::string &car) const;
 	static std::vector<GfDriverSkin> getskins(const std::string &car);
 
 protected:

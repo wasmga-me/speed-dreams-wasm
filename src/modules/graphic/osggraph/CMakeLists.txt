@@ -88,7 +88,7 @@ SET(OSGGRAPH_SOURCES Utils/OsgLightTransform.cpp
 INCLUDE_DIRECTORIES(Utils Sky Loader Scenery Render Viewer Car .)
 
 ADD_INTERFACE_INCLUDEDIR()
-ADD_SDLIB_INCLUDEDIR(portability math tgf tgfclient robottools)
+ADD_SDLIB_INCLUDEDIR(portability math tgf tgfclient tgfdata robottools)
 
 ADD_SDL2_INCLUDEDIR()
 
@@ -128,6 +128,6 @@ ADD_SDL2_LIBRARY(osggraph)
 
 ADD_OPENGL_LIBRARY(osggraph)
 
-ADD_SDLIB_LIBRARY(osggraph tgf tgfclient robottools)
+ADD_SDLIB_LIBRARY(osggraph tgf tgfclient tgfdata robottools)
 
 SD_INSTALL_FILES(LIB modules/graphic TARGETS osggraph)

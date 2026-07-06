@@ -7,8 +7,8 @@ ADD_PLIB_INCLUDEDIR()
 ADD_INTERFACE_INCLUDEDIR()
 ADD_SDLIB_INCLUDEDIR(portability txml math tgf)
 
-SET(TGFDATA_HEADERS tgfdata.h cars.h tracks.h racemanagers.h race.h drivers.h)
-SET(TGFDATA_SOURCES tgfdata.cpp cars.cpp tracks.cpp racemanagers.cpp race.cpp drivers.cpp names.cpp)
+SET(TGFDATA_HEADERS tgfdata.h cars.h tracks.h racemanagers.h race.h drivers.h nation.h)
+SET(TGFDATA_SOURCES tgfdata.cpp cars.cpp tracks.cpp racemanagers.cpp race.cpp drivers.cpp names.cpp nation.cpp)
 
 IF(WIN32)
     # DLL export stuff under Windows (to avoid .def file)

@@ -40,6 +40,7 @@
 #include "guimenu.h"
 #include "translation.h"
 #include "tgfclient.h"
+#include "nation.h"
 
 #include "forcefeedback.h"
 extern TGFCLIENT_API ForceFeedbackManager forceFeedback;
@@ -47,7 +48,6 @@ extern TGFCLIENT_API ForceFeedbackManager forceFeedback;
 #include <sstream>
 #include <iomanip> //setprecision
 
-#include <algorithm> //tolower
 #include <string> //tolower
 #include <cctype> //tolower
 
@@ -1258,50 +1258,23 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
     }
 
 //board
-    tCarElt *firstAheadCar;
-    tCarElt *secondAheadCar;
-    tCarElt *thirdAheadCar;
-    tCarElt *firstBehindCar;
-    tCarElt *secondBehindCar;
-    tCarElt *thirdBehindCar;
-
     std::vector<tCarElt *> boardCars;
+    int added = 1, start = 1, behind = s->_ncars - currCar->_pos;
 
-    // get pointers for previous and behind cars from us
-    if (currCar->_pos > 3)
-    {
-        thirdAheadCar = s->cars[currCar->_pos - 4];
-        boardCars.push_back(thirdAheadCar);
-    }
-    if (currCar->_pos > 2)
-    {
-        secondAheadCar = s->cars[currCar->_pos - 3];
-        boardCars.push_back(secondAheadCar);
-    }
-    if (currCar->_pos > 1) {
-        firstAheadCar = s->cars[currCar->_pos - 2];
-        boardCars.push_back(firstAheadCar);
-    }
-    //always add our car
-    boardCars.push_back(s->cars[currCar->_pos-1]);
+    //always add the first car
+    boardCars.push_back(s->cars[0]);
 
-    if (currCar->_pos < s->_ncars )
-    {
-        firstBehindCar = s->cars[currCar->_pos + 0];
-        boardCars.push_back(firstBehindCar);
-    }
+    if (currCar->_pos > 4)
+        start = currCar->_pos - 3;
 
-    if (currCar->_pos < (s->_ncars-1) )
-    {
-        secondBehindCar = s->cars[currCar->_pos + 1];
-        boardCars.push_back(secondBehindCar);
-    }
+    while (behind < 3 && (currCar->_pos - start) < (6 - behind) && start > 1)
+        start--;
 
-    if (currCar->_pos < (s->_ncars - 2))
-    {
-        thirdBehindCar = s->cars[currCar->_pos + 2];
-        boardCars.push_back(thirdBehindCar);
-    }
+    for (int i = start; added < 7 && i < currCar->_pos; i++, added++)
+        boardCars.push_back(s->cars[i]);
+
+    for (int i = currCar->_pos; added < 7 && i < s->_ncars; i++, added++)
+        boardCars.push_back(s->cars[i]);
 
     //hide all board slots... we will enable later what we will use
     for (int id = 1; id <= 7; id++)
@@ -1321,6 +1294,10 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         mapKey.str("");
         mapKey << "board-player" << id << "-number";
         hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_NONE);
+
+        mapKey.str("");
+        mapKey << "board-player" << id << "-flag";
+        hudImgElements[mapKey.str()]->setNodeMask(NODE_MASK_NONE);
 
         mapKey.str("");
         mapKey << "board-player" << id << "-name";
@@ -1363,6 +1340,12 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         hudTextElements[mapKey.str()]->setText(position.str());
         hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
 
+        //update board names flags
+        mapKey.str("");
+        mapKey << "board-player" << id << "-flag";
+        hudImgElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
+        changeImageTexture(hudImgElements[mapKey.str()], NationPath((*car)->_nationname));
+
         //update board names texts
         mapKey.str("");
         mapKey << "board-player" << id << "-name";
@@ -1378,7 +1361,12 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
             data.timeDiffFreezeTime = GfTimeClock();
         }
 
-        if ( GfTimeClock() < (data.timeDiffFreezeTime + data.timeDiffFreezeCountdown))
+        if ((*car)->_state & RM_CAR_STATE_DNF)
+        {
+            hudTextElements[mapKey.str()]->setText("DNF");
+            hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
+        }
+        else if ( GfTimeClock() < (data.timeDiffFreezeTime + data.timeDiffFreezeCountdown))
         {
             data.oldLapNumber = currCar->_laps;
 
@@ -1391,7 +1379,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
             else if ((*car)->_laps > currCar->_laps)
             {
                 tempStr << ((*car)->_laps - currCar->_laps);
-                tempStr << " laps";
+                tempStr << ' ' << tr("laps");
             }
 
             hudTextElements[mapKey.str()]->setText(tempStr.str());
@@ -2223,6 +2211,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
 
         //if we are not first get the gap to the car directly ahead of us
         if(currCar->_pos > 1){
+            const tCarElt *firstAheadCar = s->cars[currCar->_pos - 2];
             //if he is in my same lap
             if (firstAheadCar->_laps == currCar->_laps){
                 //get how much time it took him to reach his position from my position
@@ -2248,6 +2237,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
 
         //if we are not last get the gap to the car directly behind us
         if(currCar->_pos < s->_ncars){
+            const tCarElt *firstBehindCar = s->cars[currCar->_pos];
             //if he is in my same lap
             if (firstBehindCar->_laps == currCar->_laps){
                 //get how much time it took me to reach my position from my position
@@ -2288,6 +2278,8 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         if( s->_ncars > 1 ){
 			//if we are not first
 			if(currCar->_pos > 1){
+                const tCarElt *firstAheadCar = s->cars[currCar->_pos - 2];
+
 				temp.str("");
 				temp << "P" << firstAheadCar->_pos;
 				hudTextElements["driverinfo-posahead"]->setText(temp.str());
@@ -2299,6 +2291,8 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
 			}
 			//if we are not last
 			if(currCar->_pos < s->_ncars){
+                const tCarElt *firstBehindCar = s->cars[currCar->_pos];
+
 				temp.str("");
 				temp << "P" << firstBehindCar->_pos;
 				hudTextElements["driverinfo-posbehind"]->setText(temp.str());
@@ -2322,19 +2316,7 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
         }else{
             hudImgElements["driverinfo-flag"]->setNodeMask(1);
         }
-        //update the flag texture
-        std::string nationname = currCar->_nationname;
-        //to lowercase
-        std::transform(nationname.begin(), nationname.end(), nationname.begin(), [](unsigned char c) {
-            return std::tolower(c);
-        });
-        temp.str("");
-        std::string uk = "uk";
-        if (nationname == uk){
-			nationname = "gb";
-		}
-        temp << "data/img/flags/4x3png/" << nationname.c_str() <<".png";
-        changeImageTexture(hudImgElements["driverinfo-flag"], temp.str());
+        changeImageTexture(hudImgElements["driverinfo-flag"], NationPath(currCar->_nationname));
 
 //edithud
     if (hudEditModeEnabled){
@@ -2869,7 +2851,7 @@ osg::ref_ptr <osg::Group> SDHUD::generateHudFromXmlFile(int scrH, int scrW)
                            // GfLogError ("OSGHUD: Forced image width %f: \n", forcedImageWidth);
                            // GfLogError ("for %s: \n", url.c_str());
                             if (forcedImageWidth > 0.0f){
-                                GfLogError ("OSGHUD: Force a different image size for image: %s\n", url.c_str());
+                                GfLogDebug ("OSGHUD: Force a different image size for image: %s\n", url.c_str());
                                 imgWidth = forcedImageWidth * hudScale;
                                 imgHeight = forcedImageHeight * hudScale;
                             }

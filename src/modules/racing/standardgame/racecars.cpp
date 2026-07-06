@@ -647,6 +647,15 @@ ReCarsManageCar(tCarElt *car, bool& bestLapChanged, double deltaTime)
             memcpy(car->ctrl.msgColor, ctrlMsgColor, sizeof(car->ctrl.msgColor));
         }
 
+        if (car->_state & RM_CAR_STATE_JUSTPULLUP) {
+            char msg[128];
+            const char *fmt = ReSituation::self().tr("out");
+
+            snprintf(msg, sizeof(msg), fmt, car->_name);
+            ReSituation::self().setRaceMessage(msg, 5);
+            car->_state &= ~RM_CAR_STATE_JUSTPULLUP;
+        }
+
         // If pitting, check if pitting delay over, and end up with pitting process if so.
         if (car->_state & RM_CAR_STATE_PIT) {
             car->ctrl.raceCmd &= ~RM_CMD_PIT_ASKED; // clear the flag.

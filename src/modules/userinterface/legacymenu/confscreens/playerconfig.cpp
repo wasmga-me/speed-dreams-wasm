@@ -24,6 +24,7 @@
 
 #include <webserver.h>
 
+#include <nation.h>
 #include <portability.h>
 #include <tgfclient.h>
 #include <robot.h>
@@ -85,7 +86,7 @@ static void	*PlayerHdle = NULL;
 static void	*GraphHdle = NULL;
 
 static int NameEditId;
-static int NationEditId;
+static int NationImgId;
 static int RaceNumEditId;
 static int GearChangeEditId;
 static int PitsEditId;
@@ -340,8 +341,7 @@ refreshEditVal(void)
         GfuiEditboxSetString(ScrHandle, NameEditId, "");
         GfuiEnable(ScrHandle, NameEditId, GFUI_DISABLE);
 
-        GfuiEditboxSetString(ScrHandle, NationEditId, "");
-        GfuiEnable(ScrHandle, NationEditId, GFUI_DISABLE);
+        GfuiStaticImageSet(ScrHandle, NationImgId, "data/img/transparent.png");
 
         GfuiEditboxSetString(ScrHandle, RaceNumEditId, "");
         GfuiEnable(ScrHandle, RaceNumEditId, GFUI_DISABLE);
@@ -391,8 +391,7 @@ refreshEditVal(void)
         GfuiEditboxSetString(ScrHandle, PitsEditId, buf);
         GfuiEnable(ScrHandle, PitsEditId, GFUI_ENABLE);
 
-        GfuiLabelSetText(ScrHandle, NationEditId, (*CurrPlayer)->nation());
-        GfuiEnable(ScrHandle, NationEditId, GFUI_ENABLE);
+        GfuiStaticImageSet(ScrHandle, NationImgId, NationPath((*CurrPlayer)->nation()).c_str());
 
         GfuiLabelSetText(ScrHandle, SkillEditId, SkillLevelString[skill]);
         GfuiEnable(ScrHandle, SkillEditId, GFUI_ENABLE);
@@ -1258,7 +1257,7 @@ PlayerConfigMenuInit(void *prevMenu)
     /* Player nationality "combobox" (left arrow, label, right arrow) */
     GfuiMenuCreateButtonControl(ScrHandle, param, "nationleftarrow", NULL, onNationLeft);
     GfuiMenuCreateButtonControl(ScrHandle, param, "nationrightarrow", NULL, onNationRight);
-    NationEditId = GfuiMenuCreateLabelControl(ScrHandle, param, "nationtext");
+    NationImgId = GfuiMenuCreateStaticImageControl(ScrHandle, param, "nationimg");
 
     /* Races and pits numbers editboxes (Must they really stay here ?) */
     /* TODO: definitely should be moved from here to pre-race menus. kilo */

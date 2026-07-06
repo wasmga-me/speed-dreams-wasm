@@ -1597,8 +1597,28 @@ int GfDrivers::genident(struct GfDrivers::identity &ident) const
     return 0;
 }
 
-int GfDrivers::pickcar(const std::string &category, std::string &car,
-    std::string &livery) const
+int GfDrivers::picklivery(const std::string &car, std::string &livery) const
+{
+    std::vector<GfDriverSkin> skins = getskins(car);
+    unsigned index;
+
+    if (skins.empty())
+    {
+        GfLogError("No skins on car %s\n", car.c_str());
+        return -1;
+    }
+    else if (portability::rand(&index, sizeof index))
+    {
+        GfLogError("Failed to get random skin index\n");
+        return -1;
+    }
+
+    index %= skins.size();
+    livery = skins.at(index).getName();
+    return 0;
+}
+
+int GfDrivers::pickcar(const std::string &category, std::string &car) const
 {
     std::vector<GfCar*> cars = GfCars::self()->getCarsInCategory(category);
     unsigned index;
@@ -1616,22 +1636,6 @@ int GfDrivers::pickcar(const std::string &category, std::string &car,
 
     index %= cars.size();
     car = cars.at(index)->getId();
-
-    std::vector<GfDriverSkin> skins = getskins(car);
-
-    if (skins.empty())
-    {
-        GfLogError("No skins on car %s\n", car.c_str());
-        return -1;
-    }
-    else if (portability::rand(&index, sizeof index))
-    {
-        GfLogError("Failed to get random skin index\n");
-        return -1;
-    }
-
-    index %= skins.size();
-    livery = skins.at(index).getName();
     return 0;
 }
 
@@ -1651,11 +1655,15 @@ int GfDrivers::genparams(const std::string &driver, const std::string &category,
         GfLogError("GfDrivers::genparams: GfParmReadFile %s failed\n", p);
         goto end;
     }
-
-    if (car.empty() && pickcar(category, selcar, livery))
+    else if (car.empty() && pickcar(category, selcar))
     {
-        GfLogError("Failed to pick random car/livery from category: %s\n",
-            catId);
+        GfLogError("Failed to pick random car from category: %s\n", catId);
+        goto end;
+    }
+    else if (picklivery(selcar, livery))
+    {
+        GfLogError("Failed to pick random livery from car: %s\n",
+            selcar.c_str());
         goto end;
     }
 

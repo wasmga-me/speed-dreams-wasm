@@ -216,6 +216,10 @@ GfTexReadImageFromPNG(const char *filename, float screen_gamma, int *pWidth, int
 	if (bit_depth == 16) {
 		png_set_swap(png_ptr);
 		png_set_strip_16(png_ptr);
+
+		if (color_type == PNG_COLOR_TYPE_RGB) {
+			png_set_add_alpha(png_ptr, 0xffff, PNG_FILLER_AFTER);
+		}
 	}
 
 	if (bit_depth < 8) {
