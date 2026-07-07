@@ -11,8 +11,9 @@
 #ifndef NATION_H
 #define NATION_H
 
+#include <tgfdata.h>
 #include <string>
 
-std::string NationPath(const char *nation, const char *dir = "4x3png");
+TGFDATA_API std::string NationPath(const char *nation, const char *dir = "4x3png");
 
 #endif
