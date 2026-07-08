@@ -144,7 +144,7 @@ void NotificationManager::runAnimation(){
         //if we have not arhieving 30fps slow down the animation
         if(animationTimeFromLastStep > 0.033333333){
 
-            animationTimeFromLastStep = animationTimeFromLastStep;
+            animationTimeFromLastStep = 0.033333333;
 
         }
         int propertyStepChange = this->propertyChangeNeeded / this->totalAnimationDuration * this->animationDirection * animationTimeFromLastStep;
