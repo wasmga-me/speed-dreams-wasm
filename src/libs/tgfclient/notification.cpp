@@ -41,7 +41,7 @@ NotificationManager::NotificationManager()
 
     this->animationRestTime = 4 ; //how much wes should wait when we a re fully displayed
     this->totalAnimationDuration = 0.3 ;//how much the animation should take to fully run in one direction
-    this->animationLastExecTime = std::clock(); //the current time
+    this->animationLastExecTime = GfTimeClock(); //the current time
 
 }
 
@@ -100,7 +100,7 @@ void NotificationManager::startNewNotification(){
     this->messageLines = split(this->msglist.front(), '\n');
 
     //reset the start time(s)
-    this->animationStartTime = this->animationLastExecTime = std::clock();
+    this->animationStartTime = this->animationLastExecTime = GfTimeClock();
     this->animationRestStartTime = 0;
 
     //reset the start property
@@ -124,7 +124,7 @@ void NotificationManager::runAnimation(){
     int remainingChangeNeeded = (this->propertyFinalValue - propertyCurrentValue);
 
     //log current time
-    std::clock_t currentTime = std::clock();
+    double currentTime = GfTimeClock();
 
     //CASE 1
     //we still need to apply some change to reach the final value
@@ -134,7 +134,7 @@ void NotificationManager::runAnimation(){
         // float animationRunningTime = (currentTime - this->animationStartTime) / (float) CLOCKS_PER_SEC;
 
         //how much time is passed from the last run
-        float animationTimeFromLastStep = (currentTime - this->animationLastExecTime) / (float) CLOCKS_PER_SEC;
+        float animationTimeFromLastStep = (currentTime - this->animationLastExecTime);
         //time remaining for the animation
         // float animationTimeRemaining = this->totalAnimationDuration - animationRunningTime;
 
@@ -220,18 +220,18 @@ void NotificationManager::runAnimation(){
 
             //we are just done runnig the runInAnimation
             //log the time we start waiting while fully displayed
-            this->animationRestStartTime = std::clock();
+            this->animationRestStartTime = GfTimeClock();
 
         }else{
 
             //if rest time has expired: start the runOutAnimation
-            if(((currentTime - this->animationRestStartTime) / (float) CLOCKS_PER_SEC) > this->animationRestTime){
+            if((currentTime - this->animationRestStartTime) > this->animationRestTime){
 
                 //change the animation direction
                 this->animationDirection = -1;
 
                 //reset the animation start time
-                this->animationStartTime = this->animationLastExecTime = std::clock(); //when the animation started
+                this->animationStartTime = this->animationLastExecTime = GfTimeClock(); //when the animation started
 
                 //read property info
                 this->propertyChangeNeeded= (int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "width", "null", 0);
