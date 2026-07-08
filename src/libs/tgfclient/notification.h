@@ -29,7 +29,7 @@ class TGFCLIENT_API NotificationManager {
 		//a list of notification messages
 		std::vector<std::string> msglist;
 
-		std::clock_t animationLastExecTime; //the current time
+		double animationLastExecTime; //the current time
 
 		//constructor
 		NotificationManager();
