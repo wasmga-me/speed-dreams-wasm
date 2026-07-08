@@ -236,6 +236,8 @@ int tGfuiGalleryElm::update()
 
 tGfuiGalleryElm::tGfuiGalleryElm(const char *dirname) :
 	state(WAIT),
+	bg{{0}},
+	direction(0),
 	dirname(dirname),
 	overscan(30.0f),
 	alpha(0),
