@@ -34,7 +34,7 @@ void InfoMenu::set_info(void *param, const Asset &a)
     {
         {name, "name", a.name, max},
         {category, "category", a.category, max},
-        {author, "author", a.author, max},
+        {author, "author", a.author, 64},
         {license, "license", a.license, max},
         {revision, "revision", std::to_string(a.revision), max},
         {hashtype, "hashtype", a.hashtype, max},
