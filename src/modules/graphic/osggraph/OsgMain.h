@@ -37,6 +37,8 @@ extern double grCurTime;
 
 extern void *grHandle;
 extern void *grTrackHandle;
+class SDHUD;
+extern osggraph::SDHUD *hud;
 
 extern int  initTrack(tTrack *track);
 extern int  initCars(tSituation *s);

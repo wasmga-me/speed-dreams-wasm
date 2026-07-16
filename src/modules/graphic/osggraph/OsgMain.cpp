@@ -55,7 +55,7 @@ SDCamera *cam = 0;
 int Rain, Clouds = 0;
 tdble TimeOfDay = 0.0f;
 
-SDHUD hud;
+SDHUD *hud;
 
 SDParticleSystemManager ParticleManager;
 
@@ -489,7 +489,7 @@ int refresh(tSituation *s)
     screens->update(s, &frameInfo, osg::Vec4f(render->getFogColor(),1.0f));
 
     //refresh the hud
-    hud.Refresh(s, &frameInfo, curCar, Clouds, Rain, TimeOfDay);
+    hud->Refresh(s, &frameInfo, curCar, Clouds, Rain, TimeOfDay);
 
     //update particles
     ParticleManager.update(s);
@@ -539,6 +539,7 @@ int initTrack(tTrack *track)
 
     scenery = new SDScenery;
     render = new SDRender;
+    hud = new SDHUD;
     //cam = new SDCamera;
 
     if (scenery->LoadScene(track))
@@ -602,6 +603,8 @@ void shutdownTrack(void)
         GfParmReleaseHandle(grHandle);
         grHandle = 0;
     }
+
+    delete hud;
 }
 
 void shutdownView(void)
