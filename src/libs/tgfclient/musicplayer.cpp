@@ -1,334 +1,283 @@
-/***************************************************************************
-
-    file                 : musicplayer.cpp
-    created              : Fri Dec 23 17:35:18 CET 2011
-    copyright            : (C) 2011 Bernhard Wymann
-    email                : berniw@bluewin.ch
-
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+ * Speed Dreams, a free and open source motorsport simulator.
+ * Copyright (C) 2026 Xavier Del Campo Romero
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ */
 
 #include "musicplayer.h"
-
-#include <cstring>
-#include <string>
-#include <map>
-#include <tgf.h>
-#include "tgfclient.h"
+#include "playlist.h"
+#include <guimenu.h>
 #include <portability.h>
 #include <sound.h>
+#include <tgf.h>
+#include <SDL.h>
 #include <SDL_mixer.h>
+#include <cstring>
+#include <string>
 
-#define MAX_MUSIC_PATH 1024
-#define NOMUSIC "None"
-
-#include "sdl2musicplayer.h"
-
-static const char *musicDisabledStr = SND_VAL_MUSIC_STATE_DISABLED;
-
-static bool enabled = true;
-static char currentMusicfile[MAX_MUSIC_PATH] = {0};
-static char defaultMusic[MAX_MUSIC_PATH] = {0}; //"data/music/main.ogg";
-static float maxMusicVolume = 1.0;
-static SDL_mutex *mapMutex = NULL;
-static musicTrack selmusicTrack;
-
-std::map<std::string,SDL2MusicPlayer*> mapSDL2Players;
-
-static void readConfig();
-
-bool isMusicEnabled()
+struct musicplayer
 {
-	return enabled;
+    Mix_Music *music;
+    bool enabled, opened;
+    float volume;
+    musicTrack selTrack;
+    std::vector<musicTrack> tracks;
+    std::string path, defpath, ndefpath;
+    int index;
+};
+
+static musicplayer mp;
+
+static void onFinished()
+{
+    mp.path.clear();
+    playMusic();
 }
 
-static SDL2MusicPlayer* getMusicPlayer(char* oggFilePath)
+static std::vector<musicTrack> getTracks(void *h)
 {
-	SDL2MusicPlayer* player = NULL;
+    static const char section[] = SND_SCT_MUSIC "/" SND_SCT_TRACKS;
+    std::vector<musicTrack> tracks;
 
-	SDL_LockMutex(mapMutex);
-	const std::map<std::string, SDL2MusicPlayer*>::const_iterator itPlayers = mapSDL2Players.find(oggFilePath);
+    for (int i = 1; i <= GfParmGetEltNb(h, section); i++)
+    {
+        std::string tracksec = section + std::string("/") + std::to_string(i);
+        const char *ctracksec = tracksec.c_str();
+        const char *path = GfParmGetStr(h, ctracksec,
+            SND_ATT_MUSIC_PATH, nullptr);
 
-	if (itPlayers == mapSDL2Players.end()) {
-		player = new SDL2MusicPlayer(oggFilePath);
-		mapSDL2Players[oggFilePath] = player;
-		player->setvolume(maxMusicVolume);
-	} else {
-		player = mapSDL2Players[oggFilePath];
-	}
-	SDL_UnlockMutex(mapMutex);
-	return player;
+        if (!path)
+            continue;
+
+        musicTrack track;
+
+        track.path = path;
+        track.author = GfParmGetStr(h, ctracksec, SND_ATT_MUSIC_AUTHOR,
+            "Unknown artist");
+        track.name = GfParmGetStr(h, ctracksec, SND_ATT_MUSIC_NAME,
+            "Unknown title");
+        track.license = GfParmGetStr(h, ctracksec, SND_ATT_MUSIC_LICENSE,
+            "Unknown license");
+        tracks.push_back(track);
+    }
+
+    if (tracks.empty())
+        mp.defpath = GfParmGetStr(h, SND_SCT_MUSIC, SND_ATT_MUSIC_DEFAULT_MUSIC,
+            "data/music/main.ogg");
+
+    return tracks;
 }
 
 void initMusic()
 {
-	readConfig();
-	if (isMusicEnabled()) {
-		GfLogInfo("(Re-)Initializing music player \n");
-		mapMutex = SDL_CreateMutex();
-		if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) >= 0 ){
-			(void)getMusicPlayer(defaultMusic);
-			strcpy(currentMusicfile,defaultMusic);
-			SDL2MusicPlayer* player = getMusicPlayer(currentMusicfile);
-			if(player){
-				player->resume();
-			}
-		}
-	}
-	else {
-		GfLogInfo("Music player is disabled \n");
-	}
+    void *h = nullptr;
+    const char *enabled;
+    float vol;
+
+    GfLogInfo("Reading music player config\n");
+
+    if (!(h = GfParmReadFileLocal(SND_PARAM_FILE,
+        GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT)))
+    {
+        GfLogError("GfParmReadFileLocal %s failed\n", SND_PARAM_FILE);
+        goto end;
+    }
+
+    vol = GfParmGetNum(h, SND_SCT_MUSIC, SND_ATT_MUSIC_VOLUME, "%", 100.0f);
+
+    if (vol > 100.0f)
+        vol = 100.0f;
+    else if (vol < 0)
+        vol = 0;
+
+    mp.volume = vol;
+    enabled = GfParmGetStr(h, SND_SCT_MUSIC, SND_ATT_MUSIC_STATE, "");
+    mp.enabled = !strcmp(enabled, SND_VAL_MUSIC_STATE_ENABLED);
+    mp.tracks = getTracks(h);
+
+    if (mp.enabled && Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048))
+    {
+        GfLogError("Mix_OpenAudio failed: %s\n", SDL_GetError());
+        goto end;
+    }
+
+    mp.index = -1;
+
+end:
+    if (h)
+        GfParmReleaseHandle(h);
 }
 
+void fadeOutDefaultMusic(unsigned ms)
+{
+    mp.path.clear();
+    Mix_HookMusicFinished(nullptr);
+    Mix_FadeOutMusic(ms);
+}
 
 void shutdownMusic()
 {
-	SDL_LockMutex(mapMutex);
-	std::map<std::string, SDL2MusicPlayer*>::const_iterator itPlayers = mapSDL2Players.begin();
-	while(itPlayers != mapSDL2Players.end()) {
-		SDL2MusicPlayer* player = itPlayers->second;
-		const int ms = 1000;
-		player->pause(ms);
-		GfSleep(ms / 1000.0f);
-		player->rewind();
-		++itPlayers;
-	}
-	itPlayers = mapSDL2Players.begin();
-	while(itPlayers != mapSDL2Players.end()) {
-		SDL2MusicPlayer* player = itPlayers->second;
-		delete player;
-		++itPlayers;
-	}
-	mapSDL2Players.clear();
-	SDL_UnlockMutex(mapMutex);
-	SDL_DestroyMutex(mapMutex);
-	mapMutex = NULL;
+    if (mp.music)
+        fadeOutDefaultMusic(1000);
+
+    while (Mix_PlayingMusic())
+        GfSleep(0.1);
+
+    if (mp.opened)
+        Mix_CloseAudio();
 }
 
-
-void playMusic(char* filename)
+void enableMusic(bool enable)
 {
-	if (isMusicEnabled()) {
-		SDL2MusicPlayer* player = NULL;
-		if(filename != NULL)
-		{
-			if(0 == strcmp(NOMUSIC,filename))
-			{
-				player = getMusicPlayer(currentMusicfile);
-				player->stop();
-				strcpy(currentMusicfile,filename);
-				GfLogInfo("Music changing to: %s \n", filename);
-				return;
-			}
-			if(0 != strcmp(currentMusicfile,filename))
-			{
-				if(0 != strcmp(NOMUSIC,currentMusicfile)){
-					player = getMusicPlayer(currentMusicfile);
-					player->stop();
-				}
-				strcpy(currentMusicfile,filename);
-				GfLogInfo("Music changing to: %s \n", filename);
-				player = getMusicPlayer(filename);
-				player->resume();
-			}
-		}
-		else
-		{
-			if(0 != strcmp(currentMusicfile,defaultMusic))
-			{
-				if(0 != strcmp(NOMUSIC,currentMusicfile))
-				{
-					player = getMusicPlayer(currentMusicfile);
-					player->stop();
-				}
-				strcpy(currentMusicfile,defaultMusic);
-				GfLogInfo("Music changing to: %s \n", defaultMusic);
-				player = getMusicPlayer(defaultMusic);
-				player->resume();
-			}
-			else
-			{
-				player = getMusicPlayer(defaultMusic);
-				player->resume();
-			}
-		}
-	}
+    if (isMusicEnabled() && !enable)
+        shutdownMusic();
+    else if (enable)
+        initMusic();
+
+    mp.enabled = enable;
 }
 
 void fadeInDefaultMusic()
 {
-	SDL2MusicPlayer* player = getMusicPlayer(currentMusicfile);
+    Playlist &playlist = Playlist::self();
+    int loop;
 
-	if (player)
-		player->start();
+    if (!mp.music)
+        return;
+
+    loop = mp.path.empty() ? -1 : 0;
+    Mix_FadeInMusic(mp.music, loop, 1000);
+    Mix_HookMusicFinished(onFinished);
+    playlist.push();
 }
 
-void fadeOutDefaultMusic()
+void setMusicVolume(float volume)
 {
-	SDL2MusicPlayer* player = getMusicPlayer(currentMusicfile);
-
-	if (player)
-		player->pause();
-}
-
-void setDefaultMusic(const char* filename)
-{
-	if(0 != filename){
-		if(strlen(filename) < MAX_MUSIC_PATH){
-			if(0 != strcmp(defaultMusic,filename)){
-				strcpy(defaultMusic,filename);
-				GfLogInfo("Default Music changing to: %s \n", filename);
-			}
-		} else {
-			GfLogError("Default Music File Path too long. [  %s  ]\n", filename);
-		}
-	} else {
-		defaultMusic[0] = 0;
-		GfLogInfo("Default Music changing to: %s \n", "NULL");
-	}
-}
-
-static std::vector<musicTrack> getTracks(void *paramHandle)
-{
-	static const char section[] = SND_SCT_MUSIC "/" SND_SCT_TRACKS;
-	std::vector<musicTrack> tracks;
-
-	for (int i = 1; i <= GfParmGetEltNb(paramHandle, section); i++)
-	{
-		std::string tracksec = section + std::string("/") + std::to_string(i);
-		const char *ctracksec = tracksec.c_str();
-		const char *path = GfParmGetStr(paramHandle, ctracksec,
-			SND_ATT_MUSIC_PATH, nullptr);
-
-		if (!path)
-			continue;
-
-		musicTrack track;
-
-		track.path = path;
-		track.author = GfParmGetStr(paramHandle, ctracksec,
-			SND_ATT_MUSIC_AUTHOR, "Unknown artist");
-		track.name = GfParmGetStr(paramHandle, ctracksec,
-			SND_ATT_MUSIC_NAME, "Unknown title");
-		track.license = GfParmGetStr(paramHandle, ctracksec,
-			SND_ATT_MUSIC_LICENSE, "Unknown license");
-		tracks.push_back(track);
-	}
-
-	return tracks;
-}
-
-static void readConfig()
-{
-	GfLogInfo("Reading music player config\n");
-	void *paramHandle = GfParmReadFileLocal(SND_PARAM_FILE, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
-	const char *musicenabled = GfParmGetStr(paramHandle, SND_SCT_MUSIC, SND_ATT_MUSIC_STATE, musicDisabledStr);
-
-	float music_volume = GfParmGetNum(paramHandle, SND_SCT_MUSIC, SND_ATT_MUSIC_VOLUME, "%", 100.0f);
-	if (music_volume>100.0f) {
-		music_volume = 100.0f;
-	}
-	else if (music_volume < 0.0f) {
-		music_volume = 0.0f;
-	}
-	maxMusicVolume = music_volume/100.0f;
-
-	if (0 == strcmp(musicenabled, SND_VAL_MUSIC_STATE_ENABLED)) {
-		enabled = true;
-	} else {
-		enabled = false;
-	}
-
-	std::vector<musicTrack> tracks = getTracks(paramHandle);
-
-	if (tracks.empty())
-	{
-		const char* defmusic = GfParmGetStr(paramHandle, SND_SCT_MUSIC,
-			SND_ATT_MUSIC_DEFAULT_MUSIC, "data/music/main.ogg");
-		setDefaultMusic(defmusic);
-	}
-	else
-	{
-		size_t index;
-
-		if (portability::rand(&index, sizeof index))
-		{
-			GfLogError("Failed to calculate random index\n");
-			index = 0;
-		}
-
-		index %= tracks.size();
-
-		const musicTrack &selTrack = tracks.at(index);
-
-		setDefaultMusic(selTrack.path.c_str());
-		selmusicTrack = selTrack;
-	}
-
-	//TODO: Remove this hack after plib is deprecated
-	// Using plib for the sound effects sometimes crashes when OpenAL already has the sound device
-	const char* isplib = GfParmGetStr(paramHandle, SND_SCT_SOUND, SND_ATT_SOUND_STATE, "");
-	if (!strcmp(isplib, "plib")) {
-		//enabled = false;
-		GfLogInfo("Music player disabled when using PLIB for sound effects\n");
-	}
-	//TODO end of section to Remove
-
-	GfParmReleaseHandle(paramHandle);
-	paramHandle = NULL;
-}
-
-const musicTrack &getMusicTrack()
-{
-	return selmusicTrack;
-}
-
-void setMusicVolume(float vol /* 100.0f */)
-{
-
-	if (vol>100.0f)
-	{
-		vol = 100.0f;
-	}
-	else if (vol < 0.0f)
-	{
-		vol = 0.0f;
-	}
-	maxMusicVolume = vol/100.0f;
-
-	for(std::map<std::string, SDL2MusicPlayer*>::iterator itPlayers = mapSDL2Players.begin(); itPlayers != mapSDL2Players.end(); ++itPlayers)
-	{
-		SDL2MusicPlayer* player = itPlayers->second;
-		player->setvolume(maxMusicVolume);
-	}
-
-	GfLogInfo("Music volume set to %.2f\n", maxMusicVolume);
+    Mix_VolumeMusic(mp.volume = volume);
+    GfLogInfo("Music volume set to %.2f\n", volume);
 }
 
 float getMusicVolume()
 {
-	return (maxMusicVolume * 100.0f);
+    return mp.volume;
 }
 
-void enableMusic(bool enable /* true */)
+static const char *getDefault()
 {
-	if (isMusicEnabled())
-	{
-		if(enable == false)
-			shutdownMusic();
-	}
-	else
-	{
-		 if(enable == true)
-			 initMusic();
-	}
-	enabled = enable;
+    const char *ret = nullptr;
+    void *h = nullptr;
+
+    h = GfParmReadFileLocal(SND_PARAM_FILE, GFPARM_RMODE_REREAD
+        | GFPARM_RMODE_CREAT);
+
+    if (!h)
+    {
+        GfLogError("GfParmReadFileLocal %s failed\n", SND_PARAM_FILE);
+        goto end;
+    }
+
+    if (mp.tracks.empty())
+        ret = mp.defpath.c_str();
+    else
+    {
+        unsigned index;
+
+        do
+        {
+            if (portability::rand(&index, sizeof index))
+            {
+                GfLogError("Failed to calculate random index\n");
+                index = 0;
+            }
+
+            index %= mp.tracks.size();
+        } while (mp.index >= 0 && (unsigned)mp.index == index);
+
+        mp.index = index;
+        mp.selTrack = mp.tracks.at(index);
+        ret = mp.selTrack.path.c_str();
+    }
+
+    mp.path = ret;
+    mp.ndefpath.clear();
+
+end:
+    if (h)
+        GfParmReleaseHandle(h);
+
+    return ret;
+}
+
+void playMusic(const char* filename)
+{
+    if (!mp.enabled)
+        return;
+    else if (filename)
+    {
+        mp.path.clear();
+        Mix_HookMusicFinished(nullptr);
+
+        if (!strcmp(filename, "None"))
+        {
+            Playlist &playlist = Playlist::self();
+
+            Mix_HaltMusic();
+            playlist.halt();
+            return;
+        }
+        else if (filename == mp.ndefpath)
+            return;
+
+        mp.ndefpath = filename;
+    }
+    else if (mp.path.empty())
+        filename = getDefault();
+    else
+        return;
+
+    if (mp.music)
+        Mix_FreeMusic(mp.music);
+
+    if (!(mp.music =  Mix_LoadMUS(filename)))
+    {
+        GfLogError("Mix_LoadMUS %s failed: %s\n", filename, SDL_GetError());
+        return;
+    }
+
+    GfLogInfo("Music changing to: %s \n", filename);
+    fadeInDefaultMusic();
+}
+
+const musicTrack &getMusicTrack()
+{
+    return mp.selTrack;
+}
+
+void setMusicTrack(void *h)
+{
+    musicTrack track;
+    const char *sec = GFMNU_SECT_MUSIC,
+        *path = GfParmGetStr(h, sec, GFMNU_ATTR_MUSIC_FILE, nullptr),
+        *artist = GfParmGetStr(h, sec, SND_ATT_MUSIC_AUTHOR, nullptr),
+        *name = GfParmGetStr(h, sec, SND_ATT_MUSIC_NAME, nullptr),
+        *lic = GfParmGetStr(h, sec, SND_ATT_MUSIC_LICENSE, nullptr);
+
+    if (!path || !artist || !name || !lic)
+        goto end;
+
+    track.path = path;
+    track.author = artist;
+    track.name = name;
+    track.license = lic;
+end:
+    mp.selTrack = track;
+}
+
+bool isMusicEnabled()
+{
+    return mp.enabled;
 }
