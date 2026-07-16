@@ -26,6 +26,7 @@
 #include <cstdlib>
 
 #include <portability.h>
+#include <playlist.h>
 #include <tgf.h>
 #include <tgfclient.h>
 #include <translation.h>
@@ -91,6 +92,8 @@ RmLoadingScreenStart(const char *title, const char *bgimg)
 
     if (HScreen)
         RmLoadingScreenShutdown();
+
+    Playlist::self().halt();
 
     // Create screen, load menu XML descriptor and create static controls.
     HScreen = GfuiScreenCreate(BGColor, NULL, NULL, NULL, NULL, 0);

@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <notification.h>
+#include <playlist.h>
 #include <guimenu.h>
 #include <tgfclient.h>
 #include <translation.h>
@@ -61,8 +62,6 @@ static tPageChangeRequest	PrevPageRequest;
 // Handle of the screen to return when exiting from this credits pages.
 static void* RetScrHdle = 0;
 
-static NotificationManager *notifications;
-
 // Internal function declarations.
 static void* creditsPageCreate(int startChapterIndex, int startRecordIndex);
 
@@ -83,13 +82,7 @@ static void creditsPageChange(void *vpcr)
 
 static void deinit(void *args)
 {
-	delete notifications;
 	GfuiScreenReplace(RetScrHdle);
-}
-
-static void recompute(unsigned ms, void *args)
-{
-    notifications->updateStatus();
 }
 
 // Create a credits page screen for given chapter and starting record.
@@ -273,24 +266,6 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 		GfuiEnable(hscrPage, nNextButId, GFUI_DISABLE);
 	}
 
-	const char *author = GfParmGetStr(hmenu, GFMNU_SECT_MUSIC, "author", ""),
-		*name = GfParmGetStr(hmenu, GFMNU_SECT_MUSIC, "name", ""),
-		*license = GfParmGetStr(hmenu, GFMNU_SECT_MUSIC, "license", ""),
-		*md_artist = GfuiGetTranslatedText(hmenu, TRACK_METADATA_SECT "/artist",
-			"text", ""),
-		*md_title = GfuiGetTranslatedText(hmenu, TRACK_METADATA_SECT "/title",
-			"text", ""),
-		*md_license = GfuiGetTranslatedText(hmenu,
-			TRACK_METADATA_SECT "/license", "text", "");
-
-	std::string trackinfo = "\n";
-
-	trackinfo += std::string(md_artist) + ": " + author + '\n';
-	trackinfo += std::string(md_title) + ": " + name + '\n';
-	trackinfo += std::string(md_license) + ": " + license + '\n';
-	notifications = new NotificationManager;
-	notifications->msglist.push_back(trackinfo);
-
 	GfParmReleaseHandle(hmenu);
 
 	// Add standard keyboard shortcuts.
@@ -310,8 +285,4 @@ void CreditsMenuActivate(void *retScrHdle)
 
 	// Create first page screen and return its handle.
 	GfuiScreenActivate(creditsPageCreate(0, 0));
-
-	// This must be done after GfuiScreenActivate because this function
-    // overwrites the recompute callback to a null pointer.
-    GfuiApp().eventLoop().setRecomputeCB(::recompute, nullptr);
 }
