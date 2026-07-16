@@ -576,6 +576,61 @@ GfuiVisibilitySet(void *scr, int id, int visible)
     return 0;
 }
 
+int
+GfuiGetWidth(void* scr, int id)
+{
+	tGfuiObject *curObject;
+
+	curObject = gfuiGetObject(scr, id);
+	if (!curObject)
+		return -1;
+
+	return curObject->xmax - curObject->xmin;
+}
+
+/** Enable / Disable an object
+	@param	scr	Screen
+	@param	id	Object id
+	@param	x	Position in the X axis
+	@param	y	Position in the Y axis
+	@return	<tt>0 ... </tt>Ok
+		<br><tt>-1 .. </tt>Error
+	@ingroup	gui
+ */
+int
+GfuiSetPosition(void* scr, int id, int x, int y)
+{
+	tGfuiObject *curObject;
+
+	curObject = gfuiGetObject(scr, id);
+	if (!curObject)
+		return -1;
+	else if (x != GFUI_TPL_X)
+	{
+		int w = curObject->xmax - curObject->xmin;
+
+		curObject->xmin = x;
+		curObject->xmax = x + w;
+	}
+
+	if (y != GFUI_TPL_Y)
+	{
+		int h = curObject->ymax - curObject->ymin;
+
+		curObject->ymin = y;
+		curObject->ymax = y + h;
+	}
+
+	switch (curObject->widget)
+	{
+    case GFUI_LABEL:
+		gfuiLabelSetPos(curObject, x, y);
+		break;
+	}
+
+	return 0;
+}
+
 /** Enable / Disable an object
     @param	scr	Screen
     @param	id	Object id

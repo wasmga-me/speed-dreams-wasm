@@ -320,6 +320,18 @@ gfuiLabelGetText(const tGfuiLabel *label)
     return label->masked ? maskedtext : label->text;
 }
 
+void
+gfuiLabelSetPos(tGfuiObject *obj, int x, int y)
+{
+    tGfuiLabel *label = &obj->u.label;
+
+    if (x != GFUI_TPL_X)
+        label->x = x;
+
+    if (y != GFUI_TPL_Y)
+        label->y = y;
+}
+
 /** Determine the actual text X coordinate.
     @ingroup	gui
     @param	obj	label to query
