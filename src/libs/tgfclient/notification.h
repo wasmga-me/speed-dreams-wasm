@@ -1,6 +1,7 @@
 /*
  * Speed Dreams, a free and open source motorsport simulator.
  * Copyright (C) 2015 MadBad (madbad82@gmail.com)
+ * Copyright (C) 2026 Xavier Del Campo Romero
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,59 +13,56 @@
 #define NOTIFICATION_H
 
 #include <tgfclient.h>
-#include <vector>
+#include <map>
+#include <queue>
 #include <string>
-#include <ctime>
 
-class TGFCLIENT_API NotificationManager {
+class TGFCLIENT_API NotificationManager
+{
+public:
+    NotificationManager();
+    int updateStatus();
+    void set(const std::string &msg);
+    void push(const std::string &msg);
+    void release(void *screen);
+    void clear();
 
-	public:
-        enum
-        {
-            Idle,
-            Sending,
-            Receiving
-        } status;
+    enum
+    {
+        Idle,
+        Sending,
+        Receiving
+    } status;
 
-		//a list of notification messages
-		std::vector<std::string> msglist;
+private:
+    int init();
+    int wait();
+    int show();
+    int rest();
+    int hide();
+    int update_ui();
+    int setup_ui(void *screen);
+    void reset();
 
-		double animationLastExecTime; //the current time
+    struct Ids
+    {
+        int	bg, icons[3];
+        int labels[8];
+    };
 
-		//constructor
-		NotificationManager();
+    enum
+    {
+        Init,
+        Wait,
+        Show,
+        Rest,
+        Hide
+    } ui_status;
 
-		//destructor
-		~NotificationManager();
-
-		void updateStatus();
-
-
-	private:
-		void startNewNotification();
-		void runAnimation();
-		void removeOldUi();
-		void createUi();
-		void updateStatusUi();
-
-		void* screenHandle;
-		void* prevScreenHandle;
-		void* menuXMLDescHdle;
-		int	notifyUiIdBg;//the bg image uiid
-		int notifyUiIdBusyIcon; //the busy icon
-		std::vector<int> notifyUiId;//the text lines uiid
-		bool busy;
-		int textPadding;
-		std::clock_t animationStartTime; //when the animation started
-		std::clock_t animationRestStartTime; //when the animation started
-
-		float totalAnimationDuration;//how much the animation should take to fully run in one direction
-		float animationRestTime; //how much we should wait when we are fully displayed
-		int animationDirection;
-		int propertyFinalValue;
-		std::vector<std::string> messageLines;
-		int propertyChangeNeeded;
-
+    static const char *path;
+    std::queue<std::string> msgs;
+    std::map<void *, Ids> scr_ids;
+    double t, x, w, icon_x, lbl_x;
 };
 
 #endif
