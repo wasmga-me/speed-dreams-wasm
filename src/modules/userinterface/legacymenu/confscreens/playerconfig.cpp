@@ -87,6 +87,7 @@ static void	*GraphHdle = NULL;
 
 static int NameEditId;
 static int NationImgId;
+static int NationEditId;
 static int RaceNumEditId;
 static int GearChangeEditId;
 static int PitsEditId;
@@ -342,6 +343,8 @@ refreshEditVal(void)
         GfuiEnable(ScrHandle, NameEditId, GFUI_DISABLE);
 
         GfuiStaticImageSet(ScrHandle, NationImgId, "data/img/transparent.png");
+        GfuiEditboxSetString(ScrHandle, NationEditId, "");
+        GfuiEnable(ScrHandle, NationEditId, GFUI_DISABLE);
 
         GfuiEditboxSetString(ScrHandle, RaceNumEditId, "");
         GfuiEnable(ScrHandle, RaceNumEditId, GFUI_DISABLE);
@@ -392,6 +395,8 @@ refreshEditVal(void)
         GfuiEnable(ScrHandle, PitsEditId, GFUI_ENABLE);
 
         GfuiStaticImageSet(ScrHandle, NationImgId, NationPath((*CurrPlayer)->nation()).c_str());
+        GfuiLabelSetText(ScrHandle, NationEditId, (*CurrPlayer)->nation());
+        GfuiEnable(ScrHandle, NationEditId, GFUI_ENABLE);
 
         GfuiLabelSetText(ScrHandle, SkillEditId, SkillLevelString[skill]);
         GfuiEnable(ScrHandle, SkillEditId, GFUI_ENABLE);
@@ -1257,6 +1262,7 @@ PlayerConfigMenuInit(void *prevMenu)
     /* Player nationality "combobox" (left arrow, label, right arrow) */
     GfuiMenuCreateButtonControl(ScrHandle, param, "nationleftarrow", NULL, onNationLeft);
     GfuiMenuCreateButtonControl(ScrHandle, param, "nationrightarrow", NULL, onNationRight);
+    NationEditId = GfuiMenuCreateLabelControl(ScrHandle, param, "nationtext");
     NationImgId = GfuiMenuCreateStaticImageControl(ScrHandle, param, "nationimg");
 
     /* Races and pits numbers editboxes (Must they really stay here ?) */
