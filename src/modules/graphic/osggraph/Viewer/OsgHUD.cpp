@@ -1122,6 +1122,7 @@ SDHUD::SDHUD() :
     hudScale(1.0f),
     prevSteerAngle(0.0f),
     hudElementsVisibilityStatusEnabled(true),
+    hudEditModeEnabled(false),
     paramHandle(nullptr)
 {
 }
