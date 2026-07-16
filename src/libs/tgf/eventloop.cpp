@@ -21,6 +21,7 @@
 #include <map>
 
 #include <SDL.h>
+#include <SDL_thread.h>
 
 #include "tgf.hpp"
 
@@ -32,6 +33,7 @@ class GfEventLoop::Private
 
     //!  Constructor.
     Private();
+    ~Private();
 
     //! Translation function from SDL key to unicode if possible (or SDL key sym otherwise)
     int translateKeySym(int code, int modifier, int unicode);
@@ -50,6 +52,8 @@ class GfEventLoop::Private
     void *cbRecomputeArgsData;
 
     void (*cbTimer)(int value);
+    bool bRunTimerCb;
+    SDL_mutex *timerMutex;
 
     // Variables.
     bool bQuit; // Flag to go to the end of event loop.
@@ -66,6 +70,11 @@ private: // Private data members.
     std::map<Uint32, Uint16> _mapUnicodes;
 };
 
+GfEventLoop::Private::~Private()
+{
+    SDL_DestroyMutex(timerMutex);
+}
+
 GfEventLoop::Private::Private() :
     cbKeyboardDown(nullptr),
     cbKeyboardUp(nullptr),
@@ -73,9 +82,13 @@ GfEventLoop::Private::Private() :
     cbRecomputeArgsFn(nullptr),
     cbRecomputeArgsData(nullptr),
     cbTimer(nullptr),
+    bRunTimerCb(false),
+    timerMutex(SDL_CreateMutex()),
     bQuit(false),
     nLockedModifiers(KMOD_NONE)
 {
+    if (!timerMutex)
+        GfLogFatal("SDL_CreateMutex failed: %s\n", SDL_GetError());
 }
 
 // Translation function from SDL key to unicode if possible (or SDL key sym otherwise)
@@ -131,8 +144,20 @@ int GfEventLoop::Private::translateKeySym(int code, int modifier, int unicode)
 Uint32 GfEventLoop::Private::callTimerCB(Uint32 interval, void *pEvLoopPriv)
 {
     Private* pPriv = reinterpret_cast<Private*>(pEvLoopPriv);
-    if (pPriv->cbTimer)
-        pPriv->cbTimer(1);
+
+    if (SDL_LockMutex(pPriv->timerMutex))
+    {
+        GfLogError("SDL_LockMutex failed: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    pPriv->bRunTimerCb = true;
+
+    if (SDL_UnlockMutex(pPriv->timerMutex))
+    {
+        GfLogError("SDL_LockMutex failed: %s\n", SDL_GetError());
+        return 0;
+    }
 
     // Returning zero will prevent the callback from being called again.
     return 0;
@@ -240,6 +265,7 @@ void GfEventLoop::operator()()
         {
             // Recompute if anything to.
             recompute(0);
+            runTimerCb(0);
         }
     }
 
@@ -281,6 +307,28 @@ void GfEventLoop::postQuit()
 bool GfEventLoop::quitRequested() const
 {
     return _pPrivate->bQuit;
+}
+
+void GfEventLoop::runTimerCb(unsigned ms)
+{
+    if (SDL_LockMutex(_pPrivate->timerMutex))
+    {
+        GfLogError("SDL_LockMutex failed: %s\n", SDL_GetError());
+        return;
+    }
+    else if (_pPrivate->bRunTimerCb)
+    {
+        _pPrivate->bRunTimerCb = false;
+
+        if (_pPrivate->cbTimer)
+            _pPrivate->cbTimer(ms);
+    }
+
+    if (SDL_UnlockMutex(_pPrivate->timerMutex))
+    {
+        GfLogError("SDL_UnlockMutex failed: %s\n", SDL_GetError());
+        return;
+    }
 }
 
 void GfEventLoop::recompute(unsigned ms)

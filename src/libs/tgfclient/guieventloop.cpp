@@ -243,9 +243,13 @@ void GfuiEventLoop::operator()()
 		{
 			double now = GfTimeClock();
 			double rate = 1.0 / _pPrivate->max_refresh;
+			unsigned ms = 1000.0 * rate;
 
 			// Recompute if anything to.
-			recompute(1000.0 * rate);
+			recompute(ms);
+
+			// Run the timer callback, if any.
+			runTimerCb(ms);
 
 			// Call predisplay callback, if any.
 			predisplay();
