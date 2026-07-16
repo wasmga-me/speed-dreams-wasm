@@ -106,6 +106,9 @@ void GfTracks::list(const std::string &path)
 
 		if (pCatFolder->type != FList::dir)
 			continue;
+		// Ignore category-specific configuration directory
+		else if (!strcmp(pCatFolder->name, "categories"))
+			continue;
 
 		// Get the list of sub-dirs in the "tracks" folder (the track categories).
 		std::string strDirName(path);
