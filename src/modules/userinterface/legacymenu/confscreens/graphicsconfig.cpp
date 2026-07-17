@@ -916,7 +916,7 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         "shadowsize_lbl");
     speedunit = GfuiMenuCreateComboboxControl(hscr, param, "speedunit");
     speedunit_lbl = GfuiMenuCreateLabelControl(hscr, param, "speedunit_lbl");
-    
+
     const char *env = getenv("WAYLAND_DISPLAY");
 
     if (env && *env)
@@ -924,10 +924,15 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
         warning_bg = GfuiMenuCreateStaticImageControl(hscr, param, "warning_bg");
         warning_lbl = GfuiMenuCreateLabelControl(hscr, param, "warning_lbl");
         warningp2_lbl = GfuiMenuCreateLabelControl(hscr, param, "warningp2_lbl");
+
         if (warning_bg < 0
             || warning_lbl < 0
             || warningp2_lbl < 0)
             throw std::runtime_error("failed to create wayland warning labels");
+
+        idtype[warning_bg] = SSGGRAPH;
+        idtype[warning_lbl] = SSGGRAPH;
+        idtype[warningp2_lbl] = SSGGRAPH;
     }
 
     if (preset < 0
@@ -1063,9 +1068,6 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
     idtype[multitexturing] = SSGGRAPH;
     idtype[multitexturing_lbl] = SSGGRAPH;
     idtype[multitexturing_bg] = SSGGRAPH;
-    idtype[warning_bg] = SSGGRAPH;
-    idtype[warning_lbl] = SSGGRAPH;
-    idtype[warningp2_lbl] = SSGGRAPH;
 
     idtype[dynamicshadows] = OSGGRAPH;
     idtype[dynamicshadows_lbl] = OSGGRAPH;
