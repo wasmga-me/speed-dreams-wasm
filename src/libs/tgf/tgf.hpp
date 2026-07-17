@@ -146,6 +146,9 @@ class TGF_API GfEventLoop
 	//! Set a one-shot timer callback function with given delay.
 	void setTimerCB(unsigned int millis, void (*func)(int value));
 
+	//! Run the timer callback, if any, from the main thread.
+	void runTimerCb(unsigned ms);
+
 	//! Request the event loop to terminate on next loop.
 	void postQuit();
 

@@ -479,6 +479,9 @@ TGFCLIENT_API int GfuiVisibilitySet(void* scr, int id, int visible);
 #define GFUI_ENABLE     0
 TGFCLIENT_API int GfuiEnable(void* scr, int id, int flag);
 TGFCLIENT_API void GfuiUnSelectCurrent(void);
+TGFCLIENT_API int GfuiGetWidth(void* scr, int id);
+TGFCLIENT_API int GfuiSetPosition(void* scr, int id,
+                                  int x = GFUI_TPL_X, int y = GFUI_TPL_Y);
 
 /* Font management */
 // Font Ids

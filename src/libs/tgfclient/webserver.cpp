@@ -119,15 +119,8 @@ WebServer::~WebServer()
 
 void WebServer::updateStatus()
 {
-    std::clock_t currentTime =  std::clock();
-
-    //run the webserver update process and ui at 30 FPS
-    if( ( currentTime - notifications.animationLastExecTime ) > 0.033333333 ){
-
-        updateAsyncStatus();
-        notifications.updateStatus();
-
-    }
+    updateAsyncStatus();
+    notifications.updateStatus();
 }
 
 int WebServer::updateAsyncStatus()
@@ -232,7 +225,7 @@ int WebServer::updateAsyncStatus()
                             msgTag.append(std::to_string(dispatchedMsgs));
                             GfLogInfo("WebServer: Adding messagge to be displayed to the NotificationQueque:\n%s\n", msgTag.c_str());
 
-                            notifications.msglist.push_back(GfParmGetStr(xmlReply, "content/reply/messages", msgTag.c_str(), "null"));
+                            notifications.push(GfParmGetStr(xmlReply, "content/reply/messages", msgTag.c_str(), "null"));
                            }
                     }
                 }

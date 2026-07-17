@@ -32,6 +32,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "musicplayer.h"
 #include "tgfclient.h"
 #include "translation.h"
 #include "gui.h"
@@ -286,6 +287,8 @@ static int
 createMusic(void* hscr, void* hparm)
 {
     const char* pszMusic = GfParmGetStr(hparm, GFMNU_SECT_MUSIC, GFMNU_ATTR_MUSIC_FILE, 0);
+
+    setMusicTrack(hparm);
     GfuiScreenAddMusic(hscr, pszMusic);
     return 1;
 }

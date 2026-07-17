@@ -47,11 +47,12 @@ TGFCLIENT_API void initMusic();
 TGFCLIENT_API void shutdownMusic();
 TGFCLIENT_API void enableMusic(bool enable = true);
 TGFCLIENT_API void fadeInDefaultMusic();
-TGFCLIENT_API void fadeOutDefaultMusic();
+TGFCLIENT_API void fadeOutDefaultMusic(unsigned ms = 3000);
 TGFCLIENT_API void setMusicVolume(float volume = 100.0f);
 TGFCLIENT_API float getMusicVolume();
-TGFCLIENT_API void playMusic(char* filename);
+TGFCLIENT_API void playMusic(const char* filename = nullptr);
 TGFCLIENT_API const musicTrack &getMusicTrack();
+TGFCLIENT_API void setMusicTrack(void *param);
 TGFCLIENT_API bool isMusicEnabled();
 
 #endif //__musicplayer_h__

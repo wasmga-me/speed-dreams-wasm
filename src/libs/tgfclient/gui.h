@@ -463,6 +463,7 @@ extern void gfuiDrawProgressbar(tGfuiObject *obj);
 
 extern void gfuiLabelSetText(tGfuiLabel *label, const char *text);
 extern void gfuiLabelSetColor(tGfuiLabel *label, const float *color);
+extern void gfuiLabelSetPos(tGfuiObject *obj, int x, int y);
 extern int gfuiLabelGetTextX(const tGfuiLabel *label);
 std::string gfuiLabelGetText(const tGfuiLabel *label);
 

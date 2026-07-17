@@ -1,6 +1,7 @@
 /*
  * Speed Dreams, a free and open source motorsport simulator.
  * Copyright (C) 2015 MadBad (madbad82@gmail.com)
+ * Copyright (C) 2026 Xavier Del Campo Romero
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8,315 +9,279 @@
  * (at your option) any later version.
  */
 
-#include "tgfclient.h"
 #include "notification.h"
+#include <guimenu.h>
+#include <tgfclient.h>
+#include <tgf.h>
 #include <sstream>
 
-//string splitting utils
-static std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+const char *NotificationManager::path = "notifications.xml";
+
+static std::vector<std::string> split(const std::string &s, char delim)
+{
+    std::vector<std::string> elems;
     std::stringstream ss(s);
     std::string item;
-    while (std::getline(ss, item, delim)) {
+
+    while (std::getline(ss, item, delim))
         elems.push_back(item);
-    }
+
     return elems;
 }
 
-static std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, elems);
-    return elems;
-}
-
-NotificationManager::NotificationManager()
-: screenHandle(NULL),
-  prevScreenHandle(NULL),
-  menuXMLDescHdle(NULL)
+void NotificationManager::reset()
 {
-
-    this->status = Idle;
-    this->busy = false;
-    this->notifyUiIdBg = -1;//the bg image ui id
-    this->notifyUiIdBusyIcon = -1;//the bg image ui id
-
-    this->animationRestTime = 4 ; //how much wes should wait when we a re fully displayed
-    this->totalAnimationDuration = 0.3 ;//how much the animation should take to fully run in one direction
-    this->animationLastExecTime = GfTimeClock(); //the current time
-
+    x = -w;
+    ui_status = Wait;
+    t = GfTimeClock();
 }
 
-NotificationManager::~NotificationManager()
+void NotificationManager::clear()
 {
-    if (menuXMLDescHdle)
-        GfParmReleaseHandle(menuXMLDescHdle);
+    size_t n = msgs.size();
+
+    for (size_t i = 0; i < n; i++)
+        msgs.pop();
+
+    reset();
 }
 
-void NotificationManager::updateStatus(){
+void NotificationManager::release(void *screen)
+{
+    auto it = scr_ids.find(screen);
 
-    //get the current screen
-    this->screenHandle = GfuiGetScreen();
+    if (it == scr_ids.end())
+        return;
 
-    //get the ui descriptor
-    if (!this->menuXMLDescHdle) {
-        //do not reuse the descriptor because two or more instances can co-exist
-        this->menuXMLDescHdle = GfParmReadFile("data/menu/notifications.xml",
-            GFPARM_RMODE_STD, true, true, false);
-    }
-
-    //if we are doing nothing and we have some message to display: let's do it
-    if(this->busy==false && !this->msglist.empty()){
-
-        this->startNewNotification();
-
-    }
-
-    //if we are running an animation
-    if(this->busy==true){
-
-        this->runAnimation();
-
-    }
-
-    //update status icon
-    this->updateStatusUi();
-
-    //remember the current screen for the next run
-    this->prevScreenHandle = this->screenHandle;
-
+    scr_ids.erase(it);
 }
 
-void NotificationManager::startNewNotification(){
+void NotificationManager::set(const std::string &msg)
+{
+    size_t n = msgs.size();
 
-    //we are running an animation
-    this->busy=true;
+    for (size_t i = 0; i < n; i++)
+        msgs.pop();
 
-    //set the animation direction
-    this->animationDirection=1;
-
-    //retrieve the message to display
-    std::string newText = this->msglist.front();
-
-    //divide the current message in lines
-    this->messageLines = split(this->msglist.front(), '\n');
-
-    //reset the start time(s)
-    this->animationStartTime = this->animationLastExecTime = GfTimeClock();
-    this->animationRestStartTime = 0;
-
-    //reset the start property
-    int propertyCurrentValue=(int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "x", "null", 0);
-    this->propertyChangeNeeded=(int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "width", "null", 0);
-    this->propertyFinalValue = propertyCurrentValue + this->propertyChangeNeeded;
-
-    //padding between the text and the bg image
-    this->textPadding = propertyCurrentValue - (int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slidebg", "x", "null", 0);
-
-    //start
-    this->animationDirection = 1;
-    this->runAnimation();
-
-}
-void NotificationManager::runAnimation(){
-
-    //read the initial state of the UI
-    int propertyCurrentValue = (int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "x", "null", 0);
-    // change needed from current status of the animation to the end
-    int remainingChangeNeeded = (this->propertyFinalValue - propertyCurrentValue);
-
-    //log current time
-    double currentTime = GfTimeClock();
-
-    //CASE 1
-    //we still need to apply some change to reach the final value
-    if(remainingChangeNeeded != 0){
-
-        //how much time is we are running the animation
-        // float animationRunningTime = (currentTime - this->animationStartTime) / (float) CLOCKS_PER_SEC;
-
-        //how much time is passed from the last run
-        float animationTimeFromLastStep = (currentTime - this->animationLastExecTime);
-        //time remaining for the animation
-        // float animationTimeRemaining = this->totalAnimationDuration - animationRunningTime;
-
-        //
-        //int propertyStepChange = remainingChangeNeeded / animationTimeRemaining * animationTimeFromLastStep;
-        //int propertyStepChange = remainingChangeNeeded / animationTimeRemaining;
-        //if we have not arhieving 30fps slow down the animation
-        if(animationTimeFromLastStep > 0.033333333){
-
-            animationTimeFromLastStep = 0.033333333;
-
-        }
-        int propertyStepChange = this->propertyChangeNeeded / this->totalAnimationDuration * this->animationDirection * animationTimeFromLastStep;
-
-        // if the change is too little we round it up to 1 unit at least
-        if((propertyStepChange * this->animationDirection) < 1 ){
-
-            propertyStepChange = 1 * this->animationDirection;
-
-        }
-
-        //new value for the property
-        int propertyNewValue = propertyCurrentValue + propertyStepChange;
-
-        //it he new value with the change applied is greater that the final result we want we correct it to be equal to the final result
-        if (propertyNewValue * this->animationDirection  > propertyFinalValue * this->animationDirection ){
-
-            propertyNewValue = propertyFinalValue;
-
-        }
-
-        //apply the new values
-        GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slide", "x", "null", propertyNewValue);
-        GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slidebg", "x", "null", propertyNewValue - this->textPadding);
-
-        //remember the time we ran the last(this) animation frame
-        this->animationLastExecTime = currentTime;
-
-        /*
-        GfLogInfo("###############################\n");
-        GfLogInfo("StartTime: %d \n",this->animationStartTime);
-        GfLogInfo("CurrentTime: %d \n",currentTime);
-        GfLogInfo("RunningTime: %f \n ",(currentTime - this->animationStartTime) / (float) CLOCKS_PER_SEC);
-        GfLogInfo("RunningTime: %f \n ",(currentTime - this->animationStartTime));
-        GfLogInfo("RunningTime: %f \n ",(float) CLOCKS_PER_SEC);
-
-        GfLogInfo("\n ");
-        GfLogInfo("AnimationDuration: %f \n ",this->totalAnimationDuration);
-        GfLogInfo("TimeRemaining: %f \n ",animationTimeRemaining);
-        GfLogInfo("\n ");
-        GfLogInfo("FinalValue: %i \n ",this->propertyFinalValue);
-        GfLogInfo("CurrentValue: %i \n ",propertyCurrentValue);
-        GfLogInfo("Change Needed: %i \n ",remainingChangeNeeded);
-        GfLogInfo("StepChange: %i \n ",propertyStepChange);
-        GfLogInfo("\n ");
-        GfLogInfo("Direction: %i \n ",this->animationDirection);
-        */
-
-        this->removeOldUi();
-        this->createUi();
-
-    }
-
-
-
-    //CASE 2
-    // no change needed while running the runOutAnimation
-    if(remainingChangeNeeded == 0 && this->animationDirection == -1){
-
-        //delette this message from the queque
-        this->msglist.erase (this->msglist.begin());
-
-        //we are no longer busy
-        this->busy=false;
-
-    }
-
-
-    //CASE 3
-    // no change needed while running the runInAnimation: we have ended the runInAnimation
-    if(remainingChangeNeeded == 0 && this->animationDirection == 1){
-        if(this->animationRestStartTime==0){
-
-            //we are just done runnig the runInAnimation
-            //log the time we start waiting while fully displayed
-            this->animationRestStartTime = GfTimeClock();
-
-        }else{
-
-            //if rest time has expired: start the runOutAnimation
-            if((currentTime - this->animationRestStartTime) > this->animationRestTime){
-
-                //change the animation direction
-                this->animationDirection = -1;
-
-                //reset the animation start time
-                this->animationStartTime = this->animationLastExecTime = GfTimeClock(); //when the animation started
-
-                //read property info
-                this->propertyChangeNeeded= (int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "width", "null", 0);
-                this->propertyFinalValue = propertyCurrentValue - this->propertyChangeNeeded;
-
-            }
-
-        }
-
-    }
-
+    push(msg);
+    t = GfTimeClock();
 }
 
-void NotificationManager::removeOldUi(){
+void NotificationManager::push(const std::string &msg)
+{
+    msgs.push(msg);
+}
 
-    //if there is a prev screen
-    if( GfuiScreenIsActive(this->prevScreenHandle) )
+int NotificationManager::init()
+{
+    static const char slidebg[] = GFMNU_SECT_DYNAMIC_CONTROLS "/slidebg",
+        text[] = GFMNU_SECT_TEMPLATE_CONTROLS "/text",
+        icon[] = GFMNU_SECT_DYNAMIC_CONTROLS "/busyicon0";
+    void *h = GfuiMenuLoad(path);
+
+    if (!h)
     {
-        //if there is some prev ui around hide it
-        if(this->notifyUiIdBg > 0)
+        GfLogError("GfuiMenuLoad %s failed\n", path);
+        return -1;
+    }
+
+    w = GfParmGetNum(h, slidebg, "width", NULL, 0);
+    x = GfParmGetNum(h, slidebg, "x", NULL, 0);
+    icon_x = GfParmGetNum(h, icon, "x", NULL, 0);
+    lbl_x = GfParmGetNum(h, text, "x", NULL, 0) - x;
+    GfParmReleaseHandle(h);
+    ui_status = Wait;
+    return 0;
+}
+
+int NotificationManager::setup_ui(void *screen)
+{
+    static const char section[] = GFMNU_SECT_TEMPLATE_CONTROLS "/text";
+    struct Ids ids;
+    int y, h, font;
+    void *param = GfuiMenuLoad(path);
+
+    if (!param)
+    {
+        GfLogError("GfuiMenuLoad %s failed\n", path);
+        return -1;
+    }
+
+    ids.bg = GfuiMenuCreateStaticImageControl(screen, param, "slidebg");
+
+    if (ids.bg < 0)
+    {
+        GfLogError("GfuiMenuCreateStaticImageControl failed\n");
+        return -1;
+    }
+
+    for (size_t i = 0; i < sizeof ids.icons / sizeof *ids.icons; i++)
+    {
+        std::string s = "busyicon" + std::to_string(i);
+        int id = GfuiMenuCreateStaticImageControl(screen, param, s.c_str());
+
+        if (id < 0)
         {
-            GfuiVisibilitySet(this->prevScreenHandle, this->notifyUiIdBg, GFUI_INVISIBLE);
+            GfLogError("GfuiMenuCreateStaticImageControl %zu failed\n", i);
+            return -1;
         }
 
-        //iterate trougth ui and set them invisible
-        for (size_t i = 0; i < notifyUiId.size(); i++)
-        {
-            GfuiVisibilitySet(this->prevScreenHandle, this->notifyUiId[i], GFUI_INVISIBLE);
-        }
+        ids.icons[i] = id;
     }
 
-    //delete the prev ui's
-    this->notifyUiId.clear();
-    this->notifyUiIdBg=-1;
+    font = gfuiMenuGetFontId(GfParmGetStr(param, section, "font", ""));
+    y = GfParmGetNum(param, section, "y", NULL, 0);
+    h = GfuiFontHeight(font);
+
+    for (int &label : ids.labels)
+    {
+        int id = GfuiMenuCreateLabelControl(screen, param, "text", true,
+            GFUI_TPL_TEXT, GFUI_TPL_X, y);
+
+        if (id < 0)
+        {
+            GfLogError("GfuiMenuCreateLabelControl failed\n");
+            return -1;
+        }
+
+        label = id;
+        y -= h;
+    }
+
+    scr_ids[screen] = ids;
+    return 0;
 }
 
-void NotificationManager::createUi()
+int NotificationManager::update_ui()
 {
-    //create the new UI
-    this->notifyUiIdBg = GfuiMenuCreateStaticImageControl(this->screenHandle, this->menuXMLDescHdle, "slidebg");
-    GfuiVisibilitySet(this->screenHandle, this->notifyUiIdBg, GFUI_VISIBLE);
+    std::vector<std::string> tokens;
+    void *screen = GfuiGetScreen();
 
-    //get first line vertical position
-    int ypos=(int)GfParmGetNum(this->menuXMLDescHdle, "dynamic controls/slide", "y", "null", 0);
-    // int yposmod= ypos;
+    if (!screen)
+        return 0;
+    else if (scr_ids.find(screen) == scr_ids.end() && setup_ui(screen))
+        return -1;
 
-    //iterate trougth lines
-    for (size_t i = 0; i < this->messageLines.size(); i++)
+    const struct Ids &ids = scr_ids.at(screen);
+
+    if (ui_status == Wait)
     {
-        int uiId;
-        uiId= GfuiMenuCreateLabelControl(this->screenHandle, this->menuXMLDescHdle, "slide");
+        GfuiVisibilitySet(screen, ids.bg, GFUI_INVISIBLE);
 
-        //change the vertical position
-        int yposmod = ypos - (i+1)*(10);
-        GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slide", "y", "null", yposmod);
+        for (int id : ids.icons)
+            GfuiVisibilitySet(screen, id, GFUI_INVISIBLE);
 
-        GfuiLabelSetText(this->screenHandle, uiId, this->messageLines[i].c_str());
-        GfuiVisibilitySet(this->screenHandle, uiId, GFUI_VISIBLE);
-        this->notifyUiId.push_back(uiId);
-     }
+        for (int id : ids.labels)
+            GfuiVisibilitySet(screen, id, GFUI_INVISIBLE);
 
-    //reset ypos
-    GfParmSetNum(this->menuXMLDescHdle, "dynamic controls/slide", "y", "null", ypos);
+        return 0;
+    }
+
+    GfuiVisibilitySet(screen, ids.bg, GFUI_VISIBLE);
+
+    for (size_t i = 0; i < sizeof ids.icons / sizeof *ids.icons; i++)
+    {
+        int visible = status == (int)i ? GFUI_VISIBLE : GFUI_INVISIBLE,
+            id = ids.icons[i];
+
+        GfuiSetPosition(screen, id, x + icon_x);
+        GfuiVisibilitySet(screen, id, visible);
+    }
+
+    tokens = split(msgs.front(), '\n');
+
+    for (size_t i = 0; i < sizeof ids.labels / sizeof *ids.labels; i++)
+    {
+        const char *text = i < tokens.size() ? tokens.at(i).c_str() : "";
+        int id = ids.labels[i];
+
+        GfuiLabelSetText(screen, id, text);
+        GfuiSetPosition(screen, id, x + lbl_x);
+        GfuiVisibilitySet(screen, id, GFUI_VISIBLE);
+    }
+
+    GfuiSetPosition(screen, ids.bg, x);
+    return 0;
 }
 
-void NotificationManager::updateStatusUi()
+int NotificationManager::wait()
 {
-    //todo: this was causing some random crash
-    //if there is some prev ui around hide it
-    if(this->notifyUiIdBusyIcon > 0 && this->screenHandle == this->prevScreenHandle)
+    std::string msg;
+
+    if (!msgs.empty())
     {
-        GfuiVisibilitySet(this->prevScreenHandle, this->notifyUiIdBusyIcon, GFUI_INVISIBLE);
-        this->notifyUiIdBusyIcon = -1;
+        t = GfTimeClock();
+        ui_status = Show;
     }
 
-    if(this->screenHandle != NULL)
-    {
-        //if not IDLE display busy icon (sending or receiving)
-        if(status != NotificationManager::Idle)
-        {
-            std::string icon = "busyicon";
-            icon.append(std::to_string(status));
+    return update_ui();
+}
 
-            this->notifyUiIdBusyIcon = GfuiMenuCreateStaticImageControl(this->screenHandle, this->menuXMLDescHdle, icon.c_str());
-            GfuiVisibilitySet(this->screenHandle, this->notifyUiIdBusyIcon, GFUI_VISIBLE);
-        }
+int NotificationManager::show()
+{
+    const double rate = 300.0;
+    double now = GfTimeClock(), x = (now - t) * rate;
+
+    if ((this->x += x) >= 0)
+    {
+        this->x = 0;
+        ui_status = Rest;
     }
+
+    t = now;
+    return update_ui();
+}
+
+int NotificationManager::rest()
+{
+    double now = GfTimeClock();
+
+    if (now - t >= 4)
+    {
+        t = now;
+        ui_status = Hide;
+    }
+
+    return update_ui();
+}
+
+int NotificationManager::hide()
+{
+    const double rate = 300.0;
+    double now = GfTimeClock(), x = (now - t) * rate;
+
+    if ((this->x -= x) <= -w)
+    {
+        msgs.pop();
+        reset();
+    }
+
+    t = now;
+    return update_ui();
+}
+
+int NotificationManager::updateStatus()
+{
+    switch (ui_status)
+    {
+        case Init:
+            return init();
+        case Wait:
+            return wait();
+        case Show:
+            return show();
+        case Rest:
+            return rest();
+        case Hide:
+            return hide();
+    }
+
+    GfLogError("updateStatus(): invalid status %d", ui_status);
+    return -1;
+}
+
+NotificationManager::NotificationManager() :
+    status(Idle),
+    ui_status(Init)
+{
 }

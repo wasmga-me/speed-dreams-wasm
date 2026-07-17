@@ -24,7 +24,7 @@ SET(_SOURCES control.cpp glfeatures.cpp guibutton.cpp guifont.cpp
             guigallery.cpp guigalleryelm.cpp
             notification.cpp notification.h
             musicplayer.cpp musicplayer.h
-            sdl2musicplayer.cpp sdl2musicplayer.h
+            playlist.cpp playlist.h
             glfeatures.h gui.h guiscreen.h guimenu.h tgfclient.h guifont.h
             forcefeedback.cpp forcefeedback.h
             guimenusfx.cpp guimenusfx.h

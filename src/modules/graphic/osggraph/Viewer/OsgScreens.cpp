@@ -54,8 +54,6 @@ SDScreens::SDScreens() :
      debugHUD = new SDDebugHUD();
 }
 
-extern SDHUD hud;
-
 class CameraDrawnCallback : public osg::Camera::DrawCallback
 {
 public:
@@ -140,10 +138,10 @@ void SDScreens::Init(int x,int y, int width, int height, osg::ref_ptr<osg::Node>
     root->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::ON );
 
     //create the hud and its own camera and add it to the viewer
-    hud.CreateHUD(height, width);
-    hud.camera->setGraphicsContext(gw);
-    hud.camera->setViewport(0,0, width, height);
-    viewer->addSlave(hud.camera, false);
+    hud->CreateHUD(height, width);
+    hud->camera->setGraphicsContext(gw);
+    hud->camera->setViewport(0,0, width, height);
+    viewer->addSlave(hud->camera, false);
 
 
     //viewer->setSceneData(root.get());
@@ -275,27 +273,27 @@ void SDScreens::changeCameraTemporaryOff()
 
 void SDScreens::toggleHUD()
 {
-    hud.ToggleHUD();
+    hud->ToggleHUD();
 }
 
 void SDScreens::toggleHUDwidget(const std::string &widget)
 {
-    hud.ToggleHUDwidget(widget);
+    hud->ToggleHUDwidget(widget);
 }
 
 void SDScreens::toggleHUDwidgets(const std::string & widgets)
 {
-    hud.ToggleHUDwidgets(widgets);
+    hud->ToggleHUDwidgets(widgets);
 }
 
 void SDScreens::toggleHUDdriverinput()
 {
-    hud.ToggleHUDdriverinput();
+    hud->ToggleHUDdriverinput();
 }
 
 void SDScreens::toggleHUDeditmode()
 {
-    hud.ToggleHUDeditmode();
+    hud->ToggleHUDeditmode();
 }
 
 void SDScreens::toggleStats()

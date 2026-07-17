@@ -44,6 +44,7 @@
 #include "guimenu.h"
 #include "musicplayer.h"
 #include "guimenusfx.h"
+#include "playlist.h"
 #include <SDL_mixer.h>
 #include <list>
 
@@ -656,6 +657,7 @@ GfuiScreenActivate(void *screen)
 	GfuiScreen = (tGfuiScreen*)screen;
 
 	playMusic(GfuiScreen->musicFilename);
+	Playlist::update(0);
 
   	GfuiApp().eventLoop().setKeyboardDownCB(gfuiKeyboardDown);
 	GfuiApp().eventLoop().setKeyboardUpCB(gfuiKeyboardUp);
@@ -797,6 +799,7 @@ GfuiScreenRelease(void *scr)
 	tGfuiScreen *screen = (tGfuiScreen*)scr;
 
 	UnregisterScreens(screen);
+	Playlist::release(scr);
 
 	if (GfuiScreen == screen) {
 		GfuiScreenDeactivate();

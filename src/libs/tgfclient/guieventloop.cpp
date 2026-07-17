@@ -162,7 +162,9 @@ void GfuiEventLoop::operator()()
 			switch(event.type)
 			{
 				case SDL_KEYDOWN:
-					if((event.key.keysym.sym & SDLK_SCANCODE_MASK) == SDLK_SCANCODE_MASK)
+					if ((event.key.keysym.sym & ~SDLK_SCANCODE_MASK) == SDLK_UNKNOWN)
+						;
+					else if((event.key.keysym.sym & SDLK_SCANCODE_MASK) == SDLK_SCANCODE_MASK)
 					{
 						injectKeyboardEvent(event.key.keysym.sym, event.key.keysym.mod, 0,0);
 					}
@@ -171,7 +173,7 @@ void GfuiEventLoop::operator()()
 						injectKeyboardEvent(event.key.keysym.sym, event.key.keysym.mod, 0,0);
 					}
 					else if((event.key.keysym.mod & KMOD_CTRL)
-							||(event.key.keysym.mod & KMOD_ALT)
+							||(event.key.keysym.mod & KMOD_LALT)
 							||(event.key.keysym.mod & KMOD_GUI))
 					{
 						injectKeyboardEvent(event.key.keysym.sym, event.key.keysym.mod, 0,0);
@@ -243,9 +245,13 @@ void GfuiEventLoop::operator()()
 		{
 			double now = GfTimeClock();
 			double rate = 1.0 / _pPrivate->max_refresh;
+			unsigned ms = 1000.0 * rate;
 
 			// Recompute if anything to.
-			recompute(1000.0 * rate);
+			recompute(ms);
+
+			// Run the timer callback, if any.
+			runTimerCb(ms);
 
 			// Call predisplay callback, if any.
 			predisplay();
