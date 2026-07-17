@@ -195,15 +195,15 @@ void GfEventLoop::injectKeyboardEvent(int code, int modifier, int state,
         return;
     }
     // Translate KMOD_RXX modifiers to KMOD_LXX (we make no difference)
+    // except from RALT, which is required by some keyboard layouts.
     // and ignore modifiers other than SHIFT, ALT, CTRL and META.
     if (modifier)
     {
         if (modifier & KMOD_RSHIFT) modifier |= KMOD_LSHIFT;
         if (modifier & KMOD_RCTRL) modifier |= KMOD_LCTRL;
-        if (modifier & KMOD_RALT) modifier |= KMOD_LALT;
         if (modifier & KMOD_RGUI) modifier |= KMOD_LGUI;
 
-        modifier &= (KMOD_LSHIFT | KMOD_LCTRL | KMOD_LALT | KMOD_LGUI);
+        modifier &= (KMOD_LSHIFT | KMOD_LCTRL | KMOD_LALT | KMOD_RALT | KMOD_LGUI);
     }
 
     // Toggle the Shift modifier if the Caps-Lock key is on. // Caps-Lock bug

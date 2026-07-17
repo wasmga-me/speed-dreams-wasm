@@ -313,7 +313,7 @@ gfuiEditboxKey(tGfuiObject *obj, int key, int modifier)
     tGfuiEditbox* editbox = &(obj->u.editbox);
     tGfuiLabel* label = &(editbox->label);
 
-    if (!(modifier & (KMOD_CTRL|KMOD_ALT)))
+    if (!(modifier & (KMOD_CTRL|KMOD_LALT)))
     {
         char* p1, *p2;
         int	i1, i2;
