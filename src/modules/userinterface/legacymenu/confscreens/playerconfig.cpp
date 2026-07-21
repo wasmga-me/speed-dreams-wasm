@@ -38,6 +38,7 @@
 
 #include "controlconfig.h"
 #include "playerconfig.h"
+#include "serverconfig.h"
 
 
 static const char *PlayerNamePrompt	= "-- Enter name --";
@@ -1016,6 +1017,11 @@ static void onWebserverLoginTest(void * /* dummy */)
     }
 }
 
+static void onWebserverConfig(void *)
+{
+    GfuiScreenActivate(ServerConfigInit(ScrHandle));
+}
+
 //#641 New player name should get empty when clicking on it
 // In the Player Configuration menu, when you create
 // a new player, his name is set to "-- Enter name --",
@@ -1306,6 +1312,8 @@ PlayerConfigMenuInit(void *prevMenu)
 
    	WebServerCheckboxId =
 	GfuiMenuCreateCheckboxControl(ScrHandle, param, "webservercheckbox", NULL, onChangeWebserverenabled);
+
+    GfuiMenuCreateButtonControl(ScrHandle, param, "webserverconf", NULL, onWebserverConfig);
 
     // Close menu XML descriptor.
     GfParmReleaseHandle(param);

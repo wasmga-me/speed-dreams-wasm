@@ -52,6 +52,7 @@ SET(CS confscreens)
 SET(CONFSCREENS_SOURCES ${CS}/playerconfig.cpp ${CS}/controlconfig.cpp
                         ${CS}/joystickconfig.cpp ${CS}/mouseconfig.cpp
                         ${CS}/joy2butconfig.cpp
+                        ${CS}/serverconfig.cpp
                         ${CS}/displayconfig.cpp
                         ${CS}/graphicsconfig.cpp
                         ${CS}/graphinfo.cpp
@@ -65,6 +66,7 @@ SET(CONFSCREENS_HEADERS ${CS}/confscreens.h
                         ${CS}/playerconfig.h ${CS}/controlconfig.h
                         ${CS}/joystickconfig.h ${CS}/mouseconfig.h
                         ${CS}/joy2butconfig.h ${CS}/monitorconfig.h
+                        ${CS}/serverconfig.h
                         ${CS}/displayconfig.h
                         ${CS}/graphicsconfig.h
                         ${CS}/graphinfo.h
