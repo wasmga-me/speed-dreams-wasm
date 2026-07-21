@@ -504,6 +504,7 @@ endif()
 
 if(OPTION_OSG)
    set(OSG_ARGS ${EXTERNALS_CMAKE_ARGS} -DCMAKE_DEBUG_POSTFIX=''
+                                        -DCMAKE_CXX_STANDARD=14
                                         -DUSE_3RDPARTY_BIN=Off
                                         -DBUILD_OSG_DEPRECATED_SERIALIZERS=OFF
                                         -DBUILD_OSG_APPLICATIONS=OFF
