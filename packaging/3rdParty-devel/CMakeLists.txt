@@ -272,10 +272,11 @@ if(OPTION_OPENAL)
 endif()
 
 if(OPTION_PLIB)
+   set(PLIB_ARGS ${EXTERNALS_CMAKE_ARGS} -DCMAKE_CXX_STANDARD=98)
    ExternalProject_Add(${PLIB_PROJECT}
       URL ${PLIB_URL}
       URL_HASH  ${PLIB_HASH}
-      CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS}
+      CMAKE_ARGS ${PLIB_ARGS}
       DEPENDS OpenGL-headers)
 endif()
 
