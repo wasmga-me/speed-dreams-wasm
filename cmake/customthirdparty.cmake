@@ -241,6 +241,118 @@ MACRO(SD_INSTALL_CUSTOM_3RDPARTY TARGET_NAME)
 		INCLUDE(InstallRequiredSystemLibraries)
 		SET(_COMPILER_DLL_PATHNAMES "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
 
+	ELSEIF(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		GET_FILENAME_COMPONENT(_MINGW_BINDIR "${CMAKE_CXX_COMPILER}" PATH)
+		GET_FILENAME_COMPONENT(_MINGW_BINDIR "${_MINGW_BINDIR}/../" REALPATH)
+
+		# Some Clang toolchains distribute multiple targets. Therefore,
+		# CMake might choose an invalid one if no triplet is selected.
+		#
+		# Unfortunately, and as opposed to GCC, Clang does not define
+		# -print-multiarch, and the -v command-line option cannot be used for
+		# this purpose because it can print something such as
+		# "i686-w64-windows-gnu" as the "Target:", when we are in fact
+		# interested in the compiler triplet name, such as "i686-w64-mingw32".
+		#
+		# Therefore, as a kludge use the CMAKE_CXX_COMPILER (an absolute path
+		# according to the documentation) to construct the triplet name.
+		# Note this will only work with cross-compilers with a triplet name as
+		# part of their name (e.g.: i686-w64-mingw32-g++).
+		GET_FILENAME_COMPONENT(COMPILER_TARGET "${CMAKE_CXX_COMPILER}" NAME)
+		STRING(FIND "${COMPILER_TARGET}" "-" INDEX REVERSE)
+
+		IF(INDEX EQUAL -1)
+			MESSAGE(FATAL_ERROR "cannot determine cross-compiler target")
+		ENDIF()
+
+		STRING(SUBSTRING "${COMPILER_TARGET}" 0 ${INDEX} COMPILER_TARGET)
+
+		FIND_FILE(libcxx_path "libc++.dll"
+			HINTS
+			"${_MINGW_BINDIR}/bin"
+			"${_MINGW_BINDIR}/lib"
+			"${_MINGW_BINDIR}/${COMPILER_TARGET}/bin"
+			"${_MINGW_BINDIR}/${COMPILER_TARGET}/lib"
+			NO_CMAKE_FIND_ROOT_PATH
+			NO_DEFAULT_PATH
+		)
+
+		IF(libcxx_path STREQUAL "libcxx_path-NOTFOUND")
+			MESSAGE(FATAL_ERROR "Could not find libc++.dll")
+		ENDIF()
+
+		FIND_FILE(libunwind_path "libunwind.dll"
+			HINTS
+			"${_MINGW_BINDIR}/bin"
+			"${_MINGW_BINDIR}/lib"
+			"${_MINGW_BINDIR}/${COMPILER_TARGET}/bin"
+			"${_MINGW_BINDIR}/${COMPILER_TARGET}/lib"
+			NO_CMAKE_FIND_ROOT_PATH
+			NO_DEFAULT_PATH
+		)
+
+		IF(libunwind_path STREQUAL "libunwind_path-NOTFOUND")
+			MESSAGE(FATAL_ERROR "Could not find libunwind.dll")
+		ENDIF()
+
+		FIND_FILE(libwinpthread_path "libwinpthread-1.dll"
+			HINTS
+			"${_MINGW_BINDIR}/bin"
+			"${_MINGW_BINDIR}/lib"
+			"${_MINGW_BINDIR}/${COMPILER_TARGET}/bin"
+			"${_MINGW_BINDIR}/${COMPILER_TARGET}/lib"
+			NO_CMAKE_FIND_ROOT_PATH
+			NO_DEFAULT_PATH
+		)
+
+		IF(libwinpthread_path STREQUAL "libwinpthread_path-NOTFOUND")
+			MESSAGE(STATUS "Could not find libwinpthread-1.dll. win32 thread model assumed.")
+		ENDIF()
+
+		SET(_COMPILER_DLL_PATHNAMES
+			"${libwinpthread_path}"
+			"${libcxx_path}"
+			"${libunwind_path}"
+			)
+
+		STRING(FIND "${CMAKE_CXX_FLAGS}" "-fsanitize=address" HAS_ASAN)
+
+		IF(NOT HAS_ASAN EQUAL -1)
+			STRING(FIND "${COMPILER_TARGET}" "i686" INDEX)
+
+			IF(NOT INDEX EQUAL -1)
+				SET(ASAN_TARGET i386)
+			ELSE()
+				# https://github.com/mstorsjo/llvm-mingw only distributes
+				# AddressSanitizer libraries for i686 (labeled as i386)
+				# and x86_64, as of the time of this writing.
+				# Still, do a best effort to find the ASan target name.
+				STRING(FIND "${COMPILER_TARGET}" "-" INDEX)
+
+				IF(INDEX EQUAL -1)
+					MESSAGE(FATAL_ERROR "Cannot determine compiler target "
+						"architecture from ${COMPILER_TARGET}")
+				ENDIF()
+
+				STRING(SUBSTRING "${COMPILER_TARGET}" 0 INDEX ASAN_TARGET)
+			ENDIF()
+
+			FIND_FILE(libclang_rt_asan_dynamic_path
+					"libclang_rt.asan_dynamic-${ASAN_TARGET}.dll"
+				HINTS
+				"${_MINGW_BINDIR}/bin"
+				"${_MINGW_BINDIR}/lib"
+				"${_MINGW_BINDIR}/${COMPILER_TARGET}/bin"
+				"${_MINGW_BINDIR}/${COMPILER_TARGET}/lib"
+				NO_CMAKE_FIND_ROOT_PATH
+				NO_DEFAULT_PATH
+			)
+
+			SET(_COMPILER_DLL_PATHNAMES
+				${_COMPILER_DLL_PATHNAMES}
+				"${libclang_rt_asan_dynamic_path}"
+			)
+		ENDIF()
 	ELSEIF(MINGW)
 
 		# Works with MinGW 14.2.0.
