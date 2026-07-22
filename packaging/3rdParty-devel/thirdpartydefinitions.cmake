@@ -143,13 +143,13 @@ set(EXPAT_LEGACY_HASH SHA256=b2c160f1b60e92da69de8e12333096aeb0c3bf692d41c60794d
 
 # zlib
 message(STATUS "Note special path handling (version in path)")
-set(ZLIB_VERSION 1.3.1)
+set(ZLIB_VERSION 1.3.2)
 set(ZLIB_PROJECT zlib-${ZLIB_VERSION})
 set(ZLIB_FILE ${ZLIB_PROJECT}.tar.gz)
 #set(ZLIB_URL https://github.com/madler/zlib/releases/download/v${ZLIB_VERSION}/{ZLIB_FILE}.tar.gz)
 #set(ZLIB_HASH SHA256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)
 set(ZLIB_URL https://zlib.net/${ZLIB_FILE})
-set(ZLIB_HASH SHA256=9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23)
+set(ZLIB_HASH SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16)
 
 # libpng
 message(STATUS "Note special path handling (version in path) AND hard-coded 'libpng16'")

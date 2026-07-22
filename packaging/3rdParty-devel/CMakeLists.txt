@@ -207,8 +207,7 @@ if(OPTION_ZLIB)
       DOWNLOAD_NAME ${ZLIB_FILE}
       URL ${ZLIB_URL}
       URL_HASH ${ZLIB_HASH}
-      CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS}
-      PATCH_COMMAND ${CMAKE_COMMAND} -E remove -f <SOURCE_DIR>/zconf.h)
+      CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS})
 else()
    set(ZLIB_PROJECT )
 endif()
@@ -273,10 +272,11 @@ if(OPTION_OPENAL)
 endif()
 
 if(OPTION_PLIB)
+   set(PLIB_ARGS ${EXTERNALS_CMAKE_ARGS} -DCMAKE_CXX_STANDARD=98)
    ExternalProject_Add(${PLIB_PROJECT}
       URL ${PLIB_URL}
       URL_HASH  ${PLIB_HASH}
-      CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS}
+      CMAKE_ARGS ${PLIB_ARGS}
       DEPENDS OpenGL-headers)
 endif()
 
@@ -504,6 +504,7 @@ endif()
 
 if(OPTION_OSG)
    set(OSG_ARGS ${EXTERNALS_CMAKE_ARGS} -DCMAKE_DEBUG_POSTFIX=''
+                                        -DCMAKE_CXX_STANDARD=14
                                         -DUSE_3RDPARTY_BIN=Off
                                         -DBUILD_OSG_DEPRECATED_SERIALIZERS=OFF
                                         -DBUILD_OSG_APPLICATIONS=OFF
