@@ -131,6 +131,8 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
     tGfuiObject		*object;
     tGfuiScreen		*screen = (tGfuiScreen*)scr;
 
+    int _x = x + screen->xmargin;
+
     object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
 	object->widget = GFUI_COMBOBOX;
 	object->focusMode = GFUI_FOCUS_MOUSE_MOVE;
@@ -157,13 +159,13 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 	gfuiGrButtonInit(&combobox->leftButton,
 					 "data/img/arrowleft-disabled.png", "data/img/arrowleft-normal.png",
 					 "data/img/arrowleft-focused.png", "data/img/arrowleft-pushed.png",
-					 x, y, arrowsWidth, arrowsHeight, GFUI_MIRROR_NONE,
+					 _x, y, arrowsWidth, arrowsHeight, GFUI_MIRROR_NONE,
 					 GFUI_MOUSE_UP,	 object, gfuiLeftArrow, 0, 0, 0,
 					 tipLabel);
 	gfuiGrButtonInit(&combobox->rightButton,
 					 "data/img/arrowright-disabled.png", "data/img/arrowright-normal.png",
 					 "data/img/arrowright-focused.png", "data/img/arrowright-pushed.png",
-					 x + width - combobox->leftButton.width, y,
+					 _x + width - combobox->leftButton.width, y,
 					 arrowsWidth, arrowsHeight, GFUI_MIRROR_NONE,
 					 GFUI_MOUSE_UP, object, gfuiRightArrow, 0, 0, 0,
 					 tipLabel);
@@ -182,8 +184,8 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 			y + (gfuiFont[font]->getHeight() - combobox->leftButton.height) / 2;
 
 	// Bounding box
-	object->xmin = x;
-	object->xmax = x + width;
+	object->xmin = _x;
+	object->xmax = _x + width;
 	object->ymin = y;
 	object->ymax = y + height;
 
@@ -193,7 +195,7 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 		yl += (height - gfuiFont[font]->getHeight()) / 2;
 
 	gfuiLabelInit(&combobox->label, pszText, maxlen,
-				  x + combobox->leftButton.width, yl,
+				  _x + combobox->leftButton.width, yl,
 				  width - 2 * combobox->leftButton.width, GFUI_ALIGN_HC,
 				  font, 0, fgColor, 0, fgFocusColor, "", 0, 0, 0);
 
@@ -202,7 +204,7 @@ GfuiComboboxCreate(void *scr, int font, int x, int y, int width,
 	gfuiGrButtonInit(&combobox->backgroundButton,
 					 "data/img/label-background.png"/*disabled*/, "data/img/label-background.png"/*normal*/,
 					 "data/img/label-background.png"/*focused */, "data/img/label-background.png"/*pushed*/,
-					 x + arrowsWidth, //x placement
+					 _x + arrowsWidth, //x placement
 					 y, //y placement
 					 width - 2 * combobox->leftButton.width, //width
 					 arrowsHeight, //height: same as the arrows

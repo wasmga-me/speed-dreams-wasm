@@ -163,6 +163,10 @@ GfuiLabelCreate(void *scr, const char *text, int font, int x, int y,
     object->id = screen->curId++;
 
     label = &(object->u.label);
+    if (width == -1) {
+        width = screen->width;
+    }
+
     gfuiLabelInit(label, text, maxlen, x, y, width, align, font,
                   screen->bgColor.toFloatRGBA(), fgColor,
                   screen->bgColor.toFloatRGBA(), fgFocusColor,
@@ -198,7 +202,8 @@ GfuiLabelCreate(void *scr, const char *text, int font, int x, int y,
 int
 GfuiTipCreate(void *scr, const char *text, int maxlen)
 {
-    return GfuiLabelCreate(scr, text, NTipFontId, NTipX, NTipY, NTipWidth,
+    tGfuiScreen *screen = (tGfuiScreen*)scr;
+    return GfuiLabelCreate(scr, text, NTipFontId, NTipX + screen->xmargin, NTipY, NTipWidth,
                            NTipAlign, maxlen, gfuiColors[GFUI_TIPCOLOR]);
 }
 

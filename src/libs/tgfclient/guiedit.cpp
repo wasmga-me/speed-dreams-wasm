@@ -83,6 +83,7 @@ GfuiEditboxCreate(void *scr, const char *text, int font,
                   void *userDataOnFocus, tfuiCallback onFocus, tfuiCallback onFocusLost)
 {
     tGfuiScreen* screen = (tGfuiScreen*)scr;
+    int _x = x + screen->xmargin;
 
     tGfuiObject* object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
     object->widget = GFUI_EDITBOX;
@@ -115,7 +116,7 @@ GfuiEditboxCreate(void *scr, const char *text, int font,
     editbox->cursorColor[2] = GfuiColor::build(GFUI_EDITCURSORCLR);
 
     tGfuiLabel* label = &(editbox->label);
-    gfuiLabelInit(label, text, maxlen, x + NHPadding, y + NVPadding,
+    gfuiLabelInit(label, text, maxlen, _x + NHPadding, y + NVPadding,
                   width - 2 * NHPadding, align, font, 0, 0, 0, 0, "", 0, 0, 0);
 
     maxlen = label->maxlen;
@@ -130,9 +131,9 @@ GfuiEditboxCreate(void *scr, const char *text, int font,
         free(buf);
     }
 
-    object->xmin = x;
+    object->xmin = _x;
     object->ymin = y;
-    object->xmax = x + width;
+    object->xmax = _x + width;
     object->ymax = y + gfuiFont[font]->getHeight() + 2*NVPadding;
 
     editbox->cursory1 = object->ymin + NVPadding / 2;

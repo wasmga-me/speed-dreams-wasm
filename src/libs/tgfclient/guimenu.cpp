@@ -267,6 +267,9 @@ createStaticImage(void* hscr, void* hparm, const char* pszName,
         h = (int)GfParmGetNum(hparm, pszName, GFMNU_ATTR_HEIGHT, NULL, 100.0);
 
     const bool canDeform = getControlBoolean(hparm, pszName, GFMNU_ATTR_CAN_DEFORM, true);
+    tGfuiScreen *screen = (tGfuiScreen*)hscr;
+    x = strcmp(GfParmGetStr(hparm, pszName, "use x margin", ""), "no")
+        ? x + screen->xmargin : x;
 
     int id = GfuiStaticImageCreate(hscr, x, y, w, h, pszImage, canDeform);
 
@@ -392,9 +395,14 @@ createLabel(void* hscr, void* hparm, const char* pszPath,
     const char* pszText =
         bFromTemplate && text != GFUI_TPL_TEXT
         ? text : GfuiGetTranslatedText(hparm, pszPath, GFMNU_ATTR_TEXT, "");
-    const int nX =
+    int _nX =
         bFromTemplate && x != GFUI_TPL_X
         ? x : (int)GfParmGetNum(hparm, pszPath, GFMNU_ATTR_X, NULL, 0);
+
+    tGfuiScreen *screen = (tGfuiScreen*)hscr;
+    const int nX =
+        strcmp(GfParmGetStr(hparm, pszPath, "use x margin", ""), "no")
+        ? _nX + screen->xmargin : _nX;
     const int nY =
         bFromTemplate && y != GFUI_TPL_Y
         ? y : (int)GfParmGetNum(hparm, pszPath, GFMNU_ATTR_Y, NULL, 0);

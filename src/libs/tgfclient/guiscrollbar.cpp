@@ -122,6 +122,8 @@ GfuiScrollBarCreate(void *scr, int x, int y, int length, int thickness, int butL
 {
     tGfuiScreen* screen = (tGfuiScreen*)scr;
 
+    int _x = x + screen->xmargin;
+
     tGfuiObject* object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
     object->widget = GFUI_SCROLLBAR;
     object->focusMode = GFUI_FOCUS_MOUSE_CLICK;
@@ -141,14 +143,14 @@ GfuiScrollBarCreate(void *scr, int x, int y, int length, int thickness, int butL
 			const int arrowButId =
 				GfuiGrButtonCreate(scr, "data/img/arrow-left.png", "data/img/arrow-left.png",
 								   "data/img/arrow-left-focused.png", "data/img/arrow-left-pushed.png",
-								   x, y, butLength, thickness,
+								   _x, y, butLength, thickness,
 								   butMirror, false, 1,
 								   object, gfuiScrollMinus,
 								   NULL, (tfuiCallback)NULL, (tfuiCallback)NULL);
 			const tGfuiGrButton* pArrowBut = &(gfuiGetObject(scr, arrowButId)->u.grbutton);
 			GfuiGrButtonCreate(scr, "data/img/arrow-right.png", "data/img/arrow-right.png",
 							   "data/img/arrow-right-focused.png", "data/img/arrow-right-pushed.png",
-							   x + length - pArrowBut->width, y, butLength, thickness,
+							   _x + length - pArrowBut->width, y, butLength, thickness,
 							   butMirror, false, 1,
 							   object, gfuiScrollPlus,
 							   NULL, (tfuiCallback)NULL, (tfuiCallback)NULL);
@@ -161,14 +163,14 @@ GfuiScrollBarCreate(void *scr, int x, int y, int length, int thickness, int butL
 			const int arrowButId =
 				GfuiGrButtonCreate(scr, "data/img/arrow-down.png", "data/img/arrow-down.png",
 								   "data/img/arrow-down-focused.png", "data/img/arrow-down-pushed.png",
-								   x, y, thickness, butLength,
+								   _x, y, thickness, butLength,
 								   butMirror, false, 1,
 								   object, gfuiScrollPlus,
 								   NULL, (tfuiCallback)NULL, (tfuiCallback)NULL);
 			const tGfuiGrButton* pArrowBut = &(gfuiGetObject(scr, arrowButId)->u.grbutton);
 			GfuiGrButtonCreate(scr, "data/img/arrow-up.png", "data/img/arrow-up.png",
 							   "data/img/arrow-up-focused.png", "data/img/arrow-up-pushed.png",
-							   x, y + length - pArrowBut->height, thickness, butLength,
+							   _x, y + length - pArrowBut->height, thickness, butLength,
 							   butMirror, false, 1,
 							   object, gfuiScrollMinus,
 							   NULL, (tfuiCallback)NULL, (tfuiCallback)NULL);

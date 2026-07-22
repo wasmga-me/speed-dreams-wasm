@@ -171,6 +171,8 @@ GfuiGrButtonCreate(void *scr, const char *disabled, const char *enabled,
 {
     tGfuiScreen* screen = (tGfuiScreen*)scr;
 
+    int _x = x + screen->xmargin;
+
     tGfuiObject* object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
     object->widget = GFUI_GRBUTTON;
     object->focusMode = GFUI_FOCUS_MOUSE_MOVE;
@@ -182,13 +184,13 @@ GfuiGrButtonCreate(void *scr, const char *disabled, const char *enabled,
 
     tGfuiGrButton* button = &(object->u.grbutton);
 	gfuiGrButtonInit(button, disabled, enabled, focused, pushed,
-					 x + hPadding, y + vPadding,
+					 _x + hPadding, y + vPadding,
 					 width - 2 * hPadding, height - 2 * vPadding, mirror, mouse,
 					 userDataOnPush, onPush, userDataOnFocus, onFocus, onFocusLost,
 					 tipLabel);
 
-	object->xmin = x;
-	object->xmax = x + button->width + 2 * hPadding;
+	object->xmin = _x;
+	object->xmax = _x + button->width + 2 * hPadding;
 	object->ymin = y;
 	object->ymax = y + button->height + 2 * vPadding;
 
@@ -300,6 +302,8 @@ GfuiButtonCreate(void *scr, const char *text, int font, int x, int y, int width,
     tGfuiObject	*object;
     tGfuiScreen	*screen = (tGfuiScreen*)scr;
 
+    int _x = x + screen->xmargin;
+
     object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
     object->widget = GFUI_BUTTON;
     object->focusMode = GFUI_FOCUS_MOUSE_MOVE;
@@ -342,15 +346,15 @@ GfuiButtonCreate(void *scr, const char *text, int font, int x, int y, int width,
 	button->imgWidth = 0;
 	button->imgHeight = 0;
 
-	gfuiLabelInit(&button->label, text, 0, x + NHTxtPadding, y + NVTxtPadding,
+	gfuiLabelInit(&button->label, text, 0, _x + NHTxtPadding, y + NVTxtPadding,
 				  width - 2 * NHTxtPadding, textHAlign, font, 0, 0, 0, 0, "", 0, 0, 0);
 
     if (width <= 0)
 		width = button->label.width + 2*NHTxtPadding;
 
-	object->xmin = x;
+	object->xmin = _x;
 	object->ymin = y;
-	object->xmax = x + width;
+	object->xmax = _x + width;
 	object->ymax = y + gfuiFont[font]->getHeight() + 2*NVTxtPadding;
 
 	gfuiAddObject(screen, object);

@@ -765,8 +765,21 @@ GfuiScreenCreate(float *bgColor,
 
 	screen = (tGfuiScreen*)calloc(1, sizeof(tGfuiScreen));
 
-	screen->width = 640.0;
+	void* hparmScreen =
+		GfParmReadFileLocal(GFSCR_CONF_FILE, GFPARM_RMODE_STD | GFPARM_RMODE_CREAT);
+
+	float originalScreenWidth = GfParmGetNum(hparmScreen, GFSCR_SECT_GLDETSPECS, GFSCR_ATT_WIN_X, (char *)NULL, 640);
+	float originalScreenHeight = GfParmGetNum(hparmScreen, GFSCR_SECT_GLDETSPECS, GFSCR_ATT_WIN_Y, (char *)NULL, 480);
+
+	float originalScreenRatio = originalScreenWidth / originalScreenHeight;
 	screen->height = 480.0;
+	if (originalScreenRatio > 1.78f) { // if screen is wider than 16:9
+		screen->width = 480.0 * originalScreenRatio;
+		screen->xmargin = (screen->width - 640.0) / 2.0;
+	} else {
+		screen->width = 640.0;
+		screen->xmargin = 0.f;
+	}
 
 	screen->bgColor = bgColor ? GfuiColor::build(bgColor) : GfuiColor::build(GFUI_BGCOLOR);
 
@@ -780,6 +793,8 @@ GfuiScreenCreate(float *bgColor,
 	screen->keyAutoRepeat = 1; // Default key auto-repeat on.
 
 	RegisterScreens(screen);
+
+	GfParmReleaseHandle(hparmScreen);
 
 	return (void*)screen;
 }

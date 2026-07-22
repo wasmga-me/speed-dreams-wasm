@@ -79,6 +79,8 @@ GfuiCheckboxCreate(void *scr, int font, int x, int y, int imagewidth, int imageh
     tGfuiObject		*object;
     tGfuiScreen		*screen = (tGfuiScreen*)scr;
 
+    int _x = x + screen->xmargin;
+
     object = (tGfuiObject*)calloc(1, sizeof(tGfuiObject));
 	object->widget = GFUI_CHECKBOX;
 	object->focusMode = GFUI_FOCUS_NONE;
@@ -128,14 +130,14 @@ GfuiCheckboxCreate(void *scr, int font, int x, int y, int imagewidth, int imageh
 	int width = imagewidth + 5 + gfuiFont[font]->getWidth(pszText);
 
 	// Bounding box
-	object->xmin = x;
-	object->xmax = x + width;
+	object->xmin = _x;
+	object->xmax = _x + width;
 	object->ymin = y;
 	object->ymax = y + height;
 
 	// Initialize the label child (beware of y if the buttons are higher than the text).
 	static const int hPadding = 5;
-	const int xl = x + imagewidth + hPadding;
+	const int xl = _x + imagewidth + hPadding;
 	int yl = y;
 	if (height > gfuiFont[font]->getHeight())
 		yl += (height -  gfuiFont[font]->getHeight()) / 2;
