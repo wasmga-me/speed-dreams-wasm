@@ -779,8 +779,33 @@ int DownloadsMenu::assets_fetched(long status, CURL *h, const sink *s,
 
     if (status != 200)
     {
-        GfLogError("Received HTTP status %ld\n", status);
-        e = d->tr("invalidstatus");
+        char *url;
+        CURLcode code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url);
+
+        if (code != CURLE_OK)
+        {
+            const char *error = curl_easy_strerror(code);
+
+            GfLogError("curl_easy_getinfo: %s\n", error);
+            e = error;
+        }
+        else if (!url)
+        {
+            const char *error = "curl_easy_getinfo returned a null URL";
+
+            GfLogError("%s\n", error);
+            e = error;
+        }
+        else
+        {
+            const char *fmt = d->tr("invalidstatus");
+            char buf[128];
+
+            GfLogError("%s: received HTTP status %ld\n", url, status);
+            snprintf(buf, sizeof buf, fmt, url, status);
+            e = buf;
+        }
+
         return -1;
     }
 
