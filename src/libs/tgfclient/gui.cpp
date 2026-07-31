@@ -827,6 +827,7 @@ GfuiScreenRelease(void *scr)
 
 	UnregisterScreens(screen);
 	Playlist::release(scr);
+	webServer().release(scr);
 
 	if (GfuiScreen == screen) {
 		GfuiScreenDeactivate();

@@ -78,6 +78,7 @@ class TGFCLIENT_API WebServer {
 	public:
 		int updateAsyncStatus();
 		void updateStatus();
+		void release(void *screen);
 
 		//specific requests
 		int sendLogin (int userId);
