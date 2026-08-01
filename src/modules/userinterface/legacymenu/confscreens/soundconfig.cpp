@@ -26,6 +26,7 @@
 
 #include <config.h>
 #include <tgfclient.h>
+#include <translation.h>
 #include <sound.h>
 #include <musicplayer.h>
 #include <guimenusfx.h>
@@ -381,13 +382,20 @@ void* SoundMenuInit(void *prevMenu)
 
 	MenuSfxVolumeValueId = GfuiMenuCreateEditControl(scrHandle,param,"menusfxvolumeedit",NULL,NULL,changeMenuSfxVolume);
 
-	GfParmReleaseHandle(param);
-
 	GfuiMenuDefaultKeysAdd(scrHandle);
-	GfuiAddKey(scrHandle, GFUIK_RETURN, "Apply", NULL, onAccept, NULL);
-	GfuiAddKey(scrHandle, GFUIK_ESCAPE, "Cancel", NULL, onCancel, NULL);
-	GfuiAddKey(scrHandle, GFUIK_LEFT, "Previous Option in list", NULL, changeSoundLeft, NULL);
-	GfuiAddKey(scrHandle, GFUIK_RIGHT, "Next Option in list", NULL, changeSoundRight, NULL);
+	void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+	const char* applyText = GfuiGetTranslatedText(commonTextHdle, "translatable/apply");
+    const char* cancelText = GfuiGetTranslatedText(commonTextHdle, "translatable/cancel");
+	GfuiAddKey(scrHandle, GFUIK_RETURN, applyText, NULL, onAccept, NULL);
+	GfuiAddKey(scrHandle, GFUIK_ESCAPE, cancelText, NULL, onCancel, NULL);
+	GfParmReleaseHandle(commonTextHdle);
+
+	const char* prevText = GfuiGetTranslatedText(param, "translatable/prev");
+	const char* nextText = GfuiGetTranslatedText(param, "translatable/next");
+	GfuiAddKey(scrHandle, GFUIK_LEFT, prevText, NULL, changeSoundLeft, NULL);
+	GfuiAddKey(scrHandle, GFUIK_RIGHT, nextText, NULL, changeSoundRight, NULL);
+
+	GfParmReleaseHandle(param);
 
 	return scrHandle;
 }

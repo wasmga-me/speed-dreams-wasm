@@ -666,31 +666,41 @@ rmOpenHelpScreen(void * /* dummy */)
 	GfuiHelpScreen(rmScreenHandle, RmBackToRaceHookInit());
 }
 
+static const char *
+tr(void* keysHdle, const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(keysHdle, s.c_str(), "text", "");
+}
+
 static void
 rmAddKeys()
 {
     GfuiMenuDefaultKeysAdd(rmScreenHandle);
 
-    GfuiAddKey(rmScreenHandle, GFUIK_F1,  "Help", NULL, rmOpenHelpScreen, NULL);
+    void *h = GfuiMenuLoad("defaultkeys.xml");
+    GfuiAddKey(rmScreenHandle, GFUIK_F1,  tr(h, "menu/help"), NULL, rmOpenHelpScreen, NULL);
 
-    GfuiAddKey(rmScreenHandle, '-', "Slow down time",    NULL, rmTimeSlowDown, NULL);
-    GfuiAddKey(rmScreenHandle, '+', "Accelerate time",   NULL, rmTimeAccelerate, NULL);
-    GfuiAddKey(rmScreenHandle, '.', "Restore real time", NULL, rmTimeRestore, NULL);
+    GfuiAddKey(rmScreenHandle, '-', tr(h, "menu/race/timeslowdown"),    NULL, rmTimeSlowDown, NULL);
+    GfuiAddKey(rmScreenHandle, '+', tr(h, "menu/race/timeaccelerate"),  NULL, rmTimeAccelerate, NULL);
+    GfuiAddKey(rmScreenHandle, '.', tr(h, "menu/race/timerestore"),     NULL, rmTimeRestore, NULL);
 
-    GfuiAddKey(rmScreenHandle, 'p', "Pause Race",        (void*)0, rmRacePause, NULL);
-    GfuiAddKey(rmScreenHandle, GFUIK_ESCAPE,  "Stop current race", NULL, rmStateStop, NULL);
-    GfuiAddKey(rmScreenHandle, 'q', GFUIM_ALT, "Quit (without saving)", NULL, rmStateExit, NULL);
-    GfuiAddKey(rmScreenHandle, ' ', "Skip pre-start",    (void*)0, rmSkipPreStart, NULL);
+    GfuiAddKey(rmScreenHandle, 'p', tr(h, "menu/race/pause"),           (void*)0,   rmRacePause, NULL);
+    GfuiAddKey(rmScreenHandle, GFUIK_ESCAPE,  tr(h, "menu/race/stop"),  NULL,       rmStateStop, NULL);
+    GfuiAddKey(rmScreenHandle, 'q', GFUIM_ALT, tr(h, "menu/race/quit"), NULL,       rmStateExit, NULL);
+    GfuiAddKey(rmScreenHandle, ' ', tr(h, "menu/race/skipprestart"),    (void*)0,   rmSkipPreStart, NULL);
 
-    GfuiAddKey(rmScreenHandle, '>', "SFX volume up", NULL, rmVolumeUp, NULL);
-    GfuiAddKey(rmScreenHandle, '<', "SFX volume down", NULL, rmVolumeDown, NULL);
+    GfuiAddKey(rmScreenHandle, '>', tr(h, "menu/volumeup"),    NULL,  rmVolumeUp, NULL);
+    GfuiAddKey(rmScreenHandle, '<', tr(h, "menu/volumedown"),  NULL,  rmVolumeDown, NULL);
     //GfuiAddKey(rmScreenHandle, '?', "Toggle Sound FX",     (void*)0, rmToggleSound, NULL);
 
 	// WARNING: Sure this won't work with multi-threading On/Auto ...
     //GfuiAddKey(rmScreenHandle, '0', "One step simulation",    (void*)1, rmOneStep, NULL);
 
-    GfuiAddKey(rmScreenHandle, 'c', "Movie capture (if enabled)", (void*)0, rmToggleMovieCapture, NULL);
-    GfuiAddKey(rmScreenHandle, 'o', "Hide / Show mouse cursor",   (void*)0, rmHideShowMouseCursor, NULL);
+    GfuiAddKey(rmScreenHandle, 'c', tr(h, "menu/race/moviecapture"), (void*)0, rmToggleMovieCapture, NULL);
+    GfuiAddKey(rmScreenHandle, 'o', tr(h, "menu/race/togglecursor"), (void*)0, rmHideShowMouseCursor, NULL);
+    GfParmReleaseHandle(h);
 }
 
 static const char *
@@ -1091,7 +1101,8 @@ RmShutdownReUpdateStateHook()
 static void
 RmReadyToRace(void * /* dummy */)
 {
-   if (GfuiRemoveKey(rmScreenHandle,GFUIK_RETURN,"Ready"))
+   void *h = GfuiMenuLoad("defaultkeys.xml");
+   if (GfuiRemoveKey(rmScreenHandle, GFUIK_RETURN, tr(h, "menu/race/ready")))
    {
    		GfLogInfo("<Enter> key for Ready' removed \n");
    }
@@ -1099,6 +1110,7 @@ RmReadyToRace(void * /* dummy */)
    {
       GfLogInfo("FAILED to remove <Enter> to Start key \n");
    }
+   GfParmReleaseHandle(h);
 
    rmApplyCfg(nullptr);
 
@@ -1139,7 +1151,9 @@ RmAddPreRacePauseItems()
    if(rmScreenHandle)
    {
       rmPreRacePause = true;
-      GfuiAddKey(rmScreenHandle, GFUIK_RETURN,  "Ready", 0, RmReadyToRace, NULL);
+      void *h = GfuiMenuLoad("defaultkeys.xml");
+      GfuiAddKey(rmScreenHandle, GFUIK_RETURN,  tr(h, "menu/race/ready"), 0, RmReadyToRace, NULL);
+      GfParmReleaseHandle(h);
 	  SDL_JoystickEventState(SDL_ENABLE);
 	  GfuiApp().eventLoop().setJoystickButtonCB(RmOnJoystick);
 
@@ -1166,7 +1180,9 @@ RmAddCooldownItems()
 {
    if(rmScreenHandle)
    {
-      GfuiAddKey(rmScreenHandle, GFUIK_RETURN,  "Results", 0, RmResultShow, NULL);
+      void *h = GfuiMenuLoad("defaultkeys.xml");
+      GfuiAddKey(rmScreenHandle, GFUIK_RETURN,  tr(h, "menu/race/results"), 0, RmResultShow, NULL);
+      GfParmReleaseHandle(h);
 
       // The menu changed.
       rmbMenuChanged = true;
@@ -1293,10 +1309,12 @@ RmResScreenInit()
 	memcpy(rmColors[1], cHighlighted.toFloatRGBA(), sizeof(rmColors[1]));
 
     // Register keyboard shortcuts
-    GfuiAddKey(rmResScreenHdle, GFUIK_ESCAPE, "Stop current race",
+    void *h = GfuiMenuLoad("defaultkeys.xml");
+    GfuiAddKey(rmResScreenHdle, GFUIK_ESCAPE, tr(h, "menu/race/stop"),
 			   NULL, rmStateStop, NULL);
-    GfuiAddKey(rmResScreenHdle, 'q', GFUIM_ALT, "Quit (without saving)",
+    GfuiAddKey(rmResScreenHdle, 'q', GFUIM_ALT, tr(h, "menu/race/quit"),
 			   NULL, rmStateExit, NULL);
+    GfParmReleaseHandle(h);
 
     // Initialize current result row.
     rmCurRowIndex = 0;

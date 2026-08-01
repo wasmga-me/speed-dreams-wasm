@@ -11,6 +11,8 @@
 #include "languageconfig.h"
 #include "legacymenu.h"
 #include <tgfclient.h>
+#include <translation.h>
+
 #include <cstdio>
 #include <stdexcept>
 #include <string>
@@ -188,8 +190,14 @@ LanguageConfig::LanguageConfig(void *prevMenu) :
         throw std::runtime_error("GfuiMenuCreateButtonControl next failed");
 
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_RETURN, "Apply changes", this, apply, NULL);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, deinit, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* applyText = GfuiGetTranslatedText(commonTextHdle, "translatable/apply");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_RETURN, applyText, this, apply, NULL);
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this, deinit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
+
     languages = get_languages(param);
 
     for (const auto &l : languages)

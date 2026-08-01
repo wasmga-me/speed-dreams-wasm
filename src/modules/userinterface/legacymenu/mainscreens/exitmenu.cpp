@@ -17,6 +17,7 @@
  ***************************************************************************/
 
 #include <tgfclient.h>
+#include <translation.h>
 
 #include "legacymenu.h"
 
@@ -64,10 +65,11 @@ void* ExitMenuInit(void *prevMenu)
     GfuiMenuCreateButtonControl(MenuHandle, param, "yesquit", NULL, onAcceptExit);
     GfuiMenuCreateButtonControl(MenuHandle, param, "nobacktogame", prevMenu, GfuiScreenActivate);
 
-    GfParmReleaseHandle(param);
-
     GfuiMenuDefaultKeysAdd(MenuHandle);
-    GfuiAddKey(MenuHandle, GFUIK_ESCAPE, "No, back to the game", prevMenu, GfuiScreenActivate, NULL);
 
+    const char* backToGame = GfuiGetTranslatedText(param, "translatable/backtogame");
+    GfuiAddKey(MenuHandle, GFUIK_ESCAPE, backToGame, prevMenu, GfuiScreenActivate, NULL);
+
+    GfParmReleaseHandle(param);
     return MenuHandle;
 }

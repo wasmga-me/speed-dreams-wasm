@@ -1120,8 +1120,13 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
     }
 
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this,
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this,
         ::confirm_exit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
+
     GfuiEnable(hscr, download_all, GFUI_DISABLE);
     GfuiScreenActivate(hscr, ::recompute, this);
 

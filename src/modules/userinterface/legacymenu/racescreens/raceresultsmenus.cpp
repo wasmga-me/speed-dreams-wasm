@@ -231,7 +231,8 @@ rmPracticeResults(void *prevHdle, tRmInfo *info, int start)
         RmPrevRace.start    = start - nMaxLines;
         GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "PreviousPageArrow",
                                     (void*)&RmPrevRace, rmChgPracticeScreen);
-        GfuiAddKey(rmScrHdle, GFUIK_PAGEUP,   "Previous Results", (void*)&RmPrevRace, rmChgPracticeScreen, NULL);
+        const char* prevResultsText = GfuiGetTranslatedText(hmenu, "translatable/prevresults");
+        GfuiAddKey(rmScrHdle, GFUIK_PAGEUP, prevResultsText, (void*)&RmPrevRace, rmChgPracticeScreen, NULL);
     }
 
     // Add "Continue" button
@@ -255,11 +256,16 @@ rmPracticeResults(void *prevHdle, tRmInfo *info, int start)
         RmNextRace.start    = start + nMaxLines;
         GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "NextPageArrow",
                                     (void*)&RmNextRace, rmChgPracticeScreen);
-        GfuiAddKey(rmScrHdle, GFUIK_PAGEDOWN, "Next Results", (void*)&RmNextRace, rmChgPracticeScreen, NULL);
+        const char* nextResultsText = GfuiGetTranslatedText(hmenu, "translatable/nextresults");
+        GfuiAddKey(rmScrHdle, GFUIK_PAGEDOWN, nextResultsText, (void*)&RmNextRace, rmChgPracticeScreen, NULL);
     }
+    GfParmReleaseHandle(hmenu);
 
-    GfuiAddKey(rmScrHdle, GFUIK_ESCAPE, "Continue", prevHdle, GfuiScreenReplace, NULL);
-    GfuiAddKey(rmScrHdle, GFUIK_RETURN, "Continue", prevHdle, GfuiScreenReplace, NULL);
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* continueText = GfuiGetTranslatedText(commonTextHdle, "translatable/continue");
+    GfuiAddKey(rmScrHdle, GFUIK_ESCAPE, continueText, prevHdle, GfuiScreenReplace, NULL);
+    GfuiAddKey(rmScrHdle, GFUIK_RETURN, continueText, prevHdle, GfuiScreenReplace, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     GfuiScreenActivate(rmScrHdle);
 }

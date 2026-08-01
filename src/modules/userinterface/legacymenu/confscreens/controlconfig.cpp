@@ -29,6 +29,7 @@
 #include <tgf.hpp>
 #include <tgfclient.h>
 #include <track.h>
+#include <translation.h>
 #include <robot.h>
 #include <playerpref.h>
 
@@ -649,7 +650,11 @@ ControlMenuInit(void *prevMenu, void *prefHdle, unsigned index, tGearChangeMode 
 
     /* Cancel button and associated keyboard shortcut */
     GfuiMenuCreateButtonControl(ScrHandle,param,"cancel",PrevScrHandle,onQuit);
-    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Cancel", PrevScrHandle, onQuit, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* cancelText = GfuiGetTranslatedText(commonTextHdle, "translatable/cancel");
+    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, cancelText, PrevScrHandle, onQuit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     /* General callback for keyboard keys */
     GfuiKeyEventRegister(ScrHandle, onKeyAction);

@@ -970,8 +970,13 @@ GraphicsConfig::GraphicsConfig(void *prevMenu) :
 
     GfuiComboboxAddText(hscr, graphicsengine, tr("osggraph"));
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_RETURN, "Apply changes", this, apply, NULL);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, deinit, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* applyText = GfuiGetTranslatedText(commonTextHdle, "translatable/applychanges");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_RETURN, applyText, this, apply, NULL);
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this, deinit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     for (const auto pr : presets)
         GfuiComboboxAddText(hscr, preset, tr(pr));

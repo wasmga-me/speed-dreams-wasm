@@ -29,6 +29,7 @@
 
 #include <tgf.hpp>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <forcefeedbackconfig.h>
 #include <forcefeedback.h>
@@ -247,8 +248,13 @@ ForceFeedbackMenuInit(void *prevMenu, void *nextMenu, int curPlayerIdx, const st
 
     // Register keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(ScrHandle);
-    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Quit", NULL, onQuitForceFeedbackConfig , NULL);
-    GfuiAddKey(ScrHandle, GFUIK_RETURN, "Save", NULL, onSaveForceFeedbackConfig, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* quitText = GfuiGetTranslatedText(commonTextHdle, "translatable/quit");
+    const char* saveText = GfuiGetTranslatedText(commonTextHdle, "translatable/save");
+    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, quitText, NULL, onQuitForceFeedbackConfig, NULL);
+    GfuiAddKey(ScrHandle, GFUIK_RETURN, saveText, NULL, onSaveForceFeedbackConfig, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     return ScrHandle;
 }

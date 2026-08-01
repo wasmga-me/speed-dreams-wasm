@@ -161,8 +161,13 @@ WelcomeMenu::WelcomeMenu(bool (*next)()) :
         GfuiComboboxAddText(hscr, combo, lang.name.c_str());
 
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Go to next menu", this, apply, NULL);
-    GfuiAddKey(hscr, GFUIK_RETURN, "Go to next menu", this, apply, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* goToNextMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/gotonextmenu");
+    GfuiAddKey(hscr, GFUIK_ESCAPE, goToNextMenu, this, apply, NULL);
+    GfuiAddKey(hscr, GFUIK_RETURN, goToNextMenu, this, apply, NULL);
+    GfParmReleaseHandle(commonTextHdle);
+
     GfuiScreenActivate(hscr);
     GfParmReleaseHandle(lang);
     update();

@@ -365,7 +365,10 @@ HumanSelect::HumanSelect(void *prevMenu, GfRace *race, bool allow_empty) :
     is_osggraph = !strcmp(engine, RM_VAL_MOD_OSGGRAPH);
     GfParmReleaseHandle(re);
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, deinit, NULL);
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this, deinit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
     update_ui();
     GfuiScreenActivate(hscr);
 }
