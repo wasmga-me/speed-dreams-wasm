@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include <osg/Camera>
 #include <osg/TextureCubeMap>
 #include <osg/LOD>
 
@@ -28,6 +29,7 @@
 #include "OsgWheel.h"
 //#include "OsgBackFire.h"
 #include "OsgCarLight.h"
+#include "OsgCamera.h"
 
 struct CarElt;
 typedef struct CarElt tCarElt;
@@ -66,6 +68,7 @@ private :
     int                                nDRM;
     int                                nDRM2;
     float                              DRMThreshold[32];
+    float                              LODThreshold[32];
     tdble                              steerWheelRot;
 
     //osg::ref_ptr<osg::Vec3Array> shadowVertices;
@@ -119,7 +122,7 @@ public :
     const tCarElt *getCar() const { return car; }
 
     void markCarCurrent(const tCarElt *Car);
-    void updateCar(tSituation *s, tCarElt *CurCar, int current, int driver);
+    void updateCar(tSituation *s, tCarElt *CurCar, int current, int driver, SDCamera *cam);
     void updateShadingParameters(const osg::Matrixf &modelview);
 
     SDWheels    wheels;
@@ -141,7 +144,7 @@ public :
 
     void  loadCars(tSituation * pSituation, bool trackType, bool subCat,
         osgLoader::loadedModels &loaded);
-    void  updateCars(tSituation *s, tCarElt *CurCar, int current, int driver);
+    void  updateCars(tSituation *s, tCarElt *CurCar, int current, int driver, SDCamera *cam);
     void  markCarCurrent(const tCarElt*car);
     SDCar *getCar(tCarElt*car);
     void  unLoad();

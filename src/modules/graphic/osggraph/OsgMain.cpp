@@ -481,7 +481,7 @@ int refresh(tSituation *s)
 
     int drawDriver = cam->getDrawDriver();
     int drawCurrent = cam->getDrawCurrent();
-    cars->updateCars(s, curCar, drawCurrent, drawDriver);
+    cars->updateCars(s, curCar, drawCurrent, drawDriver, cam);
 
     scenery->reposition(X, Y, Z );
     scenery->update_tracklights(s->currentTime, s->_totTime, s->_raceType);
