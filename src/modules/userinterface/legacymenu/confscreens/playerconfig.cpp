@@ -27,6 +27,7 @@
 #include <nation.h>
 #include <portability.h>
 #include <tgfclient.h>
+#include <translation.h>
 #include <robot.h>
 #include <playerpref.h>
 #include <graphic.h>
@@ -37,6 +38,7 @@
 
 #include "controlconfig.h"
 #include "playerconfig.h"
+#include "serverconfig.h"
 
 
 static const char *PlayerNamePrompt	= "-- Enter name --";
@@ -328,6 +330,17 @@ updateWebserverControls(int enabled)
     GfuiEnable(ScrHandle, WebUsernameEditId, flag);
 }
 
+static std::string
+tr(const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+    void *param = GfuiMenuLoad("playerconfigmenu.xml");
+    std::string text = GfuiGetTranslatedText(param, s.c_str(), "text", "");
+
+    GfParmReleaseHandle(param);
+    return text;
+}
+
 /* Load screen editable fields with relevant values :
    - all empty if no player selected,
    - from selected player current settings otherwise
@@ -387,7 +400,7 @@ refreshEditVal(void)
         GfuiEditboxSetString(ScrHandle, RaceNumEditId, buf);
         GfuiEnable(ScrHandle, RaceNumEditId, GFUI_ENABLE);
 
-        GfuiLabelSetText(ScrHandle, GearChangeEditId, (*CurrPlayer)->gearChangeModeString());
+        GfuiLabelSetText(ScrHandle, GearChangeEditId, tr((*CurrPlayer)->gearChangeModeString()).c_str());
         GfuiEnable(ScrHandle, GearChangeEditId, GFUI_ENABLE);
 
         snprintf(buf, sizeof(buf), "%d", (*CurrPlayer)->nbPitStops());
@@ -398,10 +411,10 @@ refreshEditVal(void)
         GfuiLabelSetText(ScrHandle, NationEditId, (*CurrPlayer)->nation());
         GfuiEnable(ScrHandle, NationEditId, GFUI_ENABLE);
 
-        GfuiLabelSetText(ScrHandle, SkillEditId, SkillLevelString[skill]);
+        GfuiLabelSetText(ScrHandle, SkillEditId, tr(SkillLevelString[skill]).c_str());
         GfuiEnable(ScrHandle, SkillEditId, GFUI_ENABLE);
 
-        GfuiLabelSetText(ScrHandle, AutoReverseEditId, Yn[(*CurrPlayer)->autoReverse()]);
+        GfuiLabelSetText(ScrHandle, AutoReverseEditId, tr(Yn[(*CurrPlayer)->autoReverse()]).c_str());
         GfuiEnable(ScrHandle, AutoReverseEditId, GFUI_ENABLE);
 
         int enable = skill == PRO ? GFUI_ENABLE : GFUI_DISABLE;
@@ -1004,6 +1017,11 @@ static void onWebserverLoginTest(void * /* dummy */)
     }
 }
 
+static void onWebserverConfig(void *)
+{
+    GfuiScreenActivate(ServerConfigInit(ScrHandle));
+}
+
 //#641 New player name should get empty when clicking on it
 // In the Player Configuration menu, when you create
 // a new player, his name is set to "-- Enter name --",
@@ -1294,6 +1312,8 @@ PlayerConfigMenuInit(void *prevMenu)
 
    	WebServerCheckboxId =
 	GfuiMenuCreateCheckboxControl(ScrHandle, param, "webservercheckbox", NULL, onChangeWebserverenabled);
+
+    GfuiMenuCreateButtonControl(ScrHandle, param, "webserverconf", NULL, onWebserverConfig);
 
     // Close menu XML descriptor.
     GfParmReleaseHandle(param);

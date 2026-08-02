@@ -353,11 +353,15 @@ int WebServer::addOrderedAsyncRequest(const std::string &data)
 
 void WebServer::readConfiguration ()
 {
-    //read the preferencies file
+    //read the preferences file
     void *configHandle = GfParmReadFileLocal("config/webserver.xml", GFPARM_RMODE_REREAD);
 
     //get webServer url from the config
-    this->url = GfParmGetStr(configHandle, "WebServer Settings", "url","val");
+    int i = atoi(GfParmGetStr(configHandle, "WebServer Settings/default", "index", NULL));
+    std::string section = "WebServer Settings/";
+    section += std::to_string(i);
+
+    this->url = GfParmGetStr(configHandle, section.c_str(), "url", "val");
 
     GfLogInfo("WebServer - webserver url is: %s\n", this->url);
 }
