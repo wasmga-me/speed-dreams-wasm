@@ -29,7 +29,7 @@ public:
     };
 
     typedef std::vector<header> headers;
-    typedef int (*cb)(CURLcode, CURL *, const sink *, std::string &, void *,
+    typedef int (*cb)(long, CURL *, const sink *, std::string &, void *,
         const transfer::headers &);
     transfer(sink *s, cb f, void *args);
     int start(const char *url, long max, const headers &headers);

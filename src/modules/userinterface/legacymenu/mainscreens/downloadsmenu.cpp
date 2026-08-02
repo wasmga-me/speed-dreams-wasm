@@ -210,51 +210,6 @@ void DownloadsMenu::on_category()
     update_ui();
 }
 
-int DownloadsMenu::check(CURLcode result, CURL *h, std::string &error) const
-{
-    int ret = -1;
-    long response;
-    CURLcode code;
-    char *url;
-
-    if ((code = curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE,
-        &response)) != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(code);
-
-        error = tr("failedresp") + std::string(": ");
-        error += e;
-    }
-    else if ((code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url))
-        != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(code);
-
-        error = tr("failedurl") + std::string(": ");
-        error += e;
-    }
-    else if (response != 200)
-    {
-        error = url;
-        error += std::string(": ") + tr("unexpectedhttp") + " ";
-        error += std::to_string(response);
-    }
-    else if (result != CURLE_OK)
-    {
-        const char *e = curl_easy_strerror(result);
-
-        error = tr("failedfetch") + std::string(": ");
-        error += e;
-    }
-    else
-        ret = 0;
-
-    if (ret)
-        GfLogError("%s\n", error.c_str());
-
-    return ret;
-}
-
 void DownloadsMenu::recompute(unsigned ms)
 {
     std::string error;
@@ -644,11 +599,24 @@ int DownloadsMenu::asset_fetched(const writefile *w, std::string &error)
     return ret;
 }
 
-int DownloadsMenu::asset_fetched(CURLcode result, CURL *h, const sink *s,
+int DownloadsMenu::asset_fetched(long status, CURL *h, const sink *s,
     std::string &e, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writefile *w = static_cast<const writefile *>(s);
+
+    if (status != 200)
+    {
+        pressedargs *pa = static_cast<pressedargs *>(w->args);
+        const char *fmt = d->tr("invalidstatus");
+        char buf[256];
+
+        snprintf(buf, sizeof buf, fmt, status);
+        GfLogError("Received unexpected HTTP status %ld\n", status);
+        pa->e->state = entry::download;
+        e = buf;
+        return -1;
+    }
 
     return d->asset_fetched(w, e);
 }
@@ -666,7 +634,7 @@ int DownloadsMenu::thumbnail_fetched(const writefile *w, std::string &error)
     return 0;
 }
 
-int DownloadsMenu::thumbnail_fetched(CURLcode result, CURL *h, const sink *s,
+int DownloadsMenu::thumbnail_fetched(long status, CURL *h, const sink *s,
     std::string &error, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
@@ -735,7 +703,7 @@ int DownloadsMenu::push_entries(const Assets *a)
     return 0;
 }
 
-int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const writebuf *w,
+int DownloadsMenu::assets_fetched(CURL *h, const writebuf *w,
     std::string &error)
 {
     char *ct;
@@ -803,13 +771,45 @@ int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const writebuf *w,
     return 0;
 }
 
-int DownloadsMenu::assets_fetched(CURLcode result, CURL *h, const sink *s,
+int DownloadsMenu::assets_fetched(long status, CURL *h, const sink *s,
     std::string &e, void *args, const transfer::headers &headers)
 {
     DownloadsMenu *d = static_cast<DownloadsMenu *>(args);
     const writebuf *w = static_cast<const writebuf *>(s);
 
-    return d->assets_fetched(result, h, w, e);
+    if (status != 200)
+    {
+        char *url;
+        CURLcode code = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &url);
+
+        if (code != CURLE_OK)
+        {
+            const char *error = curl_easy_strerror(code);
+
+            GfLogError("curl_easy_getinfo: %s\n", error);
+            e = error;
+        }
+        else if (!url)
+        {
+            const char *error = "curl_easy_getinfo returned a null URL";
+
+            GfLogError("%s\n", error);
+            e = error;
+        }
+        else
+        {
+            const char *fmt = d->tr("invalidstatus");
+            char buf[128];
+
+            GfLogError("%s: received HTTP status %ld\n", url, status);
+            snprintf(buf, sizeof buf, fmt, url, status);
+            e = buf;
+        }
+
+        return -1;
+    }
+
+    return d->assets_fetched(h, w, e);
 }
 
 int DownloadsMenu::fetch_assets()
@@ -1123,10 +1123,7 @@ DownloadsMenu::DownloadsMenu(void *prevMenu) :
     GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this,
         ::confirm_exit, NULL);
     GfuiEnable(hscr, download_all, GFUI_DISABLE);
-    GfuiScreenActivate(hscr);
-    // This must be done after GfuiScreenActivate because this function
-    // overwrites the recompute callback to a null pointer.
-    GfuiApp().eventLoop().setRecomputeCB(::recompute, this);
+    GfuiScreenActivate(hscr, ::recompute, this);
 
     if (fetch_assets())
         throw std::runtime_error("fetch_assets failed");

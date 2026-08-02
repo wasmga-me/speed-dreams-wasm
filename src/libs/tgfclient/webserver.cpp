@@ -123,6 +123,11 @@ void WebServer::updateStatus()
     notifications.updateStatus();
 }
 
+void WebServer::release(void *screen)
+{
+    notifications.release(screen);
+}
+
 int WebServer::updateAsyncStatus()
 {
     //if we have some ordered async request pending

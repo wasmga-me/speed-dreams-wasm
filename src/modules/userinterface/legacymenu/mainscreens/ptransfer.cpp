@@ -47,37 +47,60 @@ int ptransfer::start(const char *url, long max, const void *data, size_t n,
     return 0;
 }
 
+int ptransfer::escape(const std::string &s, std::string &out) const
+{
+    char *escaped = curl_easy_escape(handle(), s.c_str(), 0);
+
+    if (!escaped)
+    {
+        GfLogError("curl_easy_escape failed\n");
+        return -1;
+    }
+
+    out = escaped;
+    curl_free(escaped);
+    return 0;
+}
+
 int ptransfer::start(const char *url, long max, const std::vector<form> &forms,
     const transfer::headers &headers)
 {
-    int ret = -1;
     CURLcode code;
     std::string form;
-    char *escaped = nullptr;
 
     if (transfer::start(url, max, headers))
     {
         GfLogError("transfer::start failed\n");
-        goto end;
+        return -1;
     }
-    else if (!(escaped = curl_easy_escape(handle(), form.c_str(), 0)))
+
+    for (size_t i = 0; i < forms.size(); i++)
     {
-        GfLogError("curl_easy_escape failed\n");
-        goto end;
+        const auto &f = forms.at(i);
+        std::string key, value;
+
+        if (escape(f.key, key) || escape(f.value, value))
+        {
+            GfLogError("Failed to escape key/value pair\n");
+            return -1;
+        }
+
+        form += key + '=' + value;
+
+        if (i < forms.size() - 1)
+            form += '&';
     }
-    else if ((code = curl_easy_setopt(handle(), CURLOPT_COPYPOSTFIELDS, escaped))
+
+    if ((code = curl_easy_setopt(handle(), CURLOPT_COPYPOSTFIELDS,
+        form.c_str()))
         != CURLE_OK)
     {
         GfLogError("curl_easy_setopt copypostfields: %s\n",
             curl_easy_strerror(code));
-        goto end;
+        return -1;
     }
 
-    ret = 0;
-
-end:
-    curl_free(escaped);
-    return ret;
+    return 0;
 }
 
 int ptransfer::start(const char *url, long max, const char *path,

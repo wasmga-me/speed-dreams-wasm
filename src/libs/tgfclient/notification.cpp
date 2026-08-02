@@ -97,6 +97,7 @@ int NotificationManager::init()
 int NotificationManager::setup_ui(void *screen)
 {
     static const char section[] = GFMNU_SECT_TEMPLATE_CONTROLS "/text";
+    int ret = -1;
     struct Ids ids;
     int y, h, font;
     void *param = GfuiMenuLoad(path);
@@ -104,7 +105,7 @@ int NotificationManager::setup_ui(void *screen)
     if (!param)
     {
         GfLogError("GfuiMenuLoad %s failed\n", path);
-        return -1;
+        goto end;
     }
 
     ids.bg = GfuiMenuCreateStaticImageControl(screen, param, "slidebg");
@@ -112,7 +113,7 @@ int NotificationManager::setup_ui(void *screen)
     if (ids.bg < 0)
     {
         GfLogError("GfuiMenuCreateStaticImageControl failed\n");
-        return -1;
+        goto end;
     }
 
     for (size_t i = 0; i < sizeof ids.icons / sizeof *ids.icons; i++)
@@ -123,7 +124,7 @@ int NotificationManager::setup_ui(void *screen)
         if (id < 0)
         {
             GfLogError("GfuiMenuCreateStaticImageControl %zu failed\n", i);
-            return -1;
+            goto end;
         }
 
         ids.icons[i] = id;
@@ -141,7 +142,7 @@ int NotificationManager::setup_ui(void *screen)
         if (id < 0)
         {
             GfLogError("GfuiMenuCreateLabelControl failed\n");
-            return -1;
+            goto end;
         }
 
         label = id;
@@ -149,7 +150,13 @@ int NotificationManager::setup_ui(void *screen)
     }
 
     scr_ids[screen] = ids;
-    return 0;
+    ret = 0;
+
+end:
+    if (param)
+        GfParmReleaseHandle(param);
+
+    return ret;
 }
 
 int NotificationManager::update_ui()
