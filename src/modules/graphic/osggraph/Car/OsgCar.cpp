@@ -29,6 +29,7 @@
 #include <osg/BlendFunc>
 #include <osg/Material>
 #include <osg/Depth>
+#include <osg/Camera>
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
 
@@ -95,6 +96,7 @@ SDCar::SDCar(void) :
     {
         DRMSelectMask[i] = 0;
         DRMThreshold[i] = 0.0f;
+        LODThreshold[i] = 0.0f;
     }
 }
 
@@ -249,6 +251,14 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
     index = car->index;	/* current car's index */
     handle = car->_carHandle;
 
+    osg::ref_ptr<osg::Group> gCar = new osg::Group;
+    gCar->setName("CAR");
+    osg::ref_ptr<osg::Switch> pBody =new osg::Switch;
+    pBody->setName("COCK");
+    osg::ref_ptr<osg::Node> pCockpit = new osg::Node;
+    osg::ref_ptr<osg::Switch> pWing = new osg::Switch;
+    pWing->setName("WING");
+
     GfLogInfo("[gr] Init(%d) car %s for driver %s index %d\n", index, car->_carName, car->_modName, car->_driverIndex);
     GfLogInfo("[gr] Init(%d) car %s MasterModel name\n", index, car->_masterModel);
     GfLogInfo("[gr] Init(%d) car %s CustomSkin name\n", index, car->_skinName);
@@ -292,6 +302,10 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
     snprintf(buf, nMaxTexPathSize, "data/textures/");
     loader.AddSearchPath(buf);
 
+    this->LODSelector = new osg::Switch;
+    snprintf(path, 256, "%s/%s", SECT_GROBJECTS, LST_RANGES);
+    nranges = GfParmGetEltNb(handle, path) + 1;
+
     /* loading raw car level 0*/
     //  selIndex = 0; 	/* current selector index */
     snprintf(buf, nMaxTexPathSize, "%s.acc",
@@ -299,18 +313,12 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
     snprintf(path, nMaxTexPathSize, "%s/%s/1", SECT_GROBJECTS, LST_RANGES);
     param = GfParmGetStr(handle, path, PRM_CAR, buf);
 
+    LODThreshold[0] = GfParmGetNum(handle, path, PRM_THRESHOLD, NULL, 0.0);
+
     snprintf(buf, nMaxTexPathSize, "cars/models/%s/%s", bMasterModel ? car->_masterModel : car->_carName, param);
 
     std::string carmodel = buf;
     std::string name = car->_carName;
-
-    osg::ref_ptr<osg::Group> gCar = new osg::Group;
-    gCar->setName("CAR");
-    osg::ref_ptr<osg::Switch> pBody =new osg::Switch;
-    pBody->setName("COCK");
-    osg::ref_ptr<osg::Node> pCockpit = new osg::Node;
-    osg::ref_ptr<osg::Switch> pWing = new osg::Switch;
-    pWing->setName("WING");
 
     //strPath+=buf;
 
@@ -337,6 +345,30 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
         GfLogError("Failed to load %s\n", carmodel.c_str());
         pCar = new osg::Node;
     }
+
+    LODSelector->addChild(pCar.get());
+
+    for (int i = 2, selIndex = 1; i < nranges; i++)
+    {
+        snprintf(buf, nMaxTexPathSize, "%s/%s/%d", SECT_GROBJECTS, LST_RANGES, i);
+        param = GfParmGetStr(handle, buf, PRM_CAR, "");
+        LODThreshold[selIndex] = GfParmGetNum(handle, buf, PRM_THRESHOLD, NULL, 0.0);
+
+        snprintf(buf, nMaxTexPathSize, "cars/models/%s/%s", bMasterModel ? car->_masterModel : car->_carName, param);
+        localpath = std::string(GfLocalDir()) + buf;
+        if ((pCar = loader.Load3dFile(loaded, localpath, true, bCarName, bSkinName))
+            || (pCar = loader.Load3dFile(loaded, carmodel, true, bCarName, bSkinName)))
+            GfLogDebug("Load Car ACC !\n");
+        else
+        {
+            GfLogError("Failed to load %s\n", carmodel.c_str());
+            pCar = new osg::Node;
+        }
+
+        LODSelector->addChild(pCar.get());
+        selIndex++;
+    }
+    LODSelector->setSingleChildOn(0);
 
     /* Set a selector on the wing type MPA*/
     snprintf(path, nMaxTexPathSize, "%s/%s", SECT_GROBJECTS, SECT_WING_MODEL);
@@ -715,7 +747,7 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
         GfLogDebug("Loading tachometer needle \n");
     }
 
-    this->car_shaded_body->addChild(pCar.get());
+    this->car_shaded_body->addChild(LODSelector.get());
 
     if(_wing1)
         this->car_shaded_body->addChild(pWing.get());
@@ -897,11 +929,12 @@ void SDCar::markCarCurrent(const tCarElt *Car)
     }
 }
 
-void SDCar::updateCar(tSituation *s, tCarElt *CurCar, int current, int driver)
+void SDCar::updateCar(tSituation *s, tCarElt *CurCar, int current, int driver, SDCamera *cam)
 {
     osg::Vec3 p;
     float wingangle = this->car->_wingRCmd * 180 / PI;
     float steerangle = this->car->_steerCmd;
+    float lod;
 
     p[0] = this->car->_pos_X;//+ car->_drvPos_x;
     p[1] = this->car->_pos_Y;//+car->_drvPos_y;
@@ -914,11 +947,29 @@ void SDCar::updateCar(tSituation *s, tCarElt *CurCar, int current, int driver)
 
     if ((car == CurCar) && (current != 1))
     {
+        this->LODSelector->setSingleChildOn(0);
         if(_driver)
         {
             if (this->nDRM > 0)
                 this->DRMSelector->setSingleChildOn(0);
         }
+    }
+    else
+    {
+        lod = cam->getLODFactor(car->_pos_X, car->_pos_Y, car->_pos_Z);
+        int i = 0;
+
+        while (lod < this->LODThreshold[i] * grLodFactorValue)
+        {
+            i++;
+        }
+
+        if ((car->_state & RM_CAR_STATE_DNF) && (this->LODThreshold[i] > 0.0))
+        {
+            i++;
+        }
+
+        this->LODSelector->setSingleChildOn(i);
     }
 
     if (_wing3)
@@ -1147,13 +1198,13 @@ SDCar *SDCars::getCar(tCarElt *car)
     return res;
 }
 
-void SDCars::updateCars(tSituation *s, tCarElt *CurCar, int current, int driver)
+void SDCars::updateCars(tSituation *s, tCarElt *CurCar, int current, int driver, SDCamera *cam)
 {
     std::vector<SDCar *>::iterator it;
 
     for(it = the_cars.begin(); it!= the_cars.end(); ++it)
     {
-        (*it)->updateCar(s, CurCar, current, driver);
+        (*it)->updateCar(s, CurCar, current, driver, cam);
     }
 }
 
