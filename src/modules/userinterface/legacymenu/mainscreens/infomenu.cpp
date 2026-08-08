@@ -12,6 +12,7 @@
 #include "asset.h"
 #include "entry.h"
 #include <tgfclient.h>
+#include <translation.h>
 #include <tgf.hpp>
 #include <stdexcept>
 
@@ -98,7 +99,11 @@ InfoMenu::InfoMenu(void *prevMenu, void (*recompute)(unsigned, void *),
         e->thumbnail : "data/img/nocarpreview.png";
 
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, ::deinit, NULL);
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this, ::deinit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
+
     GfuiStaticImageSet(hscr, img, thumbnail.c_str());
     set_info(param, a);
     GfParmReleaseHandle(param);

@@ -24,6 +24,7 @@
 #include <cstdlib>
 
 #include "gui.h"
+#include "translation.h"
 
 
 static int NRecursions = 0;
@@ -170,15 +171,16 @@ GfuiHelpScreen(void *targetScreen, void *returnScreen)
     const int versionId = GfuiMenuCreateLabelControl(scrHandle, hmenu, "versionlabel");
     GfuiLabelSetText(scrHandle, versionId, GfuiApp().version().c_str());
 
-    // Close menu XML descriptor.
-    GfParmReleaseHandle(hmenu);
-
     // Add keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(scrHandle);
-    GfuiAddKey(scrHandle, GFUIK_ESCAPE, "Back to the menu", returnScreen, GfuiScreenReplace, NULL);
-    GfuiAddKey(scrHandle, GFUIK_RETURN, "Back to the menu", returnScreen, GfuiScreenReplace, NULL);
+    const char *backToMenu = GfuiGetTranslatedText(hmenu, "translatable/backtomenu");
+    GfuiAddKey(scrHandle, GFUIK_ESCAPE, backToMenu, returnScreen, GfuiScreenReplace, NULL);
+    GfuiAddKey(scrHandle, GFUIK_RETURN, backToMenu, returnScreen, GfuiScreenReplace, NULL);
     if (NRecursions == 0)
-        GfuiAddKey(scrHandle, GFUIK_F1, "Help on Help menu", scrHandle, GfuiHelpScreen, NULL);
+        GfuiAddKey(scrHandle, GFUIK_F1, GfuiGetTranslatedText(hmenu, "translatable/help"), scrHandle, GfuiHelpScreen, NULL);
+
+    // Close menu XML descriptor.
+    GfParmReleaseHandle(hmenu);
 
     GfuiScreenActivate(scrHandle);
 }

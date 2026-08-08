@@ -216,6 +216,9 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 	const int nPrevButId =
 		GfuiMenuCreateButtonControl(hscrPage, hmenu, "previous page arrow",
 									(void*)&PrevPageRequest, creditsPageChange);
+
+	void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+
 	if (startRecordIndex > 0 || startChapterIndex > 0)
 	{
 		PrevPageRequest.prevPageScrHdle = hscrPage;
@@ -229,7 +232,8 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 			PrevPageRequest.startChapterIndex = startChapterIndex - 1;
 			PrevPageRequest.startRecordIndex  = -1;
 		}
-		GfuiAddKey(hscrPage, GFUIK_PAGEUP, "Previous page",
+		const char* prevText = GfuiGetTranslatedText(commonTextHdle, "translatable/prevpage");
+		GfuiAddKey(hscrPage, GFUIK_PAGEUP, prevText,
 				   (void*)&PrevPageRequest, creditsPageChange, NULL);
 	}
 	else
@@ -258,7 +262,8 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 			NextPageRequest.startChapterIndex = startChapterIndex + 1;
 			NextPageRequest.startRecordIndex  = 0;
 		}
-		GfuiAddKey(hscrPage, GFUIK_PAGEDOWN, "Next Page",
+		const char* nextText = GfuiGetTranslatedText(commonTextHdle, "translatable/nextpage");
+		GfuiAddKey(hscrPage, GFUIK_PAGEDOWN, nextText,
 				   (void*)&NextPageRequest, creditsPageChange, NULL);
 	}
 	else
@@ -269,10 +274,12 @@ static void* creditsPageCreate(int startChapterIndex, int startRecordIndex)
 	GfParmReleaseHandle(hmenu);
 
 	// Add standard keyboard shortcuts.
-	GfuiAddKey(hscrPage, GFUIK_ESCAPE, "Return to previous menu",
+	const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+	GfuiAddKey(hscrPage, GFUIK_ESCAPE, backToPrevMenu,
 			   RetScrHdle, GfuiScreenReplace, NULL);
-	GfuiAddKey(hscrPage, GFUIK_RETURN, "Return to previous menu",
+	GfuiAddKey(hscrPage, GFUIK_RETURN, backToPrevMenu,
 			   RetScrHdle, GfuiScreenReplace, NULL);
+	GfParmReleaseHandle(commonTextHdle);
 
 	return hscrPage;
 }

@@ -25,6 +25,7 @@
 
 #include <portability.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <robot.h>
 
@@ -123,6 +124,8 @@ rmStartRaceMenu(tRmInfo *info, void *startScr, void *abortScr, int start)
     if (img)
         GfuiScreenAddBgImg(rmScrHdle, img);
 
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
     // Create starting grid labels if specified in race params.
     if (!strcmp(GfParmGetStr(params, info->_reRaceName, RM_ATTR_DISP_START_GRID, RM_VAL_YES), RM_VAL_YES))
 	{
@@ -231,7 +234,8 @@ rmStartRaceMenu(tRmInfo *info, void *startScr, void *abortScr, int start)
             // Create Previous page button and associated keyboard shortcut if needed.
             GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "PreviousPageArrow",
 										(void*)&prevStartRace, rmChgStartScreen);
-            GfuiAddKey(rmScrHdle, GFUIK_PAGEUP, "Previous drivers",
+            const char* prevDriversText = GfuiGetTranslatedText(hmenu, "translatable/prevdrivers");
+            GfuiAddKey(rmScrHdle, GFUIK_PAGEUP, prevDriversText,
 					   (void*)&prevStartRace, rmChgStartScreen, NULL);
         }
 
@@ -245,7 +249,8 @@ rmStartRaceMenu(tRmInfo *info, void *startScr, void *abortScr, int start)
             // Create Next page button and associated keyboard shortcut if needed.
             GfuiMenuCreateButtonControl(rmScrHdle, hmenu, "NextPageArrow",
 										(void*)&nextStartRace, rmChgStartScreen);
-            GfuiAddKey(rmScrHdle, GFUIK_PAGEDOWN, "Next Drivers",
+            const char* nextDriversText = GfuiGetTranslatedText(hmenu, "translatable/nextdrivers");
+            GfuiAddKey(rmScrHdle, GFUIK_PAGEDOWN, nextDriversText,
 					   (void*)&nextStartRace, rmChgStartScreen, NULL);
         }
     }
@@ -258,8 +263,12 @@ rmStartRaceMenu(tRmInfo *info, void *startScr, void *abortScr, int start)
     GfParmReleaseHandle(hmenu);
 
     // Register keyboard shortcuts.
-    GfuiAddKey(rmScrHdle, GFUIK_RETURN, "Start", startScr, GfuiScreenReplace, NULL);
-    GfuiAddKey(rmScrHdle, GFUIK_ESCAPE, "Abandon", abortScr, GfuiScreenReplace, NULL);
+    const char* startText = GfuiGetTranslatedText(commonTextHdle, "translatable/start");
+    const char* abandonText = GfuiGetTranslatedText(commonTextHdle, "translatable/abandon");
+    GfuiAddKey(rmScrHdle, GFUIK_RETURN, startText, startScr, GfuiScreenReplace, NULL);
+    GfuiAddKey(rmScrHdle, GFUIK_ESCAPE, abandonText, abortScr, GfuiScreenReplace, NULL);
+
+	GfParmReleaseHandle(commonTextHdle);
 
     // Activate the created screen.
     GfuiScreenActivate(rmScrHdle);

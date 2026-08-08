@@ -27,6 +27,7 @@
 #include <raceman.h>
 
 #include <tgfclient.h>
+#include <translation.h>
 #include <portability.h>
 
 #include <racemanagers.h>
@@ -248,15 +249,22 @@ rmtsSelect(void * /* dummy */)
 
 
 static void
-rmtsAddKeys(void)
+rmtsAddKeys(void *hparm)
 {
 	GfuiMenuDefaultKeysAdd(ScrHandle);
-	GfuiAddKey(ScrHandle, GFUIK_RETURN, "Select Track", NULL, rmtsSelect, NULL);
-	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Cancel Selection", MenuData->prevScreen, rmtsDeactivate, NULL);
-	GfuiAddKey(ScrHandle, GFUIK_LEFT, "Previous Track", NULL, rmtsTrackPrev, NULL);
-	GfuiAddKey(ScrHandle, GFUIK_RIGHT, "Next Track", NULL, rmtsTrackNext, NULL);
-	GfuiAddKey(ScrHandle, GFUIK_UP, "Previous Track Category", NULL, rmtsTrackCatPrev, NULL);
-	GfuiAddKey(ScrHandle, GFUIK_DOWN, "Next Track Category", NULL, rmtsTrackCatNext, NULL);
+	const char* selectTrackText = GfuiGetTranslatedText(hparm, "translatable/selecttrack");
+	const char* cancelSelectionText = GfuiGetTranslatedText(hparm, "translatable/cancelselection");
+	const char* prevText = GfuiGetTranslatedText(hparm, "translatable/prev");
+	const char* nextText = GfuiGetTranslatedText(hparm, "translatable/next");
+	const char* prevCategoryText = GfuiGetTranslatedText(hparm, "translatable/prevcategory");
+	const char* nextCategoryText = GfuiGetTranslatedText(hparm, "translatable/nextcategory");
+
+	GfuiAddKey(ScrHandle, GFUIK_RETURN, selectTrackText, NULL, rmtsSelect, NULL);
+	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, cancelSelectionText, MenuData->prevScreen, rmtsDeactivate, NULL);
+	GfuiAddKey(ScrHandle, GFUIK_LEFT, prevText, NULL, rmtsTrackPrev, NULL);
+	GfuiAddKey(ScrHandle, GFUIK_RIGHT, nextText, NULL, rmtsTrackNext, NULL);
+	GfuiAddKey(ScrHandle, GFUIK_UP, prevCategoryText, NULL, rmtsTrackCatPrev, NULL);
+	GfuiAddKey(ScrHandle, GFUIK_DOWN, nextCategoryText, NULL, rmtsTrackCatNext, NULL);
 }
 
 
@@ -334,10 +342,10 @@ RmTrackSelect(void *vs)
 	// Load menu properties.
 	DescLinesMaxLen = (unsigned)GfuiMenuGetNumProperty(hparmMenu, "nDescLinesMaxLen", 35);
 
-	GfParmReleaseHandle(hparmMenu);
-
 	// Keyboard shortcuts.
-	rmtsAddKeys();
+	rmtsAddKeys(hparmMenu);
+
+	GfParmReleaseHandle(hparmMenu);
 
 	// Let's go !
 	GfuiScreenActivate(ScrHandle);

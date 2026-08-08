@@ -747,8 +747,12 @@ bool CarSetupMenu::initialize(void *pPrevMenu, const GfRace *pRace, const GfDriv
 
     // Keyboard shortcuts.
     addDefaultShortcuts();
-    addShortcut(GFUIK_ESCAPE, "Cancel", this, onCancelCallback, NULL);
-    addShortcut(GFUIK_RETURN, "Accept", this, onAcceptCallback, NULL);
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* cancelText = GfuiGetTranslatedText(commonTextHdle, "translatable/cancel");
+    const char* acceptText = GfuiGetTranslatedText(commonTextHdle, "translatable/accept");
+    addShortcut(GFUIK_ESCAPE, cancelText, this, onCancelCallback, NULL);
+    addShortcut(GFUIK_RETURN, acceptText, this, onAcceptCallback, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     return true;
 }

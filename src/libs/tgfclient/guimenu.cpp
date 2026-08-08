@@ -69,6 +69,14 @@ onPerformAction(void* cbinfo)
  * Menu XML descriptor management
 */
 
+static const char *
+tr(void* keysHdle, const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(keysHdle, s.c_str(), "text", "");
+}
+
 /** Add the default menu keyboard callback to a screen.
     The keys are:
     <br><tt>F1 .......... </tt>Help
@@ -85,22 +93,24 @@ onPerformAction(void* cbinfo)
 void
 GfuiMenuDefaultKeysAdd(void* scr)
 {
-    GfuiAddKey(scr, GFUIK_TAB, "Select Next Entry", NULL, gfuiSelectNext, NULL);
-    GfuiAddKey(scr, GFUIK_RETURN, "Perform Action", NULL, onPerformAction, NULL);
-    GfuiAddKey(scr, GFUIK_UP, "Select Previous Entry", NULL, gfuiSelectPrev, NULL);
-    GfuiAddKey(scr, GFUIK_DOWN, "Select Next Entry", NULL, gfuiSelectNext, NULL);
-    GfuiAddKey(scr, GFUIK_PAGEUP, "Select Previous Entry", NULL, gfuiSelectPrev, NULL);
-    GfuiAddKey(scr, GFUIK_PAGEDOWN, "Select Next Entry", NULL, gfuiSelectNext, NULL);
-    GfuiAddKey(scr, GFUIK_F1, "Help", scr, GfuiHelpScreen, NULL);
-    GfuiAddKey(scr, GFUIK_F12, "Screen-Shot", NULL, GfuiScreenShot, NULL);
-    GfuiAddKey(scr, '>', "Menu Volume Up", NULL, GfuiMenuVolumeUp, NULL);
-    GfuiAddKey(scr, '<', "Menu Volume Down", NULL, GfuiMenuVolumeDown, NULL);
+    void *h = GfuiMenuLoad("defaultkeys.xml");
+    GfuiAddKey(scr, GFUIK_TAB, tr(h, "menu/next"), NULL, gfuiSelectNext, NULL);
+    GfuiAddKey(scr, GFUIK_RETURN, tr(h, "menu/action"), NULL, onPerformAction, NULL);
+    GfuiAddKey(scr, GFUIK_UP, tr(h, "menu/prev"), NULL, gfuiSelectPrev, NULL);
+    GfuiAddKey(scr, GFUIK_DOWN, tr(h, "menu/next"), NULL, gfuiSelectNext, NULL);
+    GfuiAddKey(scr, GFUIK_PAGEUP, tr(h, "menu/prev"), NULL, gfuiSelectPrev, NULL);
+    GfuiAddKey(scr, GFUIK_PAGEDOWN, tr(h, "menu/next"), NULL, gfuiSelectNext, NULL);
+    GfuiAddKey(scr, GFUIK_F1, tr(h, "menu/help"), scr, GfuiHelpScreen, NULL);
+    GfuiAddKey(scr, GFUIK_F12, tr(h, "menu/screenshot"), NULL, GfuiScreenShot, NULL);
+    GfuiAddKey(scr, '>', tr(h, "menu/volumeup"), NULL, GfuiMenuVolumeUp, NULL);
+    GfuiAddKey(scr, '<', tr(h, "menu/volumedown"), NULL, GfuiMenuVolumeDown, NULL);
     //GfuiAddKey(scr, '?', "Toggle Menu Sounds", NULL, GfuiToggleMenuSound, NULL);
     if(GfScrUsingResizableWindow())
     {
-        GfuiAddKey(scr, GFUIK_RETURN, GFUIM_ALT, "Toggle Full-screen", (void*)0, GfScrToggleFullScreen, NULL);
-        GfuiAddKey(scr, GFUIK_RETURN, GFUIM_CTRL | GFUIM_ALT, "Toggle Multi Full-screens", (void*)0, GfScrToggleMultiFullScreens, NULL);
+        GfuiAddKey(scr, GFUIK_RETURN, GFUIM_ALT, tr(h, "menu/fullscreen"), (void*)0, GfScrToggleFullScreen, NULL);
+        GfuiAddKey(scr, GFUIK_RETURN, GFUIM_CTRL | GFUIM_ALT, tr(h, "menu/multifullscreens"), (void*)0, GfScrToggleMultiFullScreens, NULL);
     }
+    GfParmReleaseHandle(h);
 }
 
 // Font size map : Gives the integer size from the size name.
@@ -348,6 +358,7 @@ gfuiShutdownLanguage()
     langParam = nullptr;
 }
 
+
 const char *GfuiGetTranslatedText(void* hparm, const char* pszPath,
     const char* pszKey, const char* pszDefault)
 {
@@ -375,6 +386,13 @@ const char *GfuiGetTranslatedText(void* hparm, const char* pszPath,
 
     return ret;
 }
+
+
+const char *GfuiGetTranslatedText(void* hparm, const char* pszPath)
+{
+    return GfuiGetTranslatedText(hparm, pszPath, "text", "");
+}
+
 
 static int
 createLabel(void* hscr, void* hparm, const char* pszPath,

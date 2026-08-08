@@ -17,6 +17,7 @@
  ***************************************************************************/
 
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <displayconfig.h>
 #include <monitorconfig.h>
@@ -104,7 +105,11 @@ OptionsMenuInit(void *prevMenu)
     GfParmReleaseHandle(param);
 
     GfuiMenuDefaultKeysAdd(MenuHandle);
-    GfuiAddKey(MenuHandle, GFUIK_ESCAPE, "Back", prevMenu, GfuiScreenActivate, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(MenuHandle, GFUIK_ESCAPE, backToPrevMenu, prevMenu, GfuiScreenActivate, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     return MenuHandle;
 }

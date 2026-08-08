@@ -839,13 +839,14 @@ rmdsAddKeys(void)
     // Add standard keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(ScrHandle);
 
-    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Previous menu", MenuData->prevScreen, rmdsPreviousMenu, NULL);
-    GfuiAddKey(ScrHandle, GFUIK_RETURN, "Next menu", NULL, rmdsNextMenu, NULL);
-    GfuiAddKey(ScrHandle, '-', "Move Up", NULL, rmdsMoveCompetitorUp, NULL);
-    GfuiAddKey(ScrHandle, '+', "Move Down", NULL, rmdsMoveCompetitorDown, NULL);
-    GfuiAddKey(ScrHandle, ' ', "Select/Deselect", NULL, rmdsSelectDeselectDriver, NULL);
+
+    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, tr("prevmenu"), MenuData->prevScreen, rmdsPreviousMenu, NULL);
+    GfuiAddKey(ScrHandle, GFUIK_RETURN, tr("nextmenu"), NULL, rmdsNextMenu, NULL);
+    GfuiAddKey(ScrHandle, '-', tr("moveup"), NULL, rmdsMoveCompetitorUp, NULL);
+    GfuiAddKey(ScrHandle, '+', tr("movedown"), NULL, rmdsMoveCompetitorDown, NULL);
+    GfuiAddKey(ScrHandle, ' ', tr("toggleselect"), NULL, rmdsSelectDeselectDriver, NULL);
 #ifdef FOCUS
-    GfuiAddKey(ScrHandle, 'f', "Set Focus", NULL, rmdsSetFocus, NULL);
+    GfuiAddKey(ScrHandle, 'f', tr("setfocus"), NULL, rmdsSetFocus, NULL);
 #endif
 }
 

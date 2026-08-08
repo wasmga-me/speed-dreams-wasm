@@ -27,6 +27,7 @@
 #include <glfeatures.h> // GfglFeatures
 #include <robot.h>	//ROB_SECT_ARBITRARY
 #include <graphic.h>
+#include <translation.h>
 
 #include "grmain.h"
 #include "grshadow.h"
@@ -85,6 +86,13 @@ static int nCurrentScreenIndex = 0;
 
 static grssgLoaderOptions options(/*bDoMipMap*/true);
 
+static const char *
+tr(void* keysHdle, const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(keysHdle, s.c_str(), "text", "");
+}
 
 // Set up OpenGL features from user settings.
 static void setupOpenGLFeatures(void)
@@ -689,43 +697,45 @@ initView(int x, int y, int width, int height, int /* flag */, void *screen)
         grScreens[i]->initBoard();
     }
 
-    GfuiAddKey(screen, GFUIK_END,      "Zoom Minimum", NULL,	grSetMinZoom, NULL);
-    GfuiAddKey(screen, GFUIK_HOME,     "Zoom Maximum", NULL,	grSetMaxZoom, NULL);
-    GfuiAddKey(screen, '*',            "Zoom Default", NULL,	grSetDefaultZoom, NULL);
+    void *h = GfuiMenuLoad("defaultkeys.xml");
+    GfuiAddKey(screen, GFUIK_END,      tr(h, "zoom/min"),      NULL,	grSetMinZoom, NULL);
+    GfuiAddKey(screen, GFUIK_HOME,     tr(h, "zoom/max"),      NULL,	grSetMaxZoom, NULL);
+    GfuiAddKey(screen, '*',            tr(h, "zoom/default"),  NULL,	grSetDefaultZoom, NULL);
 
-    GfuiAddKey(screen, GFUIK_PAGEUP,   "Select Previous Car", (void*)0, grPrevCar, NULL);
-    GfuiAddKey(screen, GFUIK_PAGEDOWN, "Select Next Car",     (void*)0, grNextCar, NULL);
+    GfuiAddKey(screen, GFUIK_PAGEUP,   tr(h, "car/prev"), (void*)0, grPrevCar, NULL);
+    GfuiAddKey(screen, GFUIK_PAGEDOWN, tr(h, "car/next"), (void*)0, grNextCar, NULL);
 
-    GfuiAddKey(screen, GFUIK_F2,       "1st Person Views",  NULL, gr1stPersonView, NULL);
-    GfuiAddKey(screen, GFUIK_F3,       "3rd Person Views",  NULL, gr3rdPersonView, NULL);
-    GfuiAddKey(screen, GFUIK_F4,       "Side Car Views",    NULL, grSideCarView, NULL);
-    GfuiAddKey(screen, GFUIK_F5,       "Up Car View",       NULL, grUpCarView, NULL);
-    GfuiAddKey(screen, GFUIK_F6,       "Persp Car View",    NULL, grPerspCarView, NULL);
-    GfuiAddKey(screen, GFUIK_F7,       "All Circuit Views", NULL, grAllCircuitView, NULL);
-    GfuiAddKey(screen, GFUIK_F8,       "Action Cam Views",  NULL, grActionCamView, NULL);
-    GfuiAddKey(screen, GFUIK_F9,       "TV Camera Views",   NULL, grTVCamView, NULL);
-    GfuiAddKey(screen, GFUIK_F10,      "Helicopter Views",  NULL, grHelicopterView, NULL);
-    GfuiAddKey(screen, GFUIK_F11,      "TV Director View",  NULL, grTVDirectorView, NULL);
+    GfuiAddKey(screen, GFUIK_F2,       tr(h, "views/1stperson"),  NULL, gr1stPersonView, NULL);
+    GfuiAddKey(screen, GFUIK_F3,       tr(h, "views/3rdperson"),  NULL, gr3rdPersonView, NULL);
+    GfuiAddKey(screen, GFUIK_F4,       tr(h, "views/sidecar"),    NULL, grSideCarView, NULL);
+    GfuiAddKey(screen, GFUIK_F5,       tr(h, "views/upcar"),       NULL, grUpCarView, NULL);
+    GfuiAddKey(screen, GFUIK_F6,       tr(h, "views/perspcar"),    NULL, grPerspCarView, NULL);
+    GfuiAddKey(screen, GFUIK_F7,       tr(h, "views/allcircuit"), NULL, grAllCircuitView, NULL);
+    GfuiAddKey(screen, GFUIK_F8,       tr(h, "views/actioncamera"),  NULL, grActionCamView, NULL);
+    GfuiAddKey(screen, GFUIK_F9,       tr(h, "views/tvcamera"),   NULL, grTVCamView, NULL);
+    GfuiAddKey(screen, GFUIK_F10,      tr(h, "views/helicopter"),  NULL, grHelicopterView, NULL);
+    GfuiAddKey(screen, GFUIK_F11,      tr(h, "views/tvdirector"),  NULL, grTVDirectorView, NULL);
 
-    GfuiAddKey(screen, '6',            "Dashboard",         NULL, grDashboard, NULL);
-    GfuiAddKey(screen, '5',            "Debug Info",        NULL, grDebugInfo, NULL);
-    GfuiAddKey(screen, '4',            "G/Cmd Graph",       NULL, grGCmdGraph, NULL);
-    GfuiAddKey(screen, '3',            "Leaders Board",     NULL, grLeadersBoard, NULL);
-    GfuiAddKey(screen, '2',            "Driver Counters",   NULL, grDriverCounters, NULL);
-    GfuiAddKey(screen, '1',            "Driver Board",      NULL, grDriverBoard, NULL);
-    GfuiAddKey(screen, '7',            "Delta Best Lap",    NULL, grDeltaBestLap, NULL);
-    GfuiAddKey(screen, '9',            "Mirror",            (void*)0, grSwitchMirror, NULL);
-    GfuiAddKey(screen, '0',            "Arcade Board",      NULL, grArcadeBoard, NULL);
-    GfuiAddKey(screen, '+', GFUIM_CTRL, "Zoom In",           NULL,	 grZoomIn, NULL);
-    GfuiAddKey(screen, '=', GFUIM_CTRL, "Zoom In",           NULL,	 grZoomIn, NULL);
-    GfuiAddKey(screen, '-', GFUIM_CTRL, "Zoom Out",          NULL, grZoomOut, NULL);
+    GfuiAddKey(screen, '6',            tr(h, "ssg/dashboard"),         NULL, grDashboard, NULL);
+    GfuiAddKey(screen, '5',            tr(h, "ssg/debuginfo"),        NULL, grDebugInfo, NULL);
+    GfuiAddKey(screen, '4',            tr(h, "ssg/gcmdgraph"),       NULL, grGCmdGraph, NULL);
+    GfuiAddKey(screen, '3',            tr(h, "ssg/leadersboard"),     NULL, grLeadersBoard, NULL);
+    GfuiAddKey(screen, '2',            tr(h, "ssg/drivercounters"),   NULL, grDriverCounters, NULL);
+    GfuiAddKey(screen, '1',            tr(h, "ssg/driverboard"),      NULL, grDriverBoard, NULL);
+    GfuiAddKey(screen, '7',            tr(h, "ssg/deltabestlap"),    NULL, grDeltaBestLap, NULL);
+    GfuiAddKey(screen, '9',            tr(h, "mirror"),            (void*)0, grSwitchMirror, NULL);
+    GfuiAddKey(screen, '0',            tr(h, "ssg/arcadeboard"),      NULL, grArcadeBoard, NULL);
+    GfuiAddKey(screen, '+', GFUIM_CTRL, tr(h, "zoom/in"),           NULL,	 grZoomIn, NULL);
+    GfuiAddKey(screen, '=', GFUIM_CTRL, tr(h, "zoom/in"),           NULL,	 grZoomIn, NULL);
+    GfuiAddKey(screen, '-', GFUIM_CTRL, tr(h, "zoom/out"),          NULL, grZoomOut, NULL);
     //GfuiAddKey(screen, '>',             "Zoom In",           (void*)GR_ZOOM_IN,	 grSetZoom, NULL);
     //GfuiAddKey(screen, '<',             "Zoom Out",          (void*)GR_ZOOM_OUT, grSetZoom, NULL);
-    GfuiAddKey(screen, '(',            "Split Screen",   NULL, grSplitScreen, NULL);
-    GfuiAddKey(screen, ')',            "UnSplit Screen", NULL, grUnSplitScreen, NULL);
-    GfuiAddKey(screen, '_',            "Split Screen Arrangement", NULL, grSplitScreenArr, NULL);
-    GfuiAddKey(screen, GFUIK_TAB,      "Next (split) Screen", NULL, grNextScreen, NULL);
-    GfuiAddKey(screen, 'm',            "Track Maps",          (void*)0, grSelectTrackMap, NULL);
+    GfuiAddKey(screen, '(',            tr(h, "splitscreen/split"),   NULL, grSplitScreen, NULL);
+    GfuiAddKey(screen, ')',            tr(h, "splitscreen/unsplit"), NULL, grUnSplitScreen, NULL);
+    GfuiAddKey(screen, '_',            tr(h, "splitscreen/arrange"), NULL, grSplitScreenArr, NULL);
+    GfuiAddKey(screen, GFUIK_TAB,      tr(h, "splitscreen/nextscreen"), NULL, grNextScreen, NULL);
+    GfuiAddKey(screen, 'm',            tr(h, "trackmaps"),          (void*)0, grSelectTrackMap, NULL);
+    GfParmReleaseHandle(h);
 
     GfLogInfo("Current screen is #%d (out of %d)\n", nCurrentScreenIndex, grNbActiveScreens);
 

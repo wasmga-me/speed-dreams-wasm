@@ -28,6 +28,7 @@
 #include <robot.h>
 #include <portability.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include "simuconfig.h"
 
@@ -374,14 +375,20 @@ SimuMenuInit(void *prevMenu)
     GfuiMenuCreateButtonControl(ScrHandle, menuDescHdle, "ApplyButton", PrevScrHandle, storeSimuCfg);
     GfuiMenuCreateButtonControl(ScrHandle, menuDescHdle, "CancelButton", PrevScrHandle, GfuiScreenActivate);
 
+    GfuiMenuDefaultKeysAdd(ScrHandle);
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* applyText = GfuiGetTranslatedText(commonTextHdle, "translatable/apply");
+    const char* cancelText = GfuiGetTranslatedText(commonTextHdle, "translatable/cancel");
+    GfuiAddKey(ScrHandle, GFUIK_RETURN, applyText, NULL, storeSimuCfg, NULL);
+    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, cancelText, PrevScrHandle, GfuiScreenActivate, NULL);
+    GfParmReleaseHandle(commonTextHdle);
+
+    const char* prevText = GfuiGetTranslatedText(menuDescHdle, "translatable/prev");
+    const char* nextText = GfuiGetTranslatedText(menuDescHdle, "translatable/next");
+    GfuiAddKey(ScrHandle, GFUIK_LEFT, prevText, NULL, onChangeSimuLeft, NULL);
+    GfuiAddKey(ScrHandle, GFUIK_RIGHT, nextText, NULL, onChangeSimuRight, NULL);
 
     GfParmReleaseHandle(menuDescHdle);
-
-    GfuiMenuDefaultKeysAdd(ScrHandle);
-    GfuiAddKey(ScrHandle, GFUIK_RETURN, "Apply", NULL, storeSimuCfg, NULL);
-    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Cancel", PrevScrHandle, GfuiScreenActivate, NULL);
-    GfuiAddKey(ScrHandle, GFUIK_LEFT, "Previous simu engine version", NULL, onChangeSimuLeft, NULL);
-    GfuiAddKey(ScrHandle, GFUIK_RIGHT, "Next simu engine version", NULL, onChangeSimuRight, NULL);
 
     return ScrHandle;
 }

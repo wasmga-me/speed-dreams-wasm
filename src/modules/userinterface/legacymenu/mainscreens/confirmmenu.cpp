@@ -13,6 +13,7 @@
 #include "entry.h"
 #include <tgfclient.h>
 #include <tgf.hpp>
+#include <translation.h>
 #include <stdexcept>
 
 static void deinit(void *args)
@@ -62,7 +63,12 @@ ConfirmMenu::ConfirmMenu(void *prevMenu, void (*recompute)(unsigned, void *),
         throw std::runtime_error("GfuiMenuCreateButtonControl accept failed");
 
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, ::deinit, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this, ::deinit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
+
     GfParmReleaseHandle(param);
     GfuiScreenActivate(hscr);
     GfuiApp().eventLoop().setRecomputeCB(recompute, args);

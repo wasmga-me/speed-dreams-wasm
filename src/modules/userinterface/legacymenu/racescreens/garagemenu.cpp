@@ -499,8 +499,12 @@ bool RmGarageMenu::initialize()
 
     // Keyboard shortcuts.
     addDefaultShortcuts();
-    addShortcut(GFUIK_ESCAPE, "Cancel", this, onCancelCB, NULL);
-    addShortcut(GFUIK_RETURN, "Accept", this, onAcceptCB, NULL);
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* cancelText = GfuiGetTranslatedText(commonTextHdle, "translatable/cancel");
+    const char* acceptText = GfuiGetTranslatedText(commonTextHdle, "translatable/accept");
+    addShortcut(GFUIK_ESCAPE, cancelText, this, onCancelCB, NULL);
+    addShortcut(GFUIK_RETURN, acceptText, this, onAcceptCB, NULL);
+    GfParmReleaseHandle(commonTextHdle);
     // TODO Keyboard shortcuts: Add support for shortcuts in GfuiCombobox ?
     //GfuiAddKey(ScrHandle, GFUIK_UP, "Move Up", this, onChangeModel, NULL);
 

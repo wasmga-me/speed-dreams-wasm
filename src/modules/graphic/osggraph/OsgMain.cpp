@@ -26,6 +26,7 @@
 #include <glfeatures.h> // GfglFeatures
 #include <robot.h>	//ROB_SECT_ARBITRARY
 #include <graphic.h>
+#include <translation.h>
 
 #include "OsgMain.h"
 #include "OsgCar.h"
@@ -117,6 +118,14 @@ int m_NbArrangeScreens = 0;
 
 // Current screen index.
 static int m_CurrentScreenIndex = 0;
+
+static const char *
+tr(void* keysHdle, const char *key)
+{
+    std::string s = std::string("translatable/") + key;
+
+    return GfuiGetTranslatedText(keysHdle, s.c_str(), "text", "");
+}
 
 static void SDPrevCar(void * /* dummy */)
 {
@@ -338,56 +347,57 @@ int initView(int x, int y, int width, int height, int /* flag */, void *screen)
 
     screens->Init(x,y,width,height, render->getRoot(), render->getFogColor());
 
-    GfuiAddKey(screen, GFUIK_END,      "Zoom Minimum", NULL,	SDSetZoomMinimum, NULL);
-    GfuiAddKey(screen, GFUIK_HOME,     "Zoom Maximum", NULL,	SDSetZoomMaximum, NULL);
-    GfuiAddKey(screen, '*',            "Zoom Default", NULL,	SDSetZoomDefault, NULL);
+    void *h = GfuiMenuLoad("defaultkeys.xml");
+    GfuiAddKey(screen, GFUIK_END,      tr(h, "zoom/min"),      NULL,	SDSetZoomMinimum, NULL);
+    GfuiAddKey(screen, GFUIK_HOME,     tr(h, "zoom/max"),      NULL,	SDSetZoomMaximum, NULL);
+    GfuiAddKey(screen, '*',            tr(h, "zoom/default"),  NULL,	SDSetZoomDefault, NULL);
 
-    GfuiAddKey( screen, GFUIK_PAGEUP,   "Select Previous Car", (void*)0, SDPrevCar, NULL);
-    GfuiAddKey( screen, GFUIK_PAGEDOWN, "Select Next Car",     (void*)0, SDNextCar, NULL);
+    GfuiAddKey( screen, GFUIK_PAGEUP,   tr(h, "car/prev"), (void*)0, SDPrevCar, NULL);
+    GfuiAddKey( screen, GFUIK_PAGEDOWN, tr(h, "car/next"), (void*)0, SDNextCar, NULL);
 
-    GfuiAddKey(screen, GFUIK_F2,       "Driver Views",      NULL, SDDriverView, NULL);
-    GfuiAddKey(screen, GFUIK_F3,       "Car Views",         NULL, SDCarView, NULL);
-    GfuiAddKey(screen, GFUIK_F4,       "Side Car Views",    NULL, SDSideCarView, NULL);
-    GfuiAddKey(screen, GFUIK_F5,       "Up Car View",       NULL, SDUpCarView, NULL);
-    GfuiAddKey(screen, GFUIK_F6,       "Persp Car View",    NULL, SDPerspCarView, NULL);
-    GfuiAddKey(screen, GFUIK_F7,       "All Circuit Views", NULL, SDAllCircuitView, NULL);
-    GfuiAddKey(screen, GFUIK_F8,       "Track View",        NULL, SDTrackView, NULL);
-    GfuiAddKey(screen, GFUIK_F9,       "Track View Zoomed", NULL, SDTrackViewZoomed, NULL);
-    GfuiAddKey(screen, GFUIK_F10,      "Follow Car Zoomed", NULL, SDFollowCarZoomed, NULL);
-    GfuiAddKey(screen, GFUIK_F11,      "TV Director View",  NULL, SDTVDirectorView, NULL);
+    GfuiAddKey(screen, GFUIK_F2,       tr(h, "views/1stperson"),      NULL, SDDriverView, NULL);
+    GfuiAddKey(screen, GFUIK_F3,       tr(h, "views/3rdperson"),         NULL, SDCarView, NULL);
+    GfuiAddKey(screen, GFUIK_F4,       tr(h, "views/sidecar"),    NULL, SDSideCarView, NULL);
+    GfuiAddKey(screen, GFUIK_F5,       tr(h, "views/upcar"),       NULL, SDUpCarView, NULL);
+    GfuiAddKey(screen, GFUIK_F6,       tr(h, "views/perspcar"),    NULL, SDPerspCarView, NULL);
+    GfuiAddKey(screen, GFUIK_F7,       tr(h, "views/allcircuit"), NULL, SDAllCircuitView, NULL);
+    GfuiAddKey(screen, GFUIK_F8,       tr(h, "views/actioncamera"),        NULL, SDTrackView, NULL);
+    GfuiAddKey(screen, GFUIK_F9,       tr(h, "views/tvcamera"), NULL, SDTrackViewZoomed, NULL);
+    GfuiAddKey(screen, GFUIK_F10,      tr(h, "views/helicopter"), NULL, SDFollowCarZoomed, NULL);
+    GfuiAddKey(screen, GFUIK_F11,      tr(h, "views/tvdirector"),  NULL, SDTVDirectorView, NULL);
 
-    GfuiAddKey(screen, '?',            "Toggle OSG Stats",  (void *)0, SDToggleStats, NULL);
+    GfuiAddKey(screen, '?',            tr(h, "osg/toggle/stats"),  (void *)0, SDToggleStats, NULL);
 
-    GfuiAddKey(screen, '1',            "Toggle HUD laptimeWidget",     (void*)"laptimeWidget",     SDToggleHUDwidget, NULL);
-    GfuiAddKey(screen, '2',            "Toggle HUD carinfoWidget",     (void*)"carinfoWidget,carstatusWidget", SDToggleHUDwidgets, NULL);
-    GfuiAddKey(screen, '3',            "Toggle HUD boardWidget",       (void*)"boardWidget",       SDToggleHUDwidget, NULL);
-    GfuiAddKey(screen, '4',            "Toggle HUD driverinputWidget", (void*)0, SDToggleHUDdriverinput, NULL);
-    GfuiAddKey(screen, '5',            "Toggle HUD deltaWidget",       (void*)"deltaWidget",       SDToggleHUDwidget, NULL);
-    GfuiAddKey(screen, '6',            "Toggle HUD dashitemsWidget",   (void*)"dashitemsWidget",   SDToggleHUDwidget, NULL);
-    GfuiAddKey(screen, '7',            "Toggle HUD raceinfoWidget",    (void*)"racepositionWidget,racelapsWidget", SDToggleHUDwidgets, NULL);
-    GfuiAddKey(screen, '8',            "Toggle HUD",                   (void*)0, SDToggleHUD, NULL);
+    GfuiAddKey(screen, '1',            tr(h, "osg/toggle/laptimeWidget"),     (void*)"laptimeWidget",     SDToggleHUDwidget, NULL);
+    GfuiAddKey(screen, '2',            tr(h, "osg/toggle/carinfoWidget"),     (void*)"carinfoWidget,carstatusWidget", SDToggleHUDwidgets, NULL);
+    GfuiAddKey(screen, '3',            tr(h, "osg/toggle/boardWidget"),       (void*)"boardWidget",       SDToggleHUDwidget, NULL);
+    GfuiAddKey(screen, '4',            tr(h, "osg/toggle/driverinputWidget"), (void*)0, SDToggleHUDdriverinput, NULL);
+    GfuiAddKey(screen, '5',            tr(h, "osg/toggle/deltaWidget"),       (void*)"deltaWidget",       SDToggleHUDwidget, NULL);
+    GfuiAddKey(screen, '6',            tr(h, "osg/toggle/dashitemsWidget"),   (void*)"dashitemsWidget",   SDToggleHUDwidget, NULL);
+    GfuiAddKey(screen, '7',            tr(h, "osg/toggle/raceinfoWidget"),    (void*)"racepositionWidget,racelapsWidget", SDToggleHUDwidgets, NULL);
+    GfuiAddKey(screen, '8',            tr(h, "osg/toggle/all"),                   (void*)0, SDToggleHUD, NULL);
 
-    GfuiAddKey(screen, '1', GFUIM_CTRL, "Toggle HUD textFPSWidget",     (void*)"textFPSWidget",     SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
-    GfuiAddKey(screen, '2', GFUIM_CTRL, "Toggle HUD tiresWidget",       (void*)"tiresWidget",       SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
-    GfuiAddKey(screen, '3', GFUIM_CTRL, "Toggle HUD gforceWidget",      (void*)"gforceWidget",      SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
-    GfuiAddKey(screen, '4', GFUIM_CTRL, "Toggle HUD graphFPSWidget",    (void*)"graphFPSWidget",    SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
-    GfuiAddKey(screen, '5', GFUIM_CTRL, "Toggle HUD graphSpeedWidget",  (void*)"graphSpeedWidget",  SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
-    GfuiAddKey(screen, '6', GFUIM_CTRL, "Toggle HUD graphFFBWidget",    (void*)"graphFFBWidget",    SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
-    GfuiAddKey(screen, '7', GFUIM_CTRL, "Toggle HUD graphInputsWidget", (void*)"graphInputsWidget", SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
-    GfuiAddKey(screen, '8', GFUIM_CTRL, "Toggle HUD edit mode",         NULL,                   SDToggleHUDeditmode, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '1', GFUIM_CTRL, tr(h, "osg/toggle/textFPSWidget"),     (void*)"textFPSWidget",     SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '2', GFUIM_CTRL, tr(h, "osg/toggle/tiresWidget"),       (void*)"tiresWidget",       SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '3', GFUIM_CTRL, tr(h, "osg/toggle/gforceWidget"),      (void*)"gforceWidget",      SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '4', GFUIM_CTRL, tr(h, "osg/toggle/graphFPSWidget"),    (void*)"graphFPSWidget",    SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '5', GFUIM_CTRL, tr(h, "osg/toggle/graphSpeedWidget"),  (void*)"graphSpeedWidget",  SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '6', GFUIM_CTRL, tr(h, "osg/toggle/graphFFBWidget"),    (void*)"graphFFBWidget",    SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '7', GFUIM_CTRL, tr(h, "osg/toggle/graphInputsWidget"), (void*)"graphInputsWidget", SDToggleHUDwidget, NULL, GFUI_HELP_RIGHT);
+    GfuiAddKey(screen, '8', GFUIM_CTRL, tr(h, "osg/toggle/editmode"),          NULL,                       SDToggleHUDeditmode, NULL, GFUI_HELP_RIGHT);
 
     /*GfuiAddKey(screen, '5',            "Debug Info",        (void*)3, grSelectBoard, NULL);
     GfuiAddKey(screen, '4',            "G/Cmd Graph",       (void*)4, grSelectBoard, NULL);
     GfuiAddKey(screen, '3',            "Leaders Board",     (void*)2, grSelectBoard, NULL);
     GfuiAddKey(screen, '2',            "Driver Counters",   (void*)1, grSelectBoard, NULL);
     GfuiAddKey(screen, '1',            "Driver Board",      (void*)0, grSelectBoard, NULL);*/
-    GfuiAddKey(screen, '9',            "Mirror",            (void*)0, SDSwitchMirror, NULL);
+    GfuiAddKey(screen, '9',            tr(h, "mirror"),            (void*)0, SDSwitchMirror, NULL);
 
 
     //GfuiAddKey(screen, '0',            "Arcade Board",      (void*)5, grSelectBoard, NULL);*/
-    GfuiAddKey(screen, '+', GFUIM_CTRL, "Zoom In",           NULL,	 SDSetZoomIn, NULL);
-    GfuiAddKey(screen, '=', GFUIM_CTRL, "Zoom In",           NULL,	 SDSetZoomIn, NULL);
-    GfuiAddKey(screen, '-', GFUIM_CTRL, "Zoom Out",          NULL, SDSetZoomOut, NULL);
+    GfuiAddKey(screen, '+', GFUIM_CTRL, tr(h, "zoom/in"),           NULL,	 SDSetZoomIn, NULL);
+    GfuiAddKey(screen, '=', GFUIM_CTRL, tr(h, "zoom/in"),           NULL,	 SDSetZoomIn, NULL);
+    GfuiAddKey(screen, '-', GFUIM_CTRL, tr(h, "zoom/out"),          NULL,  SDSetZoomOut, NULL);
     //GfuiAddKey(screen, '>',             "Zoom In",           (void*)GR_ZOOM_IN,	 SDSetZoom, NULL);
     //GfuiAddKey(screen, '<',             "Zoom Out",          (void*)GR_ZOOM_OUT, SDSetZoom, NULL);
     //GfuiAddKey(screen, '(',            "Split Screen",   (void*)SD_SPLIT_ADD, SDSplitScreen, NULL);
@@ -396,15 +406,16 @@ int initView(int x, int y, int width, int height, int /* flag */, void *screen)
     //GfuiAddKey(screen, GFUIK_TAB,      "Next (split) Screen", (void*)SD_NEXT_SCREEN, SDChangeScreen, NULL);
     /*GfuiAddKey(screen, 'm',            "Track Maps",          (void*)0, grSelectTrackMap, NULL);*/
 
-    GfuiAddKey(screen, '+',        GFUIM_ALT,   "Move seat up",         NULL,  SDMoveSeatUp, NULL);
-    GfuiAddKey(screen, '-',        GFUIM_ALT,   "Move seat down",       NULL, SDMoveSeatDown, NULL);
-    GfuiAddKey(screen, GFUIK_LEFT, GFUIM_ALT,   "Move seat left",       NULL,  SDMoveSeatLeft, NULL);
-    GfuiAddKey(screen, GFUIK_RIGHT,GFUIM_ALT,   "Move seat right",      NULL, SDMoveSeatRight, NULL);
-    GfuiAddKey(screen, GFUIK_UP,   GFUIM_ALT,   "Move seat forward",    NULL,  SDMoveSeatForward, NULL);
-    GfuiAddKey(screen, GFUIK_DOWN, GFUIM_ALT,   "Move seat backward",   NULL, SDMoveSeatBackward, NULL);
+    GfuiAddKey(screen, '+',        GFUIM_ALT,   tr(h, "osg/moveseat/up"),         NULL,    SDMoveSeatUp, NULL);
+    GfuiAddKey(screen, '-',        GFUIM_ALT,   tr(h, "osg/moveseat/down"),       NULL,    SDMoveSeatDown, NULL);
+    GfuiAddKey(screen, GFUIK_LEFT, GFUIM_ALT,   tr(h, "osg/moveseat/left"),       NULL,    SDMoveSeatLeft, NULL);
+    GfuiAddKey(screen, GFUIK_RIGHT,GFUIM_ALT,   tr(h, "osg/moveseat/right"),      NULL,    SDMoveSeatRight, NULL);
+    GfuiAddKey(screen, GFUIK_UP,   GFUIM_ALT,   tr(h, "osg/moveseat/forward"),    NULL,    SDMoveSeatForward, NULL);
+    GfuiAddKey(screen, GFUIK_DOWN, GFUIM_ALT,   tr(h, "osg/moveseat/backward"),   NULL,    SDMoveSeatBackward, NULL);
 
     if(GfScrUsingResizableWindow())
-        GfuiAddKey(screen, GFUIK_RETURN, GFUIM_ALT, "Toggle Full-screen", (void*)0, GfScrToggleFullScreen, NULL);
+        GfuiAddKey(screen, GFUIK_RETURN, GFUIM_ALT, tr(h, "menu/fullscreen"), (void*)0, GfScrToggleFullScreen, NULL);
+    GfParmReleaseHandle(h);
 
     GfLogInfo("Current screen is #%d (out of %d)\n", m_CurrentScreenIndex, m_NbActiveScreens);
 

@@ -28,6 +28,7 @@
 
 #include <raceman.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 #include <race.h>
 #include <racemanagers.h>
@@ -106,13 +107,18 @@ RmNextEventMenu(void)
 	GfuiMenuCreateButtonControl(rmScrHandle, menuXMLDescHdle, "StartButton", NULL, rmStateManage);
 	GfuiMenuCreateButtonControl(rmScrHandle, menuXMLDescHdle, "AbandonButton", RmRaceSelectMenuHandle, GfuiScreenActivate);
 
-	// Close menu XML descriptor.
-	GfParmReleaseHandle(menuXMLDescHdle);
-
 	// Register keyboard shortcuts.
 	GfuiMenuDefaultKeysAdd(rmScrHandle);
-	GfuiAddKey(rmScrHandle, GFUIK_RETURN, "Start Event", NULL, rmStateManage, NULL);
-	GfuiAddKey(rmScrHandle, GFUIK_ESCAPE, "Abandon", RmRaceSelectMenuHandle, GfuiScreenActivate, NULL);
+
+	const char* startText = GfuiGetTranslatedText(menuXMLDescHdle, "translatable/start");
+	void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+	const char* abandonText = GfuiGetTranslatedText(commonTextHdle, "translatable/abandon");
+	GfuiAddKey(rmScrHandle, GFUIK_RETURN, startText, NULL, rmStateManage, NULL);
+	GfuiAddKey(rmScrHandle, GFUIK_ESCAPE, abandonText, RmRaceSelectMenuHandle, GfuiScreenActivate, NULL);
+
+	// Close menu XML descriptor.
+	GfParmReleaseHandle(commonTextHdle);
+	GfParmReleaseHandle(menuXMLDescHdle);
 
 	// Activate screen.
 	GfuiScreenActivate(rmScrHandle);

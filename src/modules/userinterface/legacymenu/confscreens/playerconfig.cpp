@@ -1315,13 +1315,15 @@ PlayerConfigMenuInit(void *prevMenu)
 
     GfuiMenuCreateButtonControl(ScrHandle, param, "webserverconf", NULL, onWebserverConfig);
 
-    // Close menu XML descriptor.
-    GfParmReleaseHandle(param);
-
     // Register keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(ScrHandle);
-    GfuiAddKey(ScrHandle, GFUIK_RETURN, "Accept and save changes", NULL, onSavePlayerList, NULL);
-    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Cancel changes", NULL, onQuitPlayerConfig, NULL);
+    const char* acceptText = GfuiGetTranslatedText(param, "translatable/accept");
+    const char* cancelText = GfuiGetTranslatedText(param, "translatable/cancel");
+    GfuiAddKey(ScrHandle, GFUIK_RETURN, acceptText, NULL, onSavePlayerList, NULL);
+    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, cancelText, NULL, onQuitPlayerConfig, NULL);
+
+    // Close menu XML descriptor.
+    GfParmReleaseHandle(param);
 
     return ScrHandle;
 }

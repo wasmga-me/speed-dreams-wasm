@@ -295,8 +295,12 @@ JoyCalMenuInit(void *prevMenu, void *nextMenu, tCmdInfo *cmd, int maxcmd)
 
     // Register keyboard shortcuts.
     GfuiMenuDefaultKeysAdd(ScrHandle);
-    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Next", NULL, onNext, NULL);
-    GfuiAddKey(ScrHandle, GFUIK_RETURN, "Next", NULL, onNext, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* nextText = GfuiGetTranslatedText(commonTextHdle, "translatable/nextpage");
+    GfuiAddKey(ScrHandle, GFUIK_ESCAPE, nextText, NULL, onNext, NULL);
+    GfuiAddKey(ScrHandle, GFUIK_RETURN, nextText, NULL, onNext, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     return ScrHandle;
 }

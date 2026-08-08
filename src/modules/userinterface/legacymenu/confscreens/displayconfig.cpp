@@ -22,6 +22,7 @@
 
 #include <sstream>
 #include <tgfclient.h>
+#include <translation.h>
 #include <graphic.h>
 
 #include "legacymenu.h"
@@ -662,8 +663,13 @@ bool DisplayMenu::initialize(void *pPreviousMenu)
 
 	// Keyboard shortcuts.
 	addDefaultShortcuts();
-	addShortcut(GFUIK_RETURN, "Apply", this, onAccept, 0);
-	addShortcut(GFUIK_ESCAPE, "Cancel", this, onCancel, 0);
+
+	void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+	const char* applyText = GfuiGetTranslatedText(commonTextHdle, "translatable/apply");
+	const char* cancelText = GfuiGetTranslatedText(commonTextHdle, "translatable/cancel");
+	addShortcut(GFUIK_RETURN, applyText, this, onAccept, 0);
+	addShortcut(GFUIK_ESCAPE, cancelText, this, onCancel, 0);
+	GfParmReleaseHandle(commonTextHdle);
 	// TODO Keyboard shortcuts: Add support for shortcuts in GfuiCombobox ?
 	//addShortcut(GFUIK_LEFT, "Previous Resolution", this, onChangeScreenSize, 0);
 	//addShortcut(GFUIK_RIGHT, "Next Resolution", this, onChangeScreenSize, 0);

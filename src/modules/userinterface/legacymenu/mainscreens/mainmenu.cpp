@@ -119,7 +119,11 @@ MainMenuInit(bool SupportsHumanDrivers)
     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "quit", NULL, onExitMenuActivate);
 
     GfuiMenuDefaultKeysAdd(MenuHandle);
-    GfuiAddKey(MenuHandle, GFUIK_ESCAPE, "Quit the game", NULL, onExitMenuActivate, NULL);
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* quitGameText = GfuiGetTranslatedText(commonTextHdle, "translatable/quitgame");
+    GfuiAddKey(MenuHandle, GFUIK_ESCAPE, quitGameText, NULL, onExitMenuActivate, NULL);
+    GfParmReleaseHandle(commonTextHdle);
 
     int version = GfuiMenuCreateLabelControl(MenuHandle, menuDescHdle, "version");
 

@@ -23,6 +23,7 @@
 
 
 #include <tgfclient.h>
+#include <translation.h>
 
 #include "racescreens.h"
 
@@ -155,7 +156,10 @@ RmFileSelect(void *pFileSelect)
 	GfParmReleaseHandle(menuXMLDescHdle);
 
 	// Register keyboard shortcuts.
-	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Cancel", NULL, rmOnDeactivate, NULL);
+	void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+	const char* cancelText = GfuiGetTranslatedText(commonTextHdle, "translatable/cancel");
+	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, cancelText, NULL, rmOnDeactivate, NULL);
+	GfParmReleaseHandle(commonTextHdle);
 	GfuiMenuDefaultKeysAdd(ScrHandle);
 
 	return ScrHandle;

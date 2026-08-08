@@ -11,6 +11,7 @@
 #include "graphinfo.h"
 #include <tgf.h>
 #include <tgfclient.h>
+#include <translation.h>
 
 void GraphInfo::deinit(void *args)
 {
@@ -39,7 +40,10 @@ GraphInfo::GraphInfo(void *prevMenu, const char *path) :
         throw std::runtime_error("create cancel failed");
 
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, deinit, NULL);
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this, deinit, NULL);
+    GfParmReleaseHandle(commonTextHdle);
     GfParmReleaseHandle(param);
     GfuiScreenActivate(hscr);
 }

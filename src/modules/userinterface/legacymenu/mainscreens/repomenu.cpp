@@ -11,6 +11,8 @@
 #include "repomenu.h"
 #include "downloadservers.h"
 #include <tgfclient.h>
+#include <translation.h>
+
 #include <cerrno>
 #include <cstddef>
 #include <cstdlib>
@@ -159,8 +161,13 @@ RepoMenu::RepoMenu(void *prevMenu,
 
     GfParmReleaseHandle(param);
     GfuiMenuDefaultKeysAdd(hscr);
-    GfuiAddKey(hscr, GFUIK_ESCAPE, "Back to previous menu", this, ::deinit,
+
+    void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+    const char* backToPrevMenu = GfuiGetTranslatedText(commonTextHdle, "translatable/backtoprevmenu");
+    GfuiAddKey(hscr, GFUIK_ESCAPE, backToPrevMenu, this, ::deinit,
         NULL);
+    GfParmReleaseHandle(commonTextHdle);
+
     GfuiScreenActivate(hscr);
     GfuiApp().eventLoop().setRecomputeCB(recompute, args);
 

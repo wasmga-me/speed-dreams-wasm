@@ -618,15 +618,19 @@ RmRacemanMenu()
 		GfuiMenuCreateScrollListControl(ScrHandle, menuXMLDescHdle, "CompetitorsScrollList",
 								NULL, rmOnSelectCompetitor);
 
-	// Close menu XML descriptor.
-	GfParmReleaseHandle(menuXMLDescHdle);
-
 	// Register keyboard shortcuts.
 	GfuiMenuDefaultKeysAdd(ScrHandle);
-	GfuiAddKey(ScrHandle, GFUIK_RETURN, "Start the race",
+	void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+	const char* startText = GfuiGetTranslatedText(menuXMLDescHdle, "translatable/startrace");
+	const char* backToMainText = GfuiGetTranslatedText(commonTextHdle, "translatable/backtomainmenu");
+	GfuiAddKey(ScrHandle, GFUIK_RETURN, startText,
 			   NULL, rmStartNewRace, NULL);
-	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Back to the Main menu",
+	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, backToMainText,
 			   RmRaceSelectMenuHandle, GfuiScreenActivate, NULL);
+	GfParmReleaseHandle(commonTextHdle);
+
+	// Close menu XML descriptor.
+	GfParmReleaseHandle(menuXMLDescHdle);
 
 	// Activate screen.
 	GfuiScreenActivate(ScrHandle);
@@ -730,10 +734,14 @@ RmRacemanMenu()
 
 	// Register keyboard shortcuts.
 	GfuiMenuDefaultKeysAdd(ScrHandle);
-	GfuiAddKey(ScrHandle, GFUIK_RETURN, "Start the race",
+	void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+	const char* startText = GfuiGetTranslatedText(menuXMLDescHdle, "translatable/startrace");
+	const char* backToMainText = GfuiGetTranslatedText(commonTextHdle, "translatable/backtomainmenu");
+	GfuiAddKey(ScrHandle, GFUIK_RETURN, startText,
 			   NULL, rmStartNewRace, NULL);
-	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, "Back to the Main menu",
+	GfuiAddKey(ScrHandle, GFUIK_ESCAPE, backToMainText,
 			   NULL, rmBack, NULL);
+	GfParmReleaseHandle(commonTextHdle);
 
 	// Activate screen.
 	GfuiScreenActivate(ScrHandle);
