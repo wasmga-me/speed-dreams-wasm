@@ -397,4 +397,17 @@ void cGrSky::modifyVisibility( float alt, float time_factor )
     effective_visibility = effvis;
 }
 
+float cGrSky::getBrightness()
+{
+    /* abs_solar_time is the time based on sun angle
+     * e.g. if sun angle equals 0, the time is 00:00
+     *                         PI: the time is 12:00
+     *                     0,75PI: 09:00 or 15:00
+     */
+    float abs_solar_time = (float)(12.0 - 12.0 * abs(sun->getSunAngle()) / M_PI);
+
+    // the brightness is calculated as logistic function
+    return 1.f / (1.f + std::exp(6.f - abs_solar_time));
+}
+
 } // namespace ssggraph
