@@ -423,7 +423,7 @@ bool Pit::pitForPenalty()
             // five laps after the penalty in which to serve it before the car is
             // eliminated.
             mPenalty = penalty->penalty;
-            mDriveThrough = mCar->_penaltyDrivethrough;
+            mDriveThrough = mPenalty == RM_PENALTY_DRIVETHROUGH;
             LogAXIOM.debug("# Penalty type = %i\n", mPenalty);
 
             return true;
@@ -436,12 +436,12 @@ bool Pit::pitForPenalty()
 void Pit::updateDriveThrough()
 {
     double fs = fabs(mCar->_distFromStartLine);
-    mDriveThrough = mCar->_penaltyDrivethrough;
+    mDriveThrough = mPenalty == RM_PENALTY_DRIVETHROUGH;
 
     if((fs > mPitExit - 30.0 && fs < mPitExit - 29.0) && mDriveThrough == true)
     {
         setPitstop(true);
-        LogAXIOM.debug("# Update DriveThrough penalty = %i\n", mCar->_penaltyDrivethrough);
+        LogAXIOM.debug("# Update DriveThrough penalty = %i\n", mDriveThrough);
     }
     else if((fs > mPitExit - 30.0 && fs < mPitExit - 29.0) && mDriveThrough == false)
     {
