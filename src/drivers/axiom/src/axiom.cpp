@@ -58,32 +58,11 @@ static void endRace(int index, tCarElt *car, tSituation *s);
 // CSR interface
 static const int BUFSIZE = 256;
 static const int MAXNBBOTS = 30;
-static const string defaultBotName[MAXNBBOTS] =                  // NOLINT(runtime/string)
-{
-        "driver 1",  "driver 2",  "driver 3",  "driver 4",  "driver 5",
-        "driver 6",  "driver 7",  "driver 8",  "driver 9",  "driver 10",
-        "driver 11", "driver 12", "driver 13", "driver 14", "driver 15",
-        "driver 16", "driver 17", "driver 18", "driver 19", "driver 20",
-        "driver 21", "driver 22", "driver 23", "driver 24", "driver 25",
-        "driver 26", "driver 27", "driver 28", "driver 29", "driver 30"
-};
-
-static const string defaultBotDesc[MAXNBBOTS] =                  // NOLINT(runtime/string)
-{
-        "driver 1",  "driver 2",  "driver 3",  "driver 4",  "driver 5",
-        "driver 6",  "driver 7",  "driver 8",  "driver 9",  "driver 10",
-        "driver 11", "driver 12", "driver 13", "driver 14", "driver 15",
-        "driver 16", "driver 17", "driver 18", "driver 19", "driver 20",
-        "driver 21", "driver 22", "driver 23", "driver 24", "driver 25",
-        "driver 26", "driver 27", "driver 28", "driver 29", "driver 30"
-};
 
 // Drivers info: pair(first:Name, second:Desc)
 static vector< pair<string, string> > Drivers;
-static Driver *driver[MAXNBBOTS];  // Array of drivers
 
 // Number of drivers defined in robot's xml-file
-static int NBBOTS = 0;      // Still unknown
 static string nameBuffer;   // Robot's name // NOLINT(runtime/string)
 static string pathBuffer;   // Robot's xml-filename // NOLINT(runtime/string)
 
@@ -93,6 +72,37 @@ static int indexOffset = 0;
 // in the robot's xml-file between others, not only at the end of the list
 const char *sUndefined = "undefined";
 
+class Drivers
+{
+public:
+    ~Drivers()
+    {
+        clear();
+    }
+
+    void push_back(Driver *d)
+    {
+        v.push_back(d);
+    }
+
+    void clear()
+    {
+        for (auto d : v)
+            delete d;
+
+        v.clear();
+    }
+
+    Driver *operator[](int index)
+    {
+        return v[index];
+    }
+
+private:
+    std::vector<Driver *> v;
+};
+
+static class std::vector<Driver *> driver;
 
 ////////////////////////////////
 // Utility
@@ -119,86 +129,84 @@ extern "C" int moduleWelcome(const tModWelcomeIn* welcomeIn,
 {
     // Save module name and loadDir, and determine module XML file pathname.
     setRobotName(welcomeIn->name);
+    PLogAXIOM = GfLogger::instance("AXIOM");
 
+    std::string dirstr = std::string(GfLocalDir()) + "drivers/axiom";
+    const char *dir = dirstr.c_str();
+
+    if (GfDirCreate(dir) != GF_DIR_CREATED)
+    {
+        PLogAXIOM->error("GfDirCreate %s failed\n", dir);
+        return -1;
+    }
+
+    PLogAXIOM->setLevelThreshold(GfLogger::eInfo);
+
+    int ret = 0;
     // Filehandle for robot's xml-file
-    void *pRobotSettings = GfParmReadFile(pathBuffer, GFPARM_RMODE_STD);
+    void *pRobotSettings = GfParmReadFileLocal(pathBuffer,
+        GFPARM_RMODE_STD | GFPARM_RMODE_CREAT);
 
     PLogAXIOM = GfLogger::instance("AXIOM");
 
     if (pRobotSettings)          // robot settings XML could be read
     {
-        NBBOTS = 0;
-
-        char SectionBuffer[BUFSIZE];
-        snprintf(SectionBuffer, BUFSIZE, "%s/%s/%d", ROB_SECT_ROBOTS, ROB_LIST_INDEX, 0);
-
-        // Try to get first driver from index 0
-        string sDriverName = GfParmGetStrNC(pRobotSettings,
-                                            SectionBuffer,
-                                            ROB_ATTR_NAME,
-                                            const_cast<char*>(sUndefined));
-
-        // Check whether index 0 is used as start index
-        if (sDriverName != sUndefined)
-        {
-            // Teams xml file uses index 0, 1, ..., N - 1
-            indexOffset = 0;
-        }
-        else
-        {
-            // Teams xml file uses index 1, 2, ..., N
-            indexOffset = 1;
-        }
-
         // Loop over all possible drivers, clear all buffers,
         // save defined driver names and descriptions.
         Drivers.clear();
 
-        for (int i = indexOffset; i < MAXNBBOTS + indexOffset; ++i)
+        int n = GfParmGetEltNb(pRobotSettings, ROB_SECT_ROBOTS "/" ROB_LIST_INDEX);
+
+        for (int i = 0; i < n; i++)
         {
+            char SectionBuffer[BUFSIZE];
+
             snprintf(SectionBuffer, BUFSIZE, "%s/%s/%d", ROB_SECT_ROBOTS, ROB_LIST_INDEX, i);
 
-            sDriverName = GfParmGetStr(pRobotSettings, SectionBuffer,
-                                       ROB_ATTR_NAME, sUndefined);
+            std::string sDriverName = GfParmGetStr(pRobotSettings, SectionBuffer,
+                ROB_ATTR_NAME, sUndefined);
 
-            if (sDriverName != sUndefined)
-            {
-                // This driver is defined in robot's xml-file
-                string sDriverDesc = GfParmGetStr(pRobotSettings, SectionBuffer,
-                                                  ROB_ATTR_DESC, defaultBotDesc[i].c_str());
-                Drivers.push_back(make_pair(sDriverName, sDriverDesc));
-                ++NBBOTS;
-            }
+            // This driver is defined in robot's xml-file
+            string sDriverDesc = GfParmGetStr(pRobotSettings, SectionBuffer,
+                ROB_ATTR_DESC, "");
+            Drivers.push_back(make_pair(sDriverName, sDriverDesc));
         }  // for i
+
+        if (GfParmWriteFile(nullptr, pRobotSettings, "axiom"))
+        {
+            PLogAXIOM->error("GfParmWriteFile failed\n");
+            ret = -1;
+        }
 
         GfParmReleaseHandle(pRobotSettings);
     }
     else        // if robot settings XML could not be read
     {
         // For schismatic robots NBBOTS is unknown! Handle error here
-        NBBOTS = 0;
         // But this is not considered a real failure of moduleWelcome !
     }
 
     // Set max nb of interfaces to return.
-    welcomeOut->maxNbItf = NBBOTS;
+    welcomeOut->maxNbItf = Drivers.size();
 
-    return 0;
+    return ret;
 }
 
 // Module entry point (new fixed name scheme).
 extern "C" int moduleInitialize(tModInfo *modInfo)
 {
     // Clear all structures.
-    memset(modInfo, 0, NBBOTS * sizeof(tModInfo));
+    memset(modInfo, 0, Drivers.size() * sizeof(tModInfo));
+    driver.clear();
 
-    for (int i = 0; i < NBBOTS; i++)
+    for (size_t i = 0; i < Drivers.size(); i++)
     {
         modInfo[i].name = Drivers[i].first.c_str();
         modInfo[i].desc = Drivers[i].second.c_str();
         modInfo[i].fctInit = InitFuncPt;       // Init function.
         modInfo[i].gfId    = ROB_IDENT;        // Supported framework version.
         modInfo[i].index   = i + indexOffset;  // Indices from robot's xml-file.
+        driver.push_back(new Driver(i));
     }  // for i
 
     return 0;
@@ -217,27 +225,34 @@ extern "C" int moduleTerminate()
 // Module entry point
 extern "C" int axiom(tModInfo *modInfo)
 {
-    NBBOTS = 30;
     Drivers.clear();
     pathBuffer = "drivers/axiom/axiom.xml";
     nameBuffer = "axiom";
 
     // Filehandle for robot's xml-file
-    void *pRobotSettings = GfParmReadFile(pathBuffer, GFPARM_RMODE_STD);
+    void *pRobotSettings = GfParmReadFileLocal(pathBuffer,
+        GFPARM_RMODE_STD | GFPARM_RMODE_CREAT);
 
     if (pRobotSettings)               // Let's look what we have to provide here
     {
         char SectionBuffer[BUFSIZE];
+        int ret = 0, n = GfParmGetEltNb(pRobotSettings, ROB_SECT_ROBOTS);
 
-        for (int i = 0; i < NBBOTS; i++)
+        for (int i = 0; i < n; i++)
         {
             snprintf(SectionBuffer, BUFSIZE, "%s/%s/%d", ROB_SECT_ROBOTS, ROB_LIST_INDEX, i);
-            string sDriverName = GfParmGetStr(pRobotSettings, SectionBuffer, ROB_ATTR_NAME, defaultBotName[i].c_str());
-            string sDriverDesc = GfParmGetStr(pRobotSettings, SectionBuffer, ROB_ATTR_DESC, defaultBotDesc[i].c_str());
+            string sDriverName = GfParmGetStr(pRobotSettings, SectionBuffer, ROB_ATTR_NAME, "");
+            string sDriverDesc = GfParmGetStr(pRobotSettings, SectionBuffer, ROB_ATTR_DESC, "");
             Drivers.push_back(make_pair(sDriverName, sDriverDesc));
         }
 
+        if (GfParmWriteFile(nullptr, pRobotSettings, "axiom"))
+            ret = -1;
+
         GfParmReleaseHandle(pRobotSettings);
+
+        if (ret)
+            return ret;
     }
 
     return moduleInitialize(modInfo);
@@ -256,7 +271,6 @@ int InitFuncPt(int index, void *pt)
     tRobotItf *itf = static_cast<tRobotItf *>(pt);
 
     // Create robot instance for index.
-    driver[index] = new Driver(index);
     driver[index]->mDriverName = nameBuffer.c_str();
 
     itf->rbNewTrack = initTrack;    // Give the robot the track view called.
