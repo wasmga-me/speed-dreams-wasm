@@ -652,13 +652,7 @@ void CarParams::readStrategySection(const MyParam& param, double temperature, in
 
 void CarParams::readVarSpecs(const MyParam& param)
 {
-    if (mOptionWings == 0)
-        mRearWingAngle = param.getNum(SECT_REARWING, PRM_WINGANGLE);
-    else if (mOptionWings == 1)
-        mRearWingAngle = param.getNum(SECT_REARWING1, PRM_WINGANGLE);
-    else
-        mRearWingAngle = param.getNum(SECT_REARWING2, PRM_WINGANGLE);
-
+    mRearWingAngle = param.getNum(SECT_REARWING, PRM_WINGANGLE);
     LogAXIOM.debug("# Car Rear Wing angle = %.2f\n", mRearWingAngle);
 }
 
@@ -707,50 +701,15 @@ void CarParams::readConstSpecs(void* CarHandle)
     else
         LogAXIOM.debug("#Car has TCL no\n");
 
-    if (mOptionMass == 0)
-    {
-        mCarMass = GfParmGetNum(CarHandle, SECT_CAR, PRM_MASS, nullptr, 0);
-    }
-    else if (mOptionMass == 1)
-    {
-        mCarMass = GfParmGetNum(CarHandle, SECT_CAR, PRM_MASS1, nullptr, 0);
-    }
-    else if (mOptionMass == 2)
-    {
-        mCarMass = GfParmGetNum(CarHandle, SECT_CAR, PRM_MASS2, nullptr, 0);
-    }
-    else
-        mCarMass = GfParmGetNum(CarHandle, SECT_CAR, PRM_MASS3, nullptr, 0);
-
+    mCarMass = GfParmGetNum(CarHandle, SECT_CAR, PRM_MASS, nullptr, 0);
     mTankVol = GfParmGetNum(CarHandle, SECT_CAR, PRM_TANK, (char*)nullptr, 0);
 
-    if(mOptionTires == 0)
-    {
-        tiremuFL = GfParmGetNum(CarHandle, SECT_FRNTLFTWHEEL, PRM_MU, nullptr, 0);
-        tiremuFR = GfParmGetNum(CarHandle, SECT_FRNTRGTWHEEL, PRM_MU, nullptr, 0);
-        tiremuRL = GfParmGetNum(CarHandle, SECT_REARLFTWHEEL, PRM_MU, nullptr, 0);
-        tiremuRR = GfParmGetNum(CarHandle, SECT_REARRGTWHEEL, PRM_MU, nullptr, 0);
-        tiremufront = std::min(tiremuFL, tiremuFR);
-        tiremurear = std::min(tiremuRL, tiremuRR);
-    }
-    else if (mOptionTires == 1)
-    {
-        tiremuFL = GfParmGetNum(CarHandle, SECT_FRNTLFTWHEEL1, PRM_MU, nullptr, 0);
-        tiremuFR = GfParmGetNum(CarHandle, SECT_FRNTRGTWHEEL1, PRM_MU, nullptr, 0);
-        tiremuRL = GfParmGetNum(CarHandle, SECT_REARLFTWHEEL1, PRM_MU, nullptr, 0);
-        tiremuRR = GfParmGetNum(CarHandle, SECT_REARRGTWHEEL1, PRM_MU, nullptr, 0);
-        tiremufront = std::min(tiremuFL, tiremuFR);
-        tiremurear = std::min(tiremuRL, tiremuRR);
-    }
-    else
-    {
-        tiremuFL = GfParmGetNum(CarHandle, SECT_FRNTLFTWHEEL2, PRM_MU, nullptr, 0);
-        tiremuFR = GfParmGetNum(CarHandle, SECT_FRNTRGTWHEEL2, PRM_MU, nullptr, 0);
-        tiremuRL = GfParmGetNum(CarHandle, SECT_REARLFTWHEEL2, PRM_MU, nullptr, 0);
-        tiremuRR = GfParmGetNum(CarHandle, SECT_REARRGTWHEEL2, PRM_MU, nullptr, 0);
-        tiremufront = std::min(tiremuFL, tiremuFR);
-        tiremurear = std::min(tiremuRL, tiremuRR);
-    }
+    tiremuFL = GfParmGetNum(CarHandle, SECT_FRNTLFTWHEEL, PRM_MU, nullptr, 0);
+    tiremuFR = GfParmGetNum(CarHandle, SECT_FRNTRGTWHEEL, PRM_MU, nullptr, 0);
+    tiremuRL = GfParmGetNum(CarHandle, SECT_REARLFTWHEEL, PRM_MU, nullptr, 0);
+    tiremuRR = GfParmGetNum(CarHandle, SECT_REARRGTWHEEL, PRM_MU, nullptr, 0);
+    tiremufront = std::min(tiremuFL, tiremuFR);
+    tiremurear = std::min(tiremuRL, tiremuRR);
 
     mTireMu = std::min(tiremufront, tiremurear);
 
@@ -824,13 +783,7 @@ void CarParams::readConstSpecs(void* CarHandle)
 
     mBrakePressMax = GfParmGetNum(CarHandle, SECT_BRKSYST, PRM_BRKPRESS, (char*)nullptr, 0);
     mBrakeRepartition = GfParmGetNum(CarHandle, SECT_BRKSYST, PRM_BRKREP, (char*)nullptr, 0);
-
-    if (mOptionWings == 0)
-        mFrontWingAngle = GfParmGetNum(CarHandle, SECT_FRNTWING, PRM_WINGANGLE, (char*)nullptr, 0);
-    else if (mOptionWings == 1)
-        mFrontWingAngle = GfParmGetNum(CarHandle, SECT_FRNTWING1, PRM_WINGANGLE, (char*)nullptr, 0);
-    else
-        mFrontWingAngle = GfParmGetNum(CarHandle, SECT_FRNTWING2, PRM_WINGANGLE, (char*)nullptr, 0);
+    mFrontWingAngle = GfParmGetNum(CarHandle, SECT_FRNTWING, PRM_WINGANGLE, (char*)nullptr, 0);
 
     LogAXIOM.debug("# Car MASS              = %.2f\n", mCarMass);
     LogAXIOM.debug("# Tank Volume           = %.2f\n", mTankVol);
@@ -854,21 +807,8 @@ void CarParams::initCa()
 
     double frontwingarea, rearwingarea;
 
-    if (mOptionWings == 0)
-    {
-        frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING, PRM_WINGAREA, (char*)nullptr, 0);
-        rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING, PRM_WINGAREA, (char*)nullptr, 0);
-    }
-    else if (mOptionWings == 1)
-    {
-        frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING1, PRM_WINGAREA, (char*)nullptr, 0);
-        rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING1, PRM_WINGAREA, (char*)nullptr, 0);
-    }
-    else
-    {
-        frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING2, PRM_WINGAREA, (char*)nullptr, 0);
-        rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING2, PRM_WINGAREA, (char*)nullptr, 0);
-    }
+    frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING, PRM_WINGAREA, (char*)nullptr, 0);
+    rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING, PRM_WINGAREA, (char*)nullptr, 0);
 
     double frontclift = GfParmGetNum(mCar->_carHandle, SECT_AERODYNAMICS, PRM_FCL, (char*)nullptr, 0);
     double rearclift = GfParmGetNum(mCar->_carHandle, SECT_AERODYNAMICS, PRM_RCL, (char*)nullptr, 0);
@@ -904,21 +844,8 @@ void CarParams::initCw()
     double frontarea = GfParmGetNum(mCar->_carHandle, SECT_AERODYNAMICS, PRM_FRNTAREA, (char*)nullptr, 0);
     mBodyCW = 0.645 * cx * frontarea;
 
-    if (mOptionWings == 0)
-    {
-        frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING, PRM_WINGAREA, (char*)nullptr, 0);
-        rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING, PRM_WINGAREA, (char*)nullptr, 0);
-    }
-    else if (mOptionWings == 1)
-    {
-        frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING1, PRM_WINGAREA, (char*)nullptr, 0);
-        rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING1, PRM_WINGAREA, (char*)nullptr, 0);
-    }
-    else
-    {
-        frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING2, PRM_WINGAREA, (char*)nullptr, 0);
-        rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING2, PRM_WINGAREA, (char*)nullptr, 0);
-    }
+    frontwingarea = GfParmGetNum(mCar->_carHandle, SECT_FRNTWING, PRM_WINGAREA, (char*)nullptr, 0);
+    rearwingarea = GfParmGetNum(mCar->_carHandle, SECT_REARWING, PRM_WINGAREA, (char*)nullptr, 0);
 
     double frntwingca = 1.23 * frontwingarea * sin(mFrontWingAngle);
     double rearwingca = 1.23 * rearwingarea * sin(mRearWingAngle);

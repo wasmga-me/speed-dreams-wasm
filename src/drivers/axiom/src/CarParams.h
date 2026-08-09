@@ -122,14 +122,6 @@ public:
     double mSideSlip;
     double mToMiddle;
 
-    int    mOptionMass;
-    int    mOptionGear;
-    int    mOptionEngine;
-    int    mOptionSprings;
-    int    mOtpionAntirollBars;
-    int    mOptionWings;
-    int    mOptionTires;
-
     bool    HASCPD;
     bool    HASABS;
     bool    HASESP;

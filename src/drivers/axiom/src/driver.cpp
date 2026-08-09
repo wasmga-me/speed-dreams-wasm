@@ -234,25 +234,13 @@ void Driver::InitTrack(tTrack* track, void* carHandle, void** carParmHandle,
 
         LogAXIOM.debug(" # Global skill = %.2f - driver skill: %.4f - driver agression: %.3f - skill random = %.8f\n",
                        SkillGlobal, SkillDriver, driver_aggression, SkillRandom);
-
-        int mass = (int)GfParmGetNum(skillHandle, SECT_OPTIONS, PRM_OPTIONS_MASS, (char *) NULL, 0);
-        int gear = (int)GfParmGetNum(skillHandle, SECT_OPTIONS, PRM_OPTIONS_GEAR, (char *) NULL, 0);
-        int engine = (int)GfParmGetNum(skillHandle, SECT_OPTIONS, PRM_OPTIONS_ENGINE, (char *) NULL, 0);
-        int springs = (int)GfParmGetNum(skillHandle, SECT_OPTIONS, PRM_OPTIONS_SPRINGS, (char *) NULL, 0);
-        int antiroll = (int)GfParmGetNum(skillHandle, SECT_OPTIONS, PRM_OPTIONS_ANTIROLLBARS, (char *) NULL, 0);
-        int wings = (int)GfParmGetNum(skillHandle, SECT_OPTIONS, PRM_OPTIONS_WINGS, (char *) NULL, 0);
-        int tires = (int)GfParmGetNum(skillHandle, SECT_OPTIONS, PRM_OPTIONS_TIRES, (char *) NULL, 0);
-
-        mCar.mOptionMass = mass;
-        mCar.mOptionGear = gear;
-        mCar.mOptionEngine = engine;
-        mCar.mOptionSprings = springs;
-        mCar.mOtpionAntirollBars = antiroll;
-        mCar.mOptionWings = wings;
-        mCar.mOptionTires = tires;
         LogAXIOM.debug("# Option passed !!!\n");
 
         GfParmReleaseHandle(skillHandle);
+    }
+    else
+    {
+        LogAXIOM.error("Failed to open skill file at %s", buffer);
     }
 
     // Init my track
@@ -313,8 +301,6 @@ void Driver::InitTrack(tTrack* track, void* carHandle, void** carParmHandle,
         param.setNum(SECT_TIRESET, PRM_COMPOUNDS_SET, mCar.GetCompound());
     }
 
-    if(mCar.mOptionTires == 0)
-    {
     param.setNum(SECT_FRNTRGTWHEEL, PRM_PRESSURE, mCar.getPressureFR());
     param.setNum(SECT_FRNTLFTWHEEL, PRM_PRESSURE, mCar.getPressureFL());
     param.setNum(SECT_REARRGTWHEEL, PRM_PRESSURE, mCar.getPressureRR());
@@ -323,29 +309,6 @@ void Driver::InitTrack(tTrack* track, void* carHandle, void** carParmHandle,
     param.setNum(SECT_FRNTLFTWHEEL, PRM_CAMBER, mCar.getCamberFL());
     param.setNum(SECT_REARRGTWHEEL, PRM_CAMBER, mCar.getCamberRR());
     param.setNum(SECT_REARLFTWHEEL, PRM_CAMBER, mCar.getCamberRL());
-    }
-    else if (mCar.mOptionTires == 1)
-    {
-        param.setNum(SECT_FRNTRGTWHEEL1, PRM_PRESSURE, mCar.getPressureFR());
-        param.setNum(SECT_FRNTLFTWHEEL1, PRM_PRESSURE, mCar.getPressureFL());
-        param.setNum(SECT_REARRGTWHEEL1, PRM_PRESSURE, mCar.getPressureRR());
-        param.setNum(SECT_REARLFTWHEEL1, PRM_PRESSURE, mCar.getPressureRL());
-        param.setNum(SECT_FRNTRGTWHEEL1, PRM_CAMBER, mCar.getCamberFR());
-        param.setNum(SECT_FRNTLFTWHEEL1, PRM_CAMBER, mCar.getCamberFL());
-        param.setNum(SECT_REARRGTWHEEL1, PRM_CAMBER, mCar.getCamberRR());
-        param.setNum(SECT_REARLFTWHEEL1, PRM_CAMBER, mCar.getCamberRL());
-    }
-    else
-    {
-        param.setNum(SECT_FRNTRGTWHEEL2, PRM_PRESSURE, mCar.getPressureFR());
-        param.setNum(SECT_FRNTLFTWHEEL2, PRM_PRESSURE, mCar.getPressureFL());
-        param.setNum(SECT_REARRGTWHEEL2, PRM_PRESSURE, mCar.getPressureRR());
-        param.setNum(SECT_REARLFTWHEEL2, PRM_PRESSURE, mCar.getPressureRL());
-        param.setNum(SECT_FRNTRGTWHEEL2, PRM_CAMBER, mCar.getCamberFR());
-        param.setNum(SECT_FRNTLFTWHEEL2, PRM_CAMBER, mCar.getCamberFL());
-        param.setNum(SECT_REARRGTWHEEL2, PRM_CAMBER, mCar.getCamberRR());
-        param.setNum(SECT_REARLFTWHEEL2, PRM_CAMBER, mCar.getCamberRL());
-    }
 
     //LogAXIOM.debug("Load MU FACTOR\n");
     // Get mu factors
