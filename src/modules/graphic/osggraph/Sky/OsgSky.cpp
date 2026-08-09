@@ -245,6 +245,19 @@ void SDSky::set_3dCloudVisRange(float vis)
     }
 }*/
 
+float SDSky::get_brightness ()
+{
+    /* abs_solar_time is the time based on sun angle
+     * e.g. if sun angle equals 0, the time is 00:00
+     *                         PI: the time is 12:00
+     *                     0,75PI: 09:00 or 15:00
+     */
+    float abs_solar_time = (float)(12.0 - 12.0 * abs(sun->getSunAngle()) / SD_PI);
+
+    // the brightness is calculated as logistic function
+    return 1.f / (1.f + std::exp(6.f - abs_solar_time));
+}
+
 void SDSky::texture_path( const string& path )
 {
         const string tex_path =  path;

@@ -204,6 +204,8 @@ public:
 
     void setMoonDist ( double dist ) { moon_dist = dist; }
     double getMoonDist() { return moon_dist; }
+
+    inline float *get_color() { return moon_cl->get( 0 ); }
 };
 
 class cGrSun
@@ -441,9 +443,13 @@ public:
     void setSDistance( double dist ) { sun->setSunDistance( dist ); }
     double getSDistance() { return sun->getSunDistance(); }
 
-    void getSunPos(sgCoord* p)
-    {
-        sun->getSunPosition( p);
+    float getBrightness();
+
+    void getMainLightPos(sgCoord* p) {return (abs(sun->getSunAngle()) < M_PI_2) ? sun->getSunPosition(p) : moon->getMoonPosition(p);}
+    float* getMainLightColor() {
+        float *sun_color = sun->get_color();
+
+        return (sun_color[0] > 0.f) ? sun_color : moon->get_color();
     }
 
     // draw background portions of sky (do this before you draw rest of your scene).

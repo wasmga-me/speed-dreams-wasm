@@ -136,6 +136,7 @@ public:
     const SDCloudLayer * get_cloud_layer (int i) const;
     SDCloudLayer * get_cloud_layer (int i);
     int get_cloud_layer_count () const;
+    float get_brightness();
 
     void   setMA(double angle) { moon->setMoonAngle(angle); }
     double getMA() const { return moon->getMoonAngle(); }
@@ -170,7 +171,7 @@ public:
     inline void set_visibility( float v ) {	effective_visibility = visibility = (v <= 25.0) ? 25.0 : v; }
 
     inline SDSun * getSun(){return sun;}
-    inline osg::Vec3f sunposition() {return sun->getSunPosition();}
+    inline osg::Vec3f get_main_light_source_position() {return (abs(sun->getSunAngle()) < SD_PI_2) ? sun->getSunPosition() : moon->getMoonPosition();}
 
     //virtual double get_3dCloudDensity() const;
     //virtual void set_3dCloudDensity(double density);

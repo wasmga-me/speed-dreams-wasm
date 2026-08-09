@@ -390,10 +390,10 @@ grInitBackground()
             }
         }
 
-        // Set up the light source to the Sun position.
-        sgCoord sunPosition;
-        TheSky->getSunPos(&sunPosition);
-        light->setPosition(sunPosition.xyz);
+        // Set up the light source
+        sgCoord lightpos;
+        TheSky->getMainLightPos(&lightpos);
+        light->setPosition(lightpos.xyz);
 
         // Initialize the whole sky dome.
         sgVec3 viewPos;
@@ -1142,7 +1142,8 @@ void grUpdateLight( void )
     GfLogDebug("Start Update light ...\n");
     const float sol_angle = (float)TheSky->getSA();
     const float moon_angle = (float)TheSky->getMA();
-    float sky_brightness = (float)(1.0 + cos(sol_angle)) / 2.0f;
+    float sky_brightness = TheSky->getBrightness();
+    float light_source_brightness = std::max(0.4f, sky_brightness);
     GfLogDebug("Sol Angle = %.3f - Moon angle = %.3f\n", sol_angle, moon_angle);
 
     if (grTrack->local.rain > 0) // TODO: Different values for each rain strength value ?
@@ -1178,64 +1179,69 @@ void grUpdateLight( void )
     grGammaCorrectRGB( CloudsColor );
 
 
-    float *sun_color = TheSky->get_sun_color();
+    float *main_light_color = TheSky->getMainLightColor();
+    float norm_light_color[3] = {
+        0.75f + sqrt(main_light_color[0]) / 4.f,
+        0.75f + sqrt(main_light_color[1]) / 4.f,
+        0.75f + sqrt(main_light_color[2]) / 4.f
+    };
 
     if (sol_angle > 1.0)
     {
         if (grVisibility > 1000 && cloudsTextureIndex < 8)
         {
-            CloudsColor[0] = CloudsColor[0] * sun_color[0];
-            CloudsColor[1] = CloudsColor[1] * sun_color[1];
-            CloudsColor[2] = CloudsColor[2] * sun_color[2];
+            CloudsColor[0] = CloudsColor[0] * norm_light_color[0];
+            CloudsColor[1] = CloudsColor[1] * norm_light_color[1];
+            CloudsColor[2] = CloudsColor[2] * norm_light_color[2];
         }
         else
         {
-            CloudsColor[0] = CloudsColor[0] * sun_color[0];
-            CloudsColor[1] = CloudsColor[1] * sun_color[0];
-            CloudsColor[2] = CloudsColor[2] * sun_color[0];
+            CloudsColor[0] = CloudsColor[0] * norm_light_color[0];
+            CloudsColor[1] = CloudsColor[1] * norm_light_color[0];
+            CloudsColor[2] = CloudsColor[2] * norm_light_color[0];
         }
     }
 
     grGammaCorrectRGB( CloudsColor );
 
-    // 3c) update the main light position (it's at the sun position !)
-    sgCoord solpos;
-    TheSky->getSunPos(&solpos);
-    ssgGetLight(0)-> setPosition(solpos.xyz);
+    // 3c) update the main light position
+    sgCoord lightpos;
+    TheSky->getMainLightPos(&lightpos);
+    ssgGetLight(0)-> setPosition(lightpos.xyz);
 
     // 3c) update scene colors.
     if (grVisibility > 1000 && (cloudsTextureIndex < 8 && cloudsTextureIndex2 < 8 && cloudsTextureIndex3 < 8))
     {
-        SceneAmbiant[0] = (sun_color[0]*0.25f + CloudsColor[0]*0.75f) * sky_brightness;
-        SceneAmbiant[1] = (sun_color[1]*0.25f + CloudsColor[1]*0.75f) * sky_brightness;
-        SceneAmbiant[2] = (sun_color[2]*0.25f + CloudsColor[2]*0.75f) * sky_brightness;
+        SceneAmbiant[0] = (norm_light_color[0]*0.25f + CloudsColor[0]*0.75f) * light_source_brightness;
+        SceneAmbiant[1] = (norm_light_color[1]*0.25f + CloudsColor[1]*0.75f) * light_source_brightness;
+        SceneAmbiant[2] = (norm_light_color[2]*0.25f + CloudsColor[2]*0.75f) * light_source_brightness;
         SceneAmbiant[3] = 1.0;
 
-        SceneDiffuse[0] = (sun_color[0]*0.25f + FogColor[0]*0.75f) * sky_brightness;
-        SceneDiffuse[1] = (sun_color[1]*0.25f + FogColor[1]*0.75f) * sky_brightness;
-        SceneDiffuse[2] = (sun_color[2]*0.25f + FogColor[2]*0.75f) * sky_brightness;
+        SceneDiffuse[0] = (norm_light_color[0]*0.25f + FogColor[0]*0.75f) * light_source_brightness;
+        SceneDiffuse[1] = (norm_light_color[1]*0.25f + FogColor[1]*0.75f) * light_source_brightness;
+        SceneDiffuse[2] = (norm_light_color[2]*0.25f + FogColor[2]*0.75f) * light_source_brightness;
         SceneDiffuse[3] = 1.0;
 
-        SceneSpecular[0] = sun_color[0] * sky_brightness;
-        SceneSpecular[1] = sun_color[1] * sky_brightness;
-        SceneSpecular[2] = sun_color[2] * sky_brightness;
+        SceneSpecular[0] = norm_light_color[0] * light_source_brightness;
+        SceneSpecular[1] = norm_light_color[1] * light_source_brightness;
+        SceneSpecular[2] = norm_light_color[2] * light_source_brightness;
         SceneSpecular[3] = 1.0;
     }
     else
     {
-        SceneAmbiant[0] = (sun_color[0]*0.25f + CloudsColor[0]*0.75f) * sky_brightness;
-        SceneAmbiant[1] = (sun_color[0]*0.25f + CloudsColor[1]*0.75f) * sky_brightness;
-        SceneAmbiant[2] = (sun_color[0]*0.25f + CloudsColor[2]*0.75f) * sky_brightness;
+        SceneAmbiant[0] = (norm_light_color[0]*0.25f + CloudsColor[0]*0.75f) * light_source_brightness;
+        SceneAmbiant[1] = (norm_light_color[0]*0.25f + CloudsColor[1]*0.75f) * light_source_brightness;
+        SceneAmbiant[2] = (norm_light_color[0]*0.25f + CloudsColor[2]*0.75f) * light_source_brightness;
         SceneAmbiant[3] = 1.0;
 
-        SceneDiffuse[0] = (sun_color[0]*0.25f + FogColor[0]*0.75f) * sky_brightness;
-        SceneDiffuse[1] = (sun_color[0]*0.25f + FogColor[1]*0.75f) * sky_brightness;
-        SceneDiffuse[2] = (sun_color[0]*0.25f + FogColor[2]*0.75f) * sky_brightness;
+        SceneDiffuse[0] = (norm_light_color[0]*0.25f + FogColor[0]*0.75f) * light_source_brightness;
+        SceneDiffuse[1] = (norm_light_color[0]*0.25f + FogColor[1]*0.75f) * light_source_brightness;
+        SceneDiffuse[2] = (norm_light_color[0]*0.25f + FogColor[2]*0.75f) * light_source_brightness;
         SceneDiffuse[3] = 1.0;
 
-        SceneSpecular[0] = sun_color[0] * sky_brightness;
-        SceneSpecular[1] = sun_color[0] * sky_brightness;
-        SceneSpecular[2] = sun_color[0] * sky_brightness;
+        SceneSpecular[0] = norm_light_color[0] * light_source_brightness;
+        SceneSpecular[1] = norm_light_color[0] * light_source_brightness;
+        SceneSpecular[2] = norm_light_color[0] * light_source_brightness;
         SceneSpecular[3] = 1.0;
     }
 

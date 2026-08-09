@@ -61,6 +61,7 @@ namespace osggraph {
 #define MORE_CLOUD 6
 #define SCARCE_CLOUD 5
 #define COVERAGE_CLOUD 8
+#define MIN_MAIN_LIGHT_BRIGHTNESS 0.25f
 
 static const char* ShadowValues[] = { GR_ATT_SHADOW_NONE, GR_ATT_SHADOW_SM, GR_ATT_SHADOW_SSM, GR_ATT_SHADOW_PSSM, GR_ATT_SHADOW_LSPM, GR_ATT_SHADOW_VDSM};
 static const int NbShadowValues = sizeof(ShadowValues) / sizeof(ShadowValues[0]);
@@ -254,7 +255,7 @@ void SDRender::Init(const tTrack *track)
     GfLogDebug("Graphic options : Shadow Quality : %u (%s)\n", QualityIndex, QualityValues[QualityIndex]);
     GfLogDebug("Graphic options : Shader Quality : %d (%s)\n", carsShader, ShadersValues[carsShader]);
 
-    NStars = 0; // TODO calculate based on time of day and weather
+    NStars = 3200; // TODO calculate based on time of day and weather
     if (AStarsData)
         delete [] AStarsData;
 
@@ -378,8 +379,11 @@ void SDRender::Init(const tTrack *track)
     stateSet = m_Scene->getOrCreateStateSet();
     stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
 
-    float emis = 0.5f * sky_brightness;
-    float ambian = 0.8f * sky_brightness;
+    sky_brightness = thesky->get_brightness();
+    float light_source_brightness = std::max(MIN_MAIN_LIGHT_BRIGHTNESS, sky_brightness);
+
+    float emis = 0.5f * light_source_brightness;
+    float ambian = 0.8f * light_source_brightness;
     osg::ref_ptr<osg::Material> material = new osg::Material;
     material->setColorMode(osg::Material::OFF); // switch glColor usage off
     Scene_ambiant = osg::Vec4f( ambian, ambian, ambian, 1.0f);            ;
@@ -410,11 +414,11 @@ void SDRender::Init(const tTrack *track)
     sunLight->getLight()->setSpecular(SceneSpecular);
     sunLight->setStateSetModes(*stateSet, osg::StateAttribute::ON);
 
-    osg::Vec3f sun_position = thesky->sunposition();
-    osg::Vec3f sun_direction = -sun_position;
-    osg::Vec4f position(sun_position, 1.0f);
+    osg::Vec3f ls_position = thesky->get_main_light_source_position();
+    osg::Vec3f ls_direction = -ls_position;
+    osg::Vec4f position(ls_position, 1.0f);
     sunLight->getLight()->setPosition(position);
-    sunLight->getLight()->setDirection(sun_direction);
+    sunLight->getLight()->setDirection(ls_direction);
 
     osg::ref_ptr<osg::Group> skyGroup = new osg::Group;
     skyGroup->setName("skyCloudsGroup");
@@ -537,7 +541,9 @@ void SDRender::UpdateLight(const tTrack *track)
 {
     sol_angle = (float)thesky->getSA();
     moon_angle = (float)thesky->getMA();
-    sky_brightness = (float)(1.0 + cos(sol_angle)) / 2.0f;
+
+    sky_brightness = thesky->get_brightness();
+    float light_source_brightness = std::max(MIN_MAIN_LIGHT_BRIGHTNESS, sky_brightness);
 
     if (track->local.rain > 0)
     {
@@ -585,20 +591,20 @@ void SDRender::UpdateLight(const tTrack *track)
     // 3c) update scene colors.
     if (SDVisibility > 1000 /*&& cloudsTextureIndex < 8*/)
     {
-        SceneAmbiant = osg::Vec4f((sun_color * 0.25f) + (CloudsColor * 0.75f) * sky_brightness, 1.0f);
-        SceneDiffuse = osg::Vec4f((sun_color * 0.25f) + (FogColor * 0.75f) * sky_brightness, 1.0f);
-        SceneSpecular = osg::Vec4f(sun_color * sky_brightness, 1.0f);
+        SceneAmbiant = osg::Vec4f((sun_color * 0.25f) + (CloudsColor * 0.75f) * light_source_brightness, 1.0f);
+        SceneDiffuse = osg::Vec4f((sun_color * 0.25f) + (FogColor * 0.75f) * light_source_brightness, 1.0f);
+        SceneSpecular = osg::Vec4f(sun_color * light_source_brightness, 1.0f);
     }
     else
     {
-        SceneAmbiant = osg::Vec4f(((CloudsColor._v[0] * 0.75f) + (sun_color._v[0] * 0.25f)) * sky_brightness,
-                ((CloudsColor._v[1] * 0.75f) + (sun_color._v[0] * 0.25f)) * sky_brightness,
-                ((CloudsColor._v[2] * 0.75f) + (sun_color._v[0] * 0.25f)) * sky_brightness, 1.0f);
-        SceneDiffuse = osg::Vec4f(((FogColor._v[0] * 0.75f) + (sun_color._v[0] * 0.25f)) * sky_brightness,
-                ((FogColor._v[1] * 0.75f) + (sun_color._v[0] * 0.25f)) * sky_brightness,
-                ((FogColor._v[2] * 0.75f) + (sun_color._v[0] * 0.25f)) * sky_brightness, 1.0f);
-        SceneSpecular = osg::Vec4f(sun_color._v[0] * sky_brightness, sun_color._v[0] * sky_brightness,
-                sun_color._v[0] * sky_brightness, 1.0f);
+        SceneAmbiant = osg::Vec4f(((CloudsColor._v[0] * 0.75f) + (sun_color._v[0] * 0.25f)) * light_source_brightness,
+                ((CloudsColor._v[1] * 0.75f) + (sun_color._v[0] * 0.25f)) * light_source_brightness,
+                ((CloudsColor._v[2] * 0.75f) + (sun_color._v[0] * 0.25f)) * light_source_brightness, 1.0f);
+        SceneDiffuse = osg::Vec4f(((FogColor._v[0] * 0.75f) + (sun_color._v[0] * 0.25f)) * light_source_brightness,
+                ((FogColor._v[1] * 0.75f) + (sun_color._v[0] * 0.25f)) * light_source_brightness,
+                ((FogColor._v[2] * 0.75f) + (sun_color._v[0] * 0.25f)) * light_source_brightness, 1.0f);
+        SceneSpecular = osg::Vec4f(sun_color._v[0] * light_source_brightness, sun_color._v[0] * light_source_brightness,
+                sun_color._v[0] * light_source_brightness, 1.0f);
     }
 }//grUpdateLight
 
@@ -763,8 +769,9 @@ void SDRender::UpdateSky(double currentTime, double accelTime, double X, double 
     sunLight->getLight()->setSpecular(SceneSpecular);
     sunLight->setStateSetModes(*stateSet,osg::StateAttribute::ON);
 
-    float emis = 0.5f * sky_brightness;
-    float ambian = 0.8f * sky_brightness;
+    float light_source_brightness = std::max(MIN_MAIN_LIGHT_BRIGHTNESS, sky_brightness);
+    float emis = 0.5f * light_source_brightness;
+    float ambian = 0.8f * light_source_brightness;
 
     Scene_ambiant = osg::Vec4f(ambian, ambian, ambian, 1.0f);
     osg::ref_ptr<osg::Material> material = new osg::Material;
@@ -774,11 +781,11 @@ void SDRender::UpdateSky(double currentTime, double accelTime, double X, double 
     stateSet->setAttributeAndModes(material, osg::StateAttribute::OVERRIDE|osg::StateAttribute::ON);
     stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OVERRIDE|osg::StateAttribute::ON);
 
-    osg::Vec3f sun_position = thesky->sunposition();
-    osg::Vec3f sun_direction = -sun_position;
-    osg::Vec4f position(sun_position, 1.0f);
+    osg::Vec3f ls_position = thesky->get_main_light_source_position();
+    osg::Vec3f ls_direction = -ls_position;
+    osg::Vec4f position(ls_position, 1.0f);
     sunLight->getLight()->setPosition(position);
-    sunLight->getLight()->setDirection(sun_direction);
+    sunLight->getLight()->setDirection(ls_direction);
 
 }//grUpdateSky
 
