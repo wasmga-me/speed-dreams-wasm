@@ -55,12 +55,7 @@ SET(ROBOT_SOURCES
     src/Wheels.cpp
     src/Wheels.h )
 
-# Official-only AXIOM instances.
-SET(ROBOT_CLONES axiom_01GPA axiom_09GP5 axiom_10GP4 axiom_91GP axiom_11GPA axiom_12GPA axiom_36GP axiom_67GP axiom_sca axiom_scb axiom_scc
-				 axiom_ls2 axiom_rs axiom_ls1 axiom_lp2)
-
 # The ubiquitous robot module and its clones.
 ROBOT_MODULE(NAME ${ROBOT_NAME} VERSION 3.3.0 SOVERSION 1.0.0
              INTERFACE ${ROBOT_INTERFACE}
-             SOURCES ${ROBOT_SOURCES}
-             CLONENAMES ${ROBOT_CLONES})
+             SOURCES ${ROBOT_SOURCES})
