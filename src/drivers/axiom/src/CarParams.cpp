@@ -161,6 +161,32 @@ void CarParams::readStrategySection(const MyParam& param, double temperature, in
         mMaxFuel330KM  = param.getNum("strategy fuel", "rain fuel others");
     }
 
+    if (!(int)mMaxFuel5Laps)
+        mMaxFuel5Laps = 30.0;
+
+    if (!(int)mMaxFuel10Laps)
+        mMaxFuel10Laps = 50.0;
+
+    if (!(int)mMaxFuel80KM)
+        mMaxFuel80KM = 40.0;
+
+    if (!(int)mMaxFuel160KM)
+        mMaxFuel160KM = 63.0;
+
+    if (!(int)mMaxFuel320KM)
+        mMaxFuel320KM = 70.0;
+
+    if (!(int)mMaxFuel330KM)
+        mMaxFuel330KM = 70.0;
+
+    LogAXIOM.debug("# Strategy 5 Laps     = %.2f\n", mMaxFuel5Laps);
+    LogAXIOM.debug("# Strategy 10 Laps    = %.2f\n", mMaxFuel10Laps);
+    LogAXIOM.debug("# Strategy 80 KM      = %.2f\n", mMaxFuel80KM);
+    LogAXIOM.debug("# Strategy 160 KM     = %.2f\n", mMaxFuel160KM);
+    LogAXIOM.debug("# Strategy 320 KM     = %.2f\n", mMaxFuel320KM);
+    LogAXIOM.debug("# Strategy 330 KM     = %.2f\n", mMaxFuel330KM);
+    LogAXIOM.debug("# Strategy num arrets = %i\n",   mMaxArrets);
+
     if(HASCPD == false)
     {
         if (temperature < 8.0)
@@ -241,32 +267,6 @@ void CarParams::readStrategySection(const MyParam& param, double temperature, in
             mMaxArrets     = param.getNum("strategy 35", "num arrets");
             LogAXIOM.debug("# AXIOM Strategy temperature > 31\n");
         }
-
-        if (mMaxFuel5Laps == 0.0)
-            mMaxFuel5Laps = 30.0;
-
-        if (mMaxFuel10Laps == 0.0)
-            mMaxFuel10Laps = 50.0;
-
-        if (mMaxFuel80KM == 0.0)
-            mMaxFuel80KM = 40.0;
-
-        if (mMaxFuel160KM == 0.0)
-            mMaxFuel160KM = 63.0;
-
-        if (mMaxFuel320KM == 0.0)
-            mMaxFuel320KM = 70.0;
-
-        if (mMaxFuel330KM == 0.0)
-            mMaxFuel330KM = 70.0;
-
-        LogAXIOM.debug("# Strategy 5 Laps     = %.2f\n", mMaxFuel5Laps);
-        LogAXIOM.debug("# Strategy 10 Laps    = %.2f\n", mMaxFuel10Laps);
-        LogAXIOM.debug("# Strategy 80 KM      = %.2f\n", mMaxFuel80KM);
-        LogAXIOM.debug("# Strategy 160 KM     = %.2f\n", mMaxFuel160KM);
-        LogAXIOM.debug("# Strategy 320 KM     = %.2f\n", mMaxFuel320KM);
-        LogAXIOM.debug("# Strategy 330 KM     = %.2f\n", mMaxFuel330KM);
-        LogAXIOM.debug("# Strategy num arrets = %i\n",   mMaxArrets);
 
         LogAXIOM.debug("# front wheel right pressure = %.2f\n", mPressureFR / 6894.76f);
         LogAXIOM.debug("# front wheel left  pressure = %.2f\n", mPressureFL / 6894.76f);
