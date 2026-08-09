@@ -25,14 +25,21 @@
 MyParam::MyParam(void** carparmhandle, const std::string& datadir, const std::string& trackname)
 {
   std::string trackfile = datadir + trackname + ".xml";
-  std::string defaultfile = datadir + "default.xml";
+  std::string cardefaultfile = datadir + "default.xml";
 
   *carparmhandle = GfParmReadFile(trackfile.c_str(), GFPARM_RMODE_STD);
 
   if (*carparmhandle == nullptr)
   {
-    *carparmhandle = GfParmReadFile(defaultfile.c_str(), GFPARM_RMODE_STD);
-    assert(*carparmhandle != nullptr && "default.xml file not found");
+    *carparmhandle = GfParmReadFile(cardefaultfile.c_str(), GFPARM_RMODE_STD);
+
+    if (*carparmhandle == nullptr)
+    {
+      std::string defaultfile("drivers/axiom/default" PARAMEXT);
+
+      *carparmhandle = GfParmReadFile(defaultfile.c_str(), GFPARM_RMODE_STD);
+      assert(*carparmhandle != nullptr && "default.xml file not found");
+    }
   }
 
   mCarParmHandle = *carparmhandle;
