@@ -121,9 +121,10 @@ void Driver::InitTrack(tTrack* track, void* carHandle, void** carParmHandle,
     std::string mData(std::string(GetDataDir()) + "drivers/" + rName + "/" + cName + "/");
     mDataDir = mData;
 
-    if(situation->raceInfo.type == RM_TYPE_QUALIF || situation->_totLaps == 3)
+    if (GfDirExists((mData + "qualif/").c_str())
+        && (situation->raceInfo.type == RM_TYPE_QUALIF || situation->_totLaps == 3))
         mDataDir = mData+"qualif/";
-    else
+    else if (GfDirExists((mData + "race/").c_str()))
         mDataDir = mData+"race/";
 
     LogAXIOM.debug("# Path Param = %s\n", mDataDir.c_str());
@@ -190,9 +191,9 @@ void Driver::InitTrack(tTrack* track, void* carHandle, void** carParmHandle,
 
     //load the driver skill level, range 0 - 1
     SkillDriver = 0.0f;
-    snprintf(buffer, sizeof(buffer), "%sdrivers/%s/%d/skill.xml", GetDataDir(), mDriverName, INDEX);
+    snprintf(buffer, sizeof(buffer), "drivers/%s/%d/skill.xml", mDriverName, INDEX);
     LogAXIOM.debug("Path skill driver: %s\n", buffer);
-    skillHandle = GfParmReadFile(buffer, GFPARM_RMODE_STD);
+    skillHandle = GfParmReadFileLocal(buffer, GFPARM_RMODE_STD);
 
     if (skillHandle)
     {
