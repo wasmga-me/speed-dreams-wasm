@@ -93,7 +93,7 @@ void Driver::InitTrack(tTrack* track, void* carHandle, void** carParmHandle,
     std::string cName;
     std::string rName;
 
-    trackname = track->sname;
+    trackname = track->internalname;
     LogAXIOM.debug( " # AXIOM trackName: '%s'\n", trackname );
     tName = trackname;
     Track = track;
