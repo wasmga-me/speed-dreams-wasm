@@ -710,10 +710,10 @@ osg::ref_ptr<osg::Node> SDCar::loadCar(tCarElt *Car, bool tracktype,
             GfLogError("Failed to load %s\n", carname.c_str());
         else
         {
-            car->_tachometerMinAngle = -GfParmGetNum(handle, path, PRM_TACHO_MINANG, "deg",
+            car->_tachometerMinAngle = -GfParmGetNum(handle, path, PRM_TMN_MIN_ANGLE, "deg",
                                                         GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MINANG, "deg", 225.f * 180.f / PI)) * PI / 180.f;
 
-            tdble tachometerMaxAngle = -GfParmGetNum(handle, path, PRM_TACHO_MAXANG, "deg",
+            tdble tachometerMaxAngle = -GfParmGetNum(handle, path, PRM_TMN_MAX_ANGLE, "deg",
                                                         GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MAXANG, "deg", -45.f * 180.f / PI)) * PI / 180.f;
             tdble tachometerMinValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MINVAL, (char*)NULL, 0);
             tdble tachometerMaxValue = GfParmGetNum(handle, SECT_GROBJECTS, PRM_TACHO_MAXVAL, (char*)NULL, RPM2RADS(10000));
