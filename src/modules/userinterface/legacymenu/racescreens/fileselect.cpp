@@ -100,6 +100,9 @@ rmOnDeactivate(void * /* dummy */ )
 		FileList = NULL;
 	}
 
+	GfuiScreenRelease(ScrHandle);
+	ScrHandle = NULL;
+
 	// Fire the return screen.
 	GfuiScreenActivate(RmFs->prevScreen);
 }
