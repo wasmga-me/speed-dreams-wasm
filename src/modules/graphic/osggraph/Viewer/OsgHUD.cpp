@@ -1383,7 +1383,8 @@ void SDHUD::Refresh(tSituation *s, const SDFrameInfo* frameInfo,
                 tempStr << ' ' << tr("laps");
             }
 
-            hudTextElements[mapKey.str()]->setText(tempStr.str());
+            hudTextElements[mapKey.str()]->setText(tempStr.str(),
+                osgText::String::Encoding::ENCODING_UTF8);
             hudTextElements[mapKey.str()]->setNodeMask(NODE_MASK_ALL);
             //hide time diff for our car
             if ((*car) == currCar)
