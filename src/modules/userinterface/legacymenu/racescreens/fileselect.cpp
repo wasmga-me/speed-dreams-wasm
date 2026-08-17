@@ -23,6 +23,7 @@
 
 
 #include <tgfclient.h>
+#include <legacymenu.h>
 #include <translation.h>
 
 #include "racescreens.h"
@@ -100,6 +101,9 @@ rmOnDeactivate(void * /* dummy */ )
 		FileList = NULL;
 	}
 
+	GfuiScreenRelease(ScrHandle);
+	ScrHandle = NULL;
+
 	// Fire the return screen.
 	GfuiScreenActivate(RmFs->prevScreen);
 }
@@ -137,7 +141,8 @@ RmFileSelect(void *pFileSelect)
 
 	// Create variable title label.
 	const int titleId = GfuiMenuCreateLabelControl(ScrHandle, menuXMLDescHdle, "TitleLabel");
-	GfuiLabelSetText(ScrHandle, titleId, RmFs->title.c_str());
+	std::string key = "racemode/" + RmFs->title;
+	GfuiLabelSetText(ScrHandle, titleId, LegacyMenu::self().tr(key.c_str()));
 
 	// Create the Scroll List containing the File list
 	FilesScrollListId = GfuiMenuCreateScrollListControl(ScrHandle, menuXMLDescHdle, "FilesScrollList",
