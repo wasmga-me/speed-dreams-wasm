@@ -232,3 +232,10 @@ set(RHASH_PROJECT rhash-${RHASH_VERSION})
 set(RHASH_FILE ${RHASH_PROJECT}-src.tar.gz)
 set(RHASH_URL https://deac-riga.dl.sourceforge.net/project/rhash/rhash/${RHASH_VERSION}/${RHASH_FILE}?viasf=1)
 set(RHASH_HASH SHA256=8e7d1a8ccac0143c8fe9b68ebac67d485df119ea17a613f4038cda52f84ef52a)
+
+# utf8proc
+set(UTF8PROC_VERSION 2.11.3)
+set(UTF8PROC_PROJECT utf8proc-${UTF8PROC_VERSION})
+set(UTF8PROC_FILE ${UTF8PROC_PROJECT}.tar.gz)
+set(UTF8PROC_URL https://github.com/JuliaStrings/utf8proc/releases/download/v${UTF8PROC_VERSION}/${UTF8PROC_FILE})
+set(UTF8PROC_HASH SHA256=415189fd2c85cd6ee5ff26af500fa387de9ada1e3e316e93f7338551481d557d)
