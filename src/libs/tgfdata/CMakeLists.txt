@@ -2,6 +2,8 @@ INCLUDE(../../../cmake/macros.cmake)
 
 #PROJECT(tgfdata)
 
+find_package(utf8proc REQUIRED)
+
 ADD_PLIB_INCLUDEDIR()
 
 ADD_INTERFACE_INCLUDEDIR()
@@ -35,7 +37,7 @@ IF(CMAKE_SKIP_RPATH OR CMAKE_SKIP_BUILD_RPATH)
     SD_ADD_LIBRARY(tgfdata_static STATIC ${TGFDATA_SOURCES})
 ENDIF(CMAKE_SKIP_RPATH OR CMAKE_SKIP_BUILD_RPATH)
 
-ADD_SDLIB_LIBRARY(tgfdata portability txml tgf tgfclient) # txml ignored if OPTION_3RDPARTY_EXPAT
+ADD_SDLIB_LIBRARY(tgfdata portability txml tgf tgfclient utf8proc::utf8proc) # txml ignored if OPTION_3RDPARTY_EXPAT
 
 target_include_directories(tgfdata PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 

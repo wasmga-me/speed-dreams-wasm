@@ -18,6 +18,7 @@
 
 #include <portability.h>
 
+#include <utf8proc.h>
 #include <cctype>
 #include <map>
 #include <sstream>
@@ -1550,6 +1551,70 @@ std::vector<GfDriverSkin> GfDrivers::getskins(const std::string &car)
     return skins;
 }
 
+int GfDrivers::gensname(const char *name, const char *surname, std::string &out)
+    const
+{
+    std::string sname;
+    const utf8proc_uint8_t *uname = (const utf8proc_uint8_t *)name;
+    utf8proc_uint8_t buf[sizeof (utf8proc_int32_t) + 1] = {0};
+    utf8proc_int32_t endpoint;
+    utf8proc_ssize_t n = utf8proc_iterate(uname, strlen(name), &endpoint);
+
+    if (n < 0)
+    {
+        GfLogError("utf8proc_iterate failed: %s\n", utf8proc_errmsg(n));
+        return -1;
+    }
+    else if ((n = utf8proc_encode_char(endpoint, buf)) < 0)
+    {
+        GfLogError("utf8proc_encode_char failed: %s\n", utf8proc_errmsg(n));
+        return -1;
+    }
+
+    sname += (const char *)buf;
+    sname += ". ";
+    sname += surname;
+    out = sname;
+    return 0;
+}
+
+int GfDrivers::gencname(const char *surname, std::string &out) const
+{
+    std::string cname;
+    const utf8proc_uint8_t *usurname = (const utf8proc_uint8_t *)surname;
+    utf8proc_uint8_t buf[sizeof (utf8proc_int32_t) + 1] = {0};
+    utf8proc_int32_t endpoint;
+    utf8proc_ssize_t len = strlen(surname);
+
+    for (int i = 0; i < 3; i++)
+    {
+        utf8proc_ssize_t n;
+
+        if (len <= 0)
+            break;
+        else if ((n = utf8proc_iterate(usurname, len, &endpoint)) < 0)
+        {
+            GfLogError("utf8proc_iterate failed: %s\n", utf8proc_errmsg(n));
+            return -1;
+        }
+
+        endpoint = utf8proc_toupper(endpoint);
+        usurname += n;
+        len -= n;
+
+        if ((n = utf8proc_encode_char(endpoint, buf)) < 0)
+        {
+            GfLogError("utf8proc_encode_char failed: %s\n", utf8proc_errmsg(n));
+            return -1;
+        }
+
+        cname += (const char *)buf;
+    }
+
+    out = cname;
+    return 0;
+}
+
 int GfDrivers::genident(struct GfDrivers::identity &ident) const
 {
     size_t index;
@@ -1583,9 +1648,8 @@ int GfDrivers::genident(struct GfDrivers::identity &ident) const
     }
 
     index %= n.n_names;
-    ident.name = n.names[index];
-    ident.short_name = n.names[index][0];
-    ident.short_name += ".";
+
+    const char *name = n.names[index];
 
     if (portability::rand(&index, sizeof index))
     {
@@ -1594,16 +1658,21 @@ int GfDrivers::genident(struct GfDrivers::identity &ident) const
     }
 
     const char *surname = n.surnames[index %= n.n_surnames];
-    std::string code_name = std::string(surname).substr(0, 3);
 
-    for (auto &c: code_name)
-        c = ::toupper(c);
+    if (gensname(name, surname, ident.short_name))
+    {
+        GfLogError("Failed to generate short name\n");
+        return -1;
+    }
+    else if (gencname(surname, ident.code_name))
+    {
+        GfLogError("Failed to generate code name\n");
+        return -1;
+    }
 
+    ident.name = name;
     ident.name += " ";
-    ident.short_name += " ";
-    ident.code_name = code_name;
     ident.name += surname;
-    ident.short_name += surname;
     return 0;
 }
 
