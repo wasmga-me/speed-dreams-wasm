@@ -203,11 +203,12 @@ else()
 endif()
 
 if(OPTION_ZLIB)
+   set(ZLIB_ARGS ${EXTERNALS_CMAKE_ARGS} -DZLIB_BUILD_TESTING=Off)
    ExternalProject_Add(${ZLIB_PROJECT}
       DOWNLOAD_NAME ${ZLIB_FILE}
       URL ${ZLIB_URL}
       URL_HASH ${ZLIB_HASH}
-      CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS})
+      CMAKE_ARGS ${ZLIB_ARGS})
 else()
    set(ZLIB_PROJECT )
 endif()
