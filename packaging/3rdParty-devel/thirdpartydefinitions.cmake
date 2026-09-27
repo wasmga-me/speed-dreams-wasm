@@ -95,8 +95,8 @@ set(OPENAL_LEGACY_HASH SHA256=a598241d1af2e90c25a1b91da4c9ddc0e7cb6a4b5f1477fc68
 # PLIB
 set(PLIB_TAG v1.8.5-sd3)
 set(PLIB_PROJECT plib-${PLIB_TAG})
-set(PLIB_URL https://forge.a-lec.org/speed-dreams/plib/archive/${PLIB_TAG}.tar.gz)
-set(PLIB_HASH SHA256=2ac882854467aea9ed077f2c522366bcba50dda2c92b79064230d697a514b37b)
+set(PLIB_URL https://files.speed-dreams.net/public/87a261d17faf7b88420ae92c1969553a)
+set(PLIB_HASH SHA256=b659039748592399cdccda0204d5e4c495a6b3b30c8cd82b98b930ff02512b4a)
 
 # jpeg
 set(JPEG_VERSION 9f)
