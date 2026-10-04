@@ -217,6 +217,9 @@ MACRO(SD_INSTALL_CUSTOM_3RDPARTY TARGET_NAME)
 	_FIND_3RDPARTY_DLL("${PLIB_SL_LIBRARY}" "plibsl" "lib" _DLL_PATHNAME)
 	LIST(APPEND _THIRDPARTY_DLL_PATHNAMES "${_DLL_PATHNAME}")
 
+	_FIND_3RDPARTY_DLL("${utf8proc_LIBRARIES}" "utf8proc" "lib" _DLL_PATHNAME)
+	LIST(APPEND _THIRDPARTY_DLL_PATHNAMES "${_DLL_PATHNAME}")
+
 	# 2) Copy found 3rd party DLL files to the bin folder (for running without installing).
 	#MESSAGE(STATUS "3rdParty dependencies : Will install ${_THIRDPARTY_DLL_PATHNAMES}")
     SET(_NOINST_DIR "${CMAKE_BINARY_DIR}/${SD_BINDIR}")

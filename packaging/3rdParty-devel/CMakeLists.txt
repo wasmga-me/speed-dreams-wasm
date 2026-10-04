@@ -118,6 +118,7 @@ option(OPTION_TINYGLTF "Download and Build TinyGLTF" false)
 option(OPTION_MINIZIP "Download and Build minizip" true)
 option(OPTION_CJSON "Download and Build cjson" true)
 option(OPTION_RHASH "Download and Build rhash" true)
+option(OPTION_UTF8PROC "Download and Build utf8proc" true)
 option(OPTION_CACHED_ARCHIVES "Download from a defined cache" false)
 
 set(CACHED_URL "" CACHE STRING "Preferred url from which to download")
@@ -146,6 +147,7 @@ if(OPTION_CACHED_ARCHIVES)
    set(MINIZIP_URL "${CACHED_URL}/${MINIZIP_FILE}")
    set(CJSON_URL "${CACHED_URL}/${CJSON_FILE}")
    set(RHASH_URL "${CACHED_URL}/${RHASH_FILE}")
+   set(UTF8PROC_URL "${CACHED_URL}/${UTF8PROC_FILE}")
 endif()
 
 
@@ -203,11 +205,12 @@ else()
 endif()
 
 if(OPTION_ZLIB)
+   set(ZLIB_ARGS ${EXTERNALS_CMAKE_ARGS} -DZLIB_BUILD_TESTING=Off)
    ExternalProject_Add(${ZLIB_PROJECT}
       DOWNLOAD_NAME ${ZLIB_FILE}
       URL ${ZLIB_URL}
       URL_HASH ${ZLIB_HASH}
-      CMAKE_ARGS ${EXTERNALS_CMAKE_ARGS})
+      CMAKE_ARGS ${ZLIB_ARGS})
 else()
    set(ZLIB_PROJECT )
 endif()
@@ -656,6 +659,16 @@ if(OPTION_RHASH)
       DEPENDERS patch)  # do before patch
 else()
    set(RHASH_PROJECT )
+endif()
+
+if(OPTION_UTF8PROC)
+   set(UTF8PROC_ARGS ${EXTERNALS_CMAKE_ARGS})
+   ExternalProject_Add(${UTF8PROC_PROJECT}
+      URL ${UTF8PROC_URL}
+      URL_HASH ${UTF8PROC_HASH}
+      CMAKE_ARGS ${UTF8PROC_ARGS})
+else()
+   set(UTF8PROC_PROJECT )
 endif()
 
 # no-output target, for having some files available in IDEs.

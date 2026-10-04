@@ -197,6 +197,20 @@ int transfer::start(const char *url, long max, const headers &headers)
             curl_easy_strerror(code));
         goto failure;
     }
+    else if ((code = curl_easy_setopt(h, CURLOPT_LOW_SPEED_TIME, 15L))
+        != CURLE_OK)
+    {
+        GfLogError("curl_easy_setopt low speed time: %s\n",
+            curl_easy_strerror(code));
+        goto failure;
+    }
+    else if ((code = curl_easy_setopt(h, CURLOPT_LOW_SPEED_LIMIT, 100L))
+        != CURLE_OK)
+    {
+        GfLogError("curl_easy_setopt low speed limit: %s\n",
+            curl_easy_strerror(code));
+        goto failure;
+    }
     else if (s)
     {
         if ((code = curl_easy_setopt(h, CURLOPT_WRITEFUNCTION, write))

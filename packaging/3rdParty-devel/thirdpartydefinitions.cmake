@@ -95,8 +95,8 @@ set(OPENAL_LEGACY_HASH SHA256=a598241d1af2e90c25a1b91da4c9ddc0e7cb6a4b5f1477fc68
 # PLIB
 set(PLIB_TAG v1.8.5-sd3)
 set(PLIB_PROJECT plib-${PLIB_TAG})
-set(PLIB_URL https://forge.a-lec.org/speed-dreams/plib/archive/${PLIB_TAG}.tar.gz)
-set(PLIB_HASH SHA256=2ac882854467aea9ed077f2c522366bcba50dda2c92b79064230d697a514b37b)
+set(PLIB_URL https://files.speed-dreams.net/public/87a261d17faf7b88420ae92c1969553a)
+set(PLIB_HASH SHA256=b659039748592399cdccda0204d5e4c495a6b3b30c8cd82b98b930ff02512b4a)
 
 # jpeg
 set(JPEG_VERSION 9f)
@@ -232,3 +232,10 @@ set(RHASH_PROJECT rhash-${RHASH_VERSION})
 set(RHASH_FILE ${RHASH_PROJECT}-src.tar.gz)
 set(RHASH_URL https://deac-riga.dl.sourceforge.net/project/rhash/rhash/${RHASH_VERSION}/${RHASH_FILE}?viasf=1)
 set(RHASH_HASH SHA256=8e7d1a8ccac0143c8fe9b68ebac67d485df119ea17a613f4038cda52f84ef52a)
+
+# utf8proc
+set(UTF8PROC_VERSION 2.11.3)
+set(UTF8PROC_PROJECT utf8proc-${UTF8PROC_VERSION})
+set(UTF8PROC_FILE ${UTF8PROC_PROJECT}.tar.gz)
+set(UTF8PROC_URL https://github.com/JuliaStrings/utf8proc/releases/download/v${UTF8PROC_VERSION}/${UTF8PROC_FILE})
+set(UTF8PROC_HASH SHA256=415189fd2c85cd6ee5ff26af500fa387de9ada1e3e316e93f7338551481d557d)

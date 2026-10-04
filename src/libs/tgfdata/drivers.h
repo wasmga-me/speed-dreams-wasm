@@ -212,6 +212,8 @@ protected:
 		const std::string &car, const std::string &dir,
 		std::vector<std::string> &names) const;
 	int genident(struct identity &ident) const;
+	int gensname(const char *name, const char *surname, std::string &out) const;
+	int gencname(const char *surname, std::string &out) const;
 	int genskill(const std::string &driver, const std::string &dir) const;
 	bool supports_aggression(const std::string &driver) const;
 	int pickdriver(std::string &seldriver) const;
