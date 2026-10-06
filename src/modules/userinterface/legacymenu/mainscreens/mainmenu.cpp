@@ -18,6 +18,7 @@
 
 #include <tgfclient.h>
 #include <musicplayer.h>
+#include <sound.h>
 #include <notification.h>
 #include <translation.h>
 
@@ -131,6 +132,18 @@ MainMenuInit(bool SupportsHumanDrivers)
         GfuiLabelSetText(MenuHandle, version, GfuiApp().version().c_str());
 
     GfParmReleaseHandle(menuDescHdle);
+
+    void *soundCfgHandle = GfParmReadFileLocal(SND_PARAM_FILE, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
+    float musicVolume = GfParmGetNum(soundCfgHandle, SND_SCT_MUSIC, SND_ATT_MUSIC_VOLUME, "%", 100.0f);
+    if (musicVolume > 100.0f) {
+        musicVolume = 100.0f;
+    }
+    else if (musicVolume < 0.0f) {
+        musicVolume = 0.0f;
+    }
+    setMusicVolume(musicVolume);
+    GfParmReleaseHandle(soundCfgHandle);
+
     return MenuHandle;
 }
 
