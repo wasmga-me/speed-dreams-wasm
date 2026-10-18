@@ -53,7 +53,7 @@ static const char *DefaultWebserverpassword  = "password";
 static const char *strNation[] = { "AC", "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AQ", "AR", "AS", "AT", "AU", "AW",
                                  "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BL", "BM", "BN", "BO",
                                  "BQ", "BR", "BS", "BT", "BV", "BW", "BY", "BZ", "CA", "CC", "CD", "CEFTA", "CF", "CG", "CH",
-                                 "CI", "CK", "CL", "CM", "CN", "CO", "CP", "CR", "CU", "CV", "CW", "CX", "CY", "CZ", "DE",
+                                 "CI", "CK", "CL", "CM", "CN", "CO", "CP", "CR", "CRO", "CU", "CV", "CW", "CX", "CY", "CZ", "DE",
                                  "DG", "DJ", "DK", "DM", "DO", "DZ", "EA", "EC", "EE", "EG", "EH", "ER", "ES", "ES-CT", "ES-GA",
                                  "ES-PV", "ET", "EU", "FI", "FJ", "FK", "FM", "FO", "FR", "GA", "GB", "GB-ENG", "GB-NIR", "GB-SCT",
                                  "GB-WLS", "GD", "GE", "GF", "GG", "GH", "GI", "GL", "GM", "GN", "GP", "GQ", "GR", "GS", "GT",
