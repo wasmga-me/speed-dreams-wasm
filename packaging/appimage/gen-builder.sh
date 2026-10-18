@@ -82,6 +82,7 @@ AppDir:
     - libsdl2-mixer-2.0-0
     - libsdl2-ttf-2.0-0
     - librhash0
+    - libutf8proc2
     - libpng16-16
     - libjpeg8
     - libx11-6
