@@ -39,6 +39,7 @@
 #endif
 
 #include "tgfclient.h"
+#include "translation.h"
 
 #include "guifont.h"
 
@@ -96,7 +97,7 @@ void gfuiLoadFonts(void)
 	param = GfParmReadFileLocal(GFSCR_CONF_FILE, GFPARM_RMODE_STD | GFPARM_RMODE_CREAT);
 
 	snprintf(buf, sizeof(buf), "%sdata/fonts/%s", GfDataDir(),
-			 GfParmGetStr(param, "Menu Font TrueType", "name",
+			 GfuiGetTranslatedText(param, "Menu Font TrueType", "name",
 				"Jura/Jura-DemiBold.ttf"));
 	GfLogTrace("Loading font 'Menu Font' from %s : Sizes", buf);
 	nFontId = GFUI_FONT_BIG;
@@ -109,7 +110,7 @@ void gfuiLoadFonts(void)
 	GfLogTrace("\n");
 
 	snprintf(buf, sizeof(buf), "%sdata/fonts/%s", GfDataDir(),
-			 GfParmGetStr(param, "Console Font TrueType", "name",
+			 GfuiGetTranslatedText(param, "Console Font TrueType", "name",
 				"LiberationSans/LiberationSans-Bold.ttf"));
 	GfLogTrace("Loading font 'Console Font' from %s : Sizes", buf);
 	nFontId = GFUI_FONT_BIG_C;
@@ -122,7 +123,7 @@ void gfuiLoadFonts(void)
 	GfLogTrace("\n");
 
 	snprintf(buf, sizeof(buf), "%sdata/fonts/%s", GfDataDir(),
-			 GfParmGetStr(param, "Text Font TrueType", "name",
+			 GfuiGetTranslatedText(param, "Text Font TrueType", "name",
 				"DroidSans/DroidSans.ttf"));
 	GfLogTrace("Loading font 'Text Font' from %s : Sizes", buf);
 	nFontId = GFUI_FONT_BIG_T;

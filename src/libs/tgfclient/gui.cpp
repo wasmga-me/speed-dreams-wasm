@@ -119,6 +119,7 @@ gfuiInit(void)
 {
 	gfuiInitObject();
 	gfuiInitColor();
+	gfuiInitLanguage();
 	gfuiLoadFonts();
 	gfuiInitButton();
 	gfuiInitCombobox();
@@ -128,7 +129,6 @@ gfuiInit(void)
 	gfuiInitLabel();
 	gfuiInitHelp();
 	gfuiInitMenu();
-	gfuiInitLanguage();
 	gfuiInitMenuSfx();
 	initMusic();
 	gfuiInitWebStats();
