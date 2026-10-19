@@ -144,7 +144,7 @@ static const char *GB_surnames[] =
     "Clark",
 };
 
-static const char *const CR_names[] =
+static const char *const CRO_names[] =
 {
     "Mia",
     "Nika",
@@ -168,7 +168,7 @@ static const char *const CR_names[] =
     "Ivan",
 };
 
-static const char *const CR_surnames[] =
+static const char *const CRO_surnames[] =
 {
     "Horvat",
     "Kovačević",
@@ -597,7 +597,7 @@ const struct GfDrivers::names GfDrivers::names[] =
     NATION(JP),
     NATION(GB),
     NATION(DE),
-    NATION(CR),
+    NATION(CRO),
     NATION(IT),
     NATION(FR),
     NATION(IN),
