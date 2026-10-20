@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE params SYSTEM "params.dtd">
+
+
+<params name="simplix">
+  <section name="driver">
+    <attstr name="name" val="Arthur Thomas"/>
+    <attstr name="short name" val="A. Thomas"/>
+    <attstr name="code name" val="THO"/>
+    <attstr name="desc" val="Bot generated"/>
+    <attstr name="team" val="Velocity Racing"/>
+    <attstr name="author" val="Automatically generated"/>
+    <attstr name="car name" val="sc-boxer-96"/>
+    <attstr name="livery name" val="red"/>
+    <attstr name="race number" val="1"/>
+    <attstr name="red" val="1.0"/>
+    <attstr name="green" val="1.0"/>
+    <attstr name="blue" val="1.0"/>
+    <attstr name="nation" val="FR"/>
+  </section>
+
+</params>

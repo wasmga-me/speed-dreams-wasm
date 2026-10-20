@@ -1,0 +1,611 @@
+diff --git a/cmake/macros.cmake b/cmake/macros.cmake
+index 544b7aea3..0a8c073f9 100644
+--- a/cmake/macros.cmake
++++ b/cmake/macros.cmake
+@@ -176,6 +176,18 @@ MACRO(SD_ADD_LIBRARY TARGET_NAME TARGET_TYPE)
+       SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES PREFIX "")
+     ENDIF(UNIX OR MINGW)
+ 
++    # Emscripten has no shared libraries: modules and robots are linked into
++    # the game, so their entry points take the module name as a prefix and
++    # dlopen / dlsym look them up in a table (see tgf/wasmdl.h).
++    IF(EMSCRIPTEN)
++      TARGET_COMPILE_DEFINITIONS(${TARGET_NAME} PRIVATE
++        openGfModule=${TARGET_NAME}_openGfModule
++        closeGfModule=${TARGET_NAME}_closeGfModule
++        moduleWelcome=${TARGET_NAME}_moduleWelcome
++        moduleInitialize=${TARGET_NAME}_moduleInitialize
++        moduleTerminate=${TARGET_NAME}_moduleTerminate)
++    ENDIF(EMSCRIPTEN)
++
+   ENDIF()
+ 
+ ENDMACRO(SD_ADD_LIBRARY TARGET_NAME TARGET_TYPE)
+diff --git a/src/drivers/simplix/src/unitdriver.cpp b/src/drivers/simplix/src/unitdriver.cpp
+index 2b1e9cad6..218afa495 100644
+--- a/src/drivers/simplix/src/unitdriver.cpp
++++ b/src/drivers/simplix/src/unitdriver.cpp
+@@ -2562,12 +2562,12 @@ void TDriver::InitBrake()
+ }
+ //==========================================================================*
+ 
+-tdble F(tWing* wing)
++static tdble F(tWing* wing)
+ {
+     return	1 -	exp( pow(-(wing->a / wing->b),wing->c));
+ }
+ 
+-tdble CliftFromAoA(tWing* wing)
++static tdble CliftFromAoA(tWing* wing)
+ {
+     tdble angle = (tdble) (wing->angle	* 180/PI);
+     //fprintf(stderr,"wing->angle:	%g rad = angle:	%g deg\n",wing->angle,angle);
+diff --git a/src/libs/tgf/linuxspec.cpp b/src/libs/tgf/linuxspec.cpp
+index 028628700..2a9e0efac 100644
+--- a/src/libs/tgf/linuxspec.cpp
++++ b/src/libs/tgf/linuxspec.cpp
+@@ -53,6 +53,9 @@
+ #endif
+ 
+ #include "tgf.h"
++#ifdef __EMSCRIPTEN__
++#include "wasmdl.h"
++#endif
+ 
+ #include "os.h"
+ 
+diff --git a/src/libs/tgf/modinfo.cpp b/src/libs/tgf/modinfo.cpp
+index 5bfbecac9..3c1297a24 100644
+--- a/src/libs/tgf/modinfo.cpp
++++ b/src/libs/tgf/modinfo.cpp
+@@ -28,6 +28,9 @@
+ #ifndef _WIN32
+ #include <dlfcn.h>
+ #endif
++#ifdef __EMSCRIPTEN__
++#include "wasmdl.h"
++#endif
+ 
+ #include "tgf.h"
+ 
+diff --git a/src/libs/tgf/module.cpp b/src/libs/tgf/module.cpp
+index ef4febe2e..f2c24f472 100644
+--- a/src/libs/tgf/module.cpp
++++ b/src/libs/tgf/module.cpp
+@@ -39,6 +39,9 @@
+ # define dlopen(soFileName) dlopen(soFileName, RTLD_LAZY|RTLD_GLOBAL)
+ # define soLibHandle(handle) handle
+ #endif
++#ifdef __EMSCRIPTEN__
++# include "wasmdl.h"
++#endif
+ 
+ // Name and type of the 2 extern "C" module interface functions.
+ typedef int (*tModOpenFunc)(const char*, void*); // Returns 0 on success, !0 otherwise.
+diff --git a/src/libs/tgf/wasmdl.h b/src/libs/tgf/wasmdl.h
+new file mode 100644
+index 000000000..1abda2b30
+--- /dev/null
++++ b/src/libs/tgf/wasmdl.h
+@@ -0,0 +1,25 @@
++/*
++ * Emscripten builds link every module and robot into the game (there are no
++ * shared libraries in the browser), so dlopen / dlsym look the modules up in
++ * a table the game provides instead; the build prefixes each module's entry
++ * points with its name (see SD_ADD_LIBRARY in cmake/macros.cmake).
++ */
++#ifndef _WASMDL_H_
++#define _WASMDL_H_
++
++#undef dlopen
++#undef dlsym
++#undef dlclose
++#undef dlerror
++
++extern "C" void* sd_wasm_dlopen(const char* path);
++extern "C" void* sd_wasm_dlsym(void* handle, const char* name);
++extern "C" int sd_wasm_dlclose(void* handle);
++extern "C" const char* sd_wasm_dlerror();
++
++#define dlopen(path, ...) sd_wasm_dlopen(path)
++#define dlsym(handle, name) sd_wasm_dlsym(handle, name)
++#define dlclose(handle) sd_wasm_dlclose(handle)
++#define dlerror() sd_wasm_dlerror()
++
++#endif // _WASMDL_H_
+diff --git a/src/libs/tgfclient/CMakeLists.txt b/src/libs/tgfclient/CMakeLists.txt
+index eaaf061d9..9d8444409 100644
+--- a/src/libs/tgfclient/CMakeLists.txt
++++ b/src/libs/tgfclient/CMakeLists.txt
+@@ -80,7 +80,7 @@ IF(WIN32)
+     TARGET_LINK_LIBRARIES(tgfclient winmm)
+ ENDIF(WIN32)
+ 
+-IF(UNIX AND NOT HAIKU)
++IF(UNIX AND NOT HAIKU AND NOT EMSCRIPTEN)
+     ADD_X11_LIBRARY(tgfclient)
+     IF(OPTION_XRANDR)
+         ADD_XRANDR_LIBRARY(tgfclient)
+diff --git a/src/libs/tgfclient/glfeatures.cpp b/src/libs/tgfclient/glfeatures.cpp
+index bfd6b0b97..9ce7706ac 100644
+--- a/src/libs/tgfclient/glfeatures.cpp
++++ b/src/libs/tgfclient/glfeatures.cpp
+@@ -19,6 +19,10 @@
+ #include <limits>
+ 
+ #include <SDL.h>
++#ifdef __EMSCRIPTEN__
++// gl4es's header first, so the calls below get its names.
++#include <GL/gl.h>
++#endif
+ #include <SDL_opengl.h>
+ 
+ #include "glfeatures.h"
+diff --git a/src/libs/tgfclient/guieventloop.cpp b/src/libs/tgfclient/guieventloop.cpp
+index 67efc67f1..9fd4267ab 100644
+--- a/src/libs/tgfclient/guieventloop.cpp
++++ b/src/libs/tgfclient/guieventloop.cpp
+@@ -16,6 +16,9 @@
+  ***************************************************************************/
+ 
+ #include <SDL.h>
++#ifdef __EMSCRIPTEN__
++#include <emscripten.h>
++#endif
+ 
+ #include "tgfclient.h"
+ #include "tgf.h"
+@@ -143,6 +146,15 @@ void GfuiEventLoop::injectJoystickButtonEvent(int joy, int button, int value)
+ 		_pPrivate->cbJoystickButton(joy, button, value);
+ }
+ 
++#ifdef __EMSCRIPTEN__
++// The browser draws a frame only when control returns to it, so it calls the
++// loop below once per frame instead.
++static void wasmLoopIteration(void* pEventLoop)
++{
++	(*static_cast<GfuiEventLoop*>(pEventLoop))();
++}
++#endif
++
+ // The event loop itself.
+ void GfuiEventLoop::operator()()
+ {
+@@ -151,6 +163,20 @@ void GfuiEventLoop::operator()()
+ 	static SDL_Keymod modifier = KMOD_NONE;
+ 	static SDL_Keycode keysym = SDLK_UNKNOWN;
+ 
++#ifdef __EMSCRIPTEN__
++	static bool bInBrowserLoop = false;
++	if (!bInBrowserLoop)
++	{
++		bInBrowserLoop = true;
++		emscripten_set_main_loop_arg(wasmLoopIteration, this, 0, 1);
++		return;
++	}
++	if (quitRequested())
++	{
++		emscripten_cancel_main_loop();
++		return;
++	}
++#endif
+ 
+ 	// Check for events.
+ 	while (!quitRequested())
+@@ -259,6 +285,10 @@ void GfuiEventLoop::operator()()
+ 			// Redisplay if anything to.
+ 			redisplay();
+ 
++#ifdef __EMSCRIPTEN__
++			(void)now;
++			break;
++#else
+ 			double elapsed = GfTimeClock() - now;
+ 
+ 			if (_pPrivate->max_refresh)
+@@ -266,9 +296,13 @@ void GfuiEventLoop::operator()()
+ 				if (elapsed < rate)
+ 					GfSleep(rate - elapsed);
+ 			}
++#endif
+ 		}
+ 	}
+ 
++#ifdef __EMSCRIPTEN__
++	if (quitRequested())
++#endif
+ 	GfLogTrace("Quitting GFUI event loop.\n");
+ }
+ 
+diff --git a/src/libs/tgfclient/guifont.cpp b/src/libs/tgfclient/guifont.cpp
+index d54acd27a..0d05dd30e 100644
+--- a/src/libs/tgfclient/guifont.cpp
++++ b/src/libs/tgfclient/guifont.cpp
+@@ -21,6 +21,10 @@
+ #include <portability.h>
+ #include <SDL2/SDL.h>
+ #include <SDL2/SDL_ttf.h>
++#ifdef __EMSCRIPTEN__
++// gl4es's header first, so the calls below get its names.
++#include <GL/gl.h>
++#endif
+ #include <SDL2/SDL_opengl.h>
+ 
+ #include <cerrno>
+diff --git a/src/libs/tgfclient/guiscreen.cpp b/src/libs/tgfclient/guiscreen.cpp
+index 1f8e0cfdc..da478267a 100644
+--- a/src/libs/tgfclient/guiscreen.cpp
++++ b/src/libs/tgfclient/guiscreen.cpp
+@@ -21,6 +21,11 @@
+     @ingroup	screen
+ */
+ 
++#ifdef __EMSCRIPTEN__
++#include <gl4esinit.h>
++#include <emscripten.h>
++extern "C" void* emscripten_GetProcAddress(const char* name);
++#endif
+ #include <portability.h>
+ 
+ #include <cstdio>
+@@ -324,6 +329,18 @@ static void gfScrReshapeViewport(int width, int height)
+     glLoadIdentity();
+ }
+ 
++#ifdef __EMSCRIPTEN__
++// The page sizes the canvas: it calls this with the size to draw at.
++extern "C" EMSCRIPTEN_KEEPALIVE void wg_resize(int width, int height)
++{
++    if (!GfuiWindow || width <= 0 || height <= 0)
++        return;
++    SDL_SetWindowSize(GfuiWindow, width, height);
++    gfScrReshapeViewport(width, height);
++    GfuiApp().eventLoop().postRedisplay();
++}
++#endif
++
+ static void gfuiInitialWindowedPosition(int displayId, SDL_Window* window )
+ {
+     int top = 0, left = 0, bottom = 0, right = 0, x = 0, y = 0;
+@@ -382,6 +399,16 @@ SDL_Surface* gfScrCreateWindow(int nWinWidth, int nWinHeight, int nTotalDepth,in
+         GfLogError("SDL_GL_CreateContext failed: %s\n", SDL_GetError());
+         return nullptr;
+     }
++#ifdef __EMSCRIPTEN__
++    // gl4es (OpenGL on WebGL) starts once there is a context to ask about.
++    static bool bGl4esStarted = false;
++    if (!bGl4esStarted)
++    {
++        set_getprocaddress(emscripten_GetProcAddress);
++        initialize_gl4es();
++        bGl4esStarted = true;
++    }
++#endif
+ 
+     // If specified, try best possible settings.
+     PScreenSurface = SDL_CreateRGBSurface(0, nWinWidth, nWinHeight, nTotalDepth,
+@@ -429,6 +456,11 @@ bool GfScrInitSDL2(int nWinWidth, int nWinHeight, int nFullScreen)
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
++#elif defined(__EMSCRIPTEN__)
++    // WebGL (OpenGL ES 2.0), which gl4es turns the game's OpenGL calls into.
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+ #else
+     // Version d'OpenGL
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+@@ -506,6 +538,9 @@ bool GfScrInitSDL2(int nWinWidth, int nWinHeight, int nFullScreen)
+     else
+         bFullScreen = nFullScreen ? true : false;
+ 
++#ifdef __EMSCRIPTEN__
++    bFullScreen = false; /* the page owns full screen */
++#endif
+     if(bFullScreen)
+         bfVideoMode |= SDL_WINDOW_FULLSCREEN;
+ 
+@@ -876,6 +911,9 @@ void GfScrGetSize(int *scrW, int *scrH, int *viewW, int *viewH)
+ 
+ bool GfScrToggleFullScreen()
+ {
++#ifdef __EMSCRIPTEN__
++    return false; /* the page owns full screen */
++#endif
+     Uint32 flags = SDL_GetWindowFlags(GfuiWindow);
+ 
+     if ((flags & SDL_WINDOW_FULLSCREEN) || (flags & SDL_WINDOW_FULLSCREEN_DESKTOP)) {
+@@ -1256,6 +1294,11 @@ bool GfScrInitSDL2()
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
++#elif defined(__EMSCRIPTEN__)
++    // WebGL (OpenGL ES 2.0), which gl4es turns the game's OpenGL calls into.
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+ #else
+     // Version d'OpenGL
+     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+@@ -1315,6 +1358,9 @@ bool GfScrInitSDL2()
+ 
+ void GfScrSetFullscreen(bool bFullScreen /* = true */)
+ {
++#ifdef __EMSCRIPTEN__
++    return; /* the page owns full screen */
++#endif
+     if(bFullScreen == false)
+     {
+         SDL_SetWindowFullscreen(GfuiWindow, 0);
+@@ -1327,6 +1373,9 @@ void GfScrSetFullscreen(bool bFullScreen /* = true */)
+ 
+ void GfScrToggleFullScreen(void* unused)
+ {
++#ifdef __EMSCRIPTEN__
++    return; /* the page owns full screen */
++#endif
+     Uint32 flags = SDL_GetWindowFlags(GfuiWindow);
+ 
+     if ((flags & SDL_WINDOW_FULLSCREEN) || (flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
+@@ -1409,6 +1458,9 @@ bool GfscrAllowMultiFullScreens()
+ 
+ void GfScrToggleMultiFullScreens(void* unused)
+ {
++#ifdef __EMSCRIPTEN__
++    return; /* the page owns full screen */
++#endif
+     static int restoreX = 0;
+     static int restoreY = 0;
+     static int restoreW = 800;
+diff --git a/src/libs/tgfdata/drivers.cpp b/src/libs/tgfdata/drivers.cpp
+index bc630edc7..aa3de26ae 100644
+--- a/src/libs/tgfdata/drivers.cpp
++++ b/src/libs/tgfdata/drivers.cpp
+@@ -1608,7 +1608,7 @@ int GfDrivers::gencname(const char *surname, std::string &out) const
+             return -1;
+         }
+ 
+-        cname += (const char *)buf;
++        cname.append((const char *)buf, n);
+     }
+ 
+     out = cname;
+diff --git a/src/libs/txml/CMakeLists.txt b/src/libs/txml/CMakeLists.txt
+index 4f20875bd..34aa5b669 100644
+--- a/src/libs/txml/CMakeLists.txt
++++ b/src/libs/txml/CMakeLists.txt
+@@ -31,6 +31,7 @@ IF(CMAKE_SKIP_RPATH OR CMAKE_SKIP_BUILD_RPATH)
+ ENDIF(CMAKE_SKIP_RPATH OR CMAKE_SKIP_BUILD_RPATH)
+ 
+ ADD_SDLIB_LIBRARY(txml portability)
++TARGET_INCLUDE_DIRECTORIES(txml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+ 
+ ADD_SUBDIRECTORY(gennmtab)
+ 
+diff --git a/src/modules/graphic/ssggraph/grSky.cpp b/src/modules/graphic/ssggraph/grSky.cpp
+index 95cddd56a..5720d996b 100644
+--- a/src/modules/graphic/ssggraph/grSky.cpp
++++ b/src/modules/graphic/ssggraph/grSky.cpp
+@@ -15,6 +15,8 @@
+  *                                                                         *
+  ***************************************************************************/
+ 
++#include <cmath>
++
+ #include "grSky.h"
+ 
+ namespace ssggraph {
+diff --git a/src/modules/graphic/ssggraph/grmain.cpp b/src/modules/graphic/ssggraph/grmain.cpp
+index 7824406d0..3afe58744 100644
+--- a/src/modules/graphic/ssggraph/grmain.cpp
++++ b/src/modules/graphic/ssggraph/grmain.cpp
+@@ -64,7 +64,15 @@ void *grTrackHandle = 0;
+ int grWinx, grWiny, grWinw, grWinh;
+ 
+ tgrCarInfo *grCarInfo;
++#ifdef __EMSCRIPTEN__
++ssgContext& grGetContext()
++{
++	static ssgContext* pContext = new ssgContext;
++	return *pContext;
++}
++#else
+ ssgContext grContext;
++#endif
+ cGrScreen *grScreens[GR_NB_MAX_SCREEN];
+ tdble grLodFactorValue = 1.0;
+ 
+diff --git a/src/modules/graphic/ssggraph/grmain.h b/src/modules/graphic/ssggraph/grmain.h
+index 4ca5d07bc..95dedf0e1 100644
+--- a/src/modules/graphic/ssggraph/grmain.h
++++ b/src/modules/graphic/ssggraph/grmain.h
+@@ -52,7 +52,14 @@ extern double grCurTime;
+ extern void *grHandle;
+ extern void *grTrackHandle;
+ 
++#ifdef __EMSCRIPTEN__
++// Made on first use: the module is linked into the game there, and a static
++// ssgContext would make GL calls before the game has a GL context.
++extern ssgContext& grGetContext();
++#define grContext grGetContext()
++#else
+ extern ssgContext grContext;
++#endif
+ extern int grNbCars;
+ 
+ extern int  initTrack(tTrack *track);
+diff --git a/src/modules/racing/standardgame/racemain.cpp b/src/modules/racing/standardgame/racemain.cpp
+index 51562aeb2..ba47b2c10 100644
+--- a/src/modules/racing/standardgame/racemain.cpp
++++ b/src/modules/racing/standardgame/racemain.cpp
+@@ -47,6 +47,43 @@
+ 
+ #include "racemain.h"
+ 
++#ifdef __EMSCRIPTEN__
++#include <emscripten.h>
++#include <race.h>
++#include <tracks.h>
++#include <cars.h>
++#include <drivers.h>
++
++// The web page downloads most cars and tracks while the game runs: a race
++// waits until the ones it needs are in. Asks about each of them, so that
++// the page can fetch them first.
++static bool reWasmMissing(const std::string &dir)
++{
++    return EM_ASM_INT({ return Module.wgDataReady ? Module.wgDataReady(UTF8ToString($0)) : 1; },
++                      dir.c_str()) == 0;
++}
++
++static bool reWasmDataMissing()
++{
++    bool missing = false;
++    const GfRace *race = StandardGame::self().race();
++    const GfTrack *track = race->getTrack();
++
++    if (track && reWasmMissing("tracks/" + track->getCategoryId() + "/" + track->getId()))
++        missing = true;
++    for (const GfDriver *driver : race->getCompetitors())
++        if (driver->getCar() && reWasmMissing("cars/models/" + driver->getCar()->getId()))
++            missing = true;
++    return missing;
++}
++
++static void reWasmRetry(void *)
++{
++    if (ReInfo->_reState == RE_STATE_EVENT_INIT)
++        ReStateManage(0);
++}
++#endif
++
+ // Initialise state
+ bool NoCleanupNeeded = true;
+ 
+@@ -165,6 +202,19 @@ ReRaceEventInit(void)
+ 
+     ReUI().onRaceEventInitializing();
+ 
++#ifdef __EMSCRIPTEN__
++    static bool waiting = false;
++    if (reWasmDataMissing())
++    {
++        if (!waiting)
++            ReUI().addLoadingMessage("Downloading the track and cars...");
++        waiting = true;
++        emscripten_async_call(reWasmRetry, nullptr, 250);
++        return RM_ASYNC;
++    }
++    waiting = false;
++#endif
++
+     ReInfo->s->_features = RmGetFeaturesList(ReInfo->params);
+ 
+     ReTrackInit();
+diff --git a/src/modules/sound/snddefault/CMakeLists.txt b/src/modules/sound/snddefault/CMakeLists.txt
+index edc61c8fa..2f993e0da 100644
+--- a/src/modules/sound/snddefault/CMakeLists.txt
++++ b/src/modules/sound/snddefault/CMakeLists.txt
+@@ -13,7 +13,7 @@ SET(_HEADERS snddefault.h
+                        OpenalSoundInterface.h
+                        grsound.h)
+ FIND_PACKAGE(PLIB)
+-IF(PLIB_FOUND AND OPTION_SSGGRAPH)
++IF(PLIB_FOUND AND OPTION_SSGGRAPH AND NOT EMSCRIPTEN)
+    SET(_SOURCES ${_SOURCES} PlibSound.cpp PlibSoundInterface.cpp)
+    SET(_HEADERS ${_HEADERS} PlibSound.h PlibSoundInterface.h)
+    ADD_PLIB_INCLUDEDIR()
+diff --git a/src/modules/sound/snddefault/grsound.cpp b/src/modules/sound/snddefault/grsound.cpp
+index b7fcf6ee9..822b8b760 100644
+--- a/src/modules/sound/snddefault/grsound.cpp
++++ b/src/modules/sound/snddefault/grsound.cpp
+@@ -21,7 +21,7 @@
+ #include <sound.h>
+ 
+ #include "OpenalSoundInterface.h"
+-#if HAVE_LIBPLIBUL
++#if HAVE_LIBPLIBUL && !defined(__EMSCRIPTEN__)
+ #include "PlibSoundInterface.h"
+ #endif
+ #include "CarSoundData.h"
+@@ -72,7 +72,7 @@ void grInitSound(tSituation* s, int ncars)
+ 		}
+ 		break;
+ 	case PLIB_MODE:
+-#if HAVE_LIBPLIBUL
++#if HAVE_LIBPLIBUL && !defined(__EMSCRIPTEN__)
+ 		sound_interface = new PlibSoundInterface(44100, 32);
+ 		break;
+ #endif
+@@ -184,7 +184,7 @@ grShutdownSound()
+ 
+     delete sound_interface;
+ 
+-#if HAVE_LIBPLIBUL
++#if HAVE_LIBPLIBUL && !defined(__EMSCRIPTEN__)
+     if (__slPendingError) {
+ 		GfLogError("Plib: The following error was ignored: %s\n", __slPendingError);
+ 		__slPendingError = 0; // ARG!!! ugly ugly bad thing... but should not occur anymore now
+diff --git a/src/modules/userinterface/legacymenu/mainscreens/mainmenu.cpp b/src/modules/userinterface/legacymenu/mainscreens/mainmenu.cpp
+index 9942753d8..22c5cc59e 100644
+--- a/src/modules/userinterface/legacymenu/mainscreens/mainmenu.cpp
++++ b/src/modules/userinterface/legacymenu/mainscreens/mainmenu.cpp
+@@ -116,14 +116,18 @@ MainMenuInit(bool SupportsHumanDrivers)
+ 		GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "configure", NULL, onPlayerConfigMenuActivate);
+     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "options", NULL, onOptionsMenuActivate);
+     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "credits", NULL, onCreditsMenuActivate);
++#ifndef __EMSCRIPTEN__
+     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "downloads", NULL, onDownloadsMenuActivate);
+     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "quit", NULL, onExitMenuActivate);
++#endif
+ 
+     GfuiMenuDefaultKeysAdd(MenuHandle);
+ 
+     void *commonTextHdle = GfuiMenuLoad("commontext.xml");
+     const char* quitGameText = GfuiGetTranslatedText(commonTextHdle, "translatable/quitgame");
++#ifndef __EMSCRIPTEN__
+     GfuiAddKey(MenuHandle, GFUIK_ESCAPE, quitGameText, NULL, onExitMenuActivate, NULL);
++#endif
+     GfParmReleaseHandle(commonTextHdle);
+ 
+     int version = GfuiMenuCreateLabelControl(MenuHandle, menuDescHdle, "version");
+diff --git a/src/modules/userinterface/legacymenu/mainscreens/optionsmenu.cpp b/src/modules/userinterface/legacymenu/mainscreens/optionsmenu.cpp
+index 8352e4140..10785c6c6 100644
+--- a/src/modules/userinterface/legacymenu/mainscreens/optionsmenu.cpp
++++ b/src/modules/userinterface/legacymenu/mainscreens/optionsmenu.cpp
+@@ -90,7 +90,9 @@ OptionsMenuInit(void *prevMenu)
+     GfuiMenuCreateStaticControls(MenuHandle, param);
+ 
+ // SDW hack to get access to Monitor menu, doesn't have a defined position yet
+-#ifdef MonitorMenu
++#if defined(__EMSCRIPTEN__)
++    // The page sizes the canvas and owns full screen.
++#elif defined(MonitorMenu)
+     GfuiMenuCreateButtonControl(MenuHandle, param, "display", NULL, onMonitorMenuActivate);
+ #else
+     GfuiMenuCreateButtonControl(MenuHandle, param, "display", NULL, onDisplayMenuActivate);
+diff --git a/src/modules/userinterface/legacymenu/racescreens/racestopmenu.cpp b/src/modules/userinterface/legacymenu/racescreens/racestopmenu.cpp
+index b89a3d2ca..f11b216c2 100644
+--- a/src/modules/userinterface/legacymenu/racescreens/racestopmenu.cpp
++++ b/src/modules/userinterface/legacymenu/racescreens/racestopmenu.cpp
+@@ -412,15 +412,19 @@ RmStopRaceMenu()
+             buttonRole[i] = "controls";
+             screen[i++] = rmControlsHookInit();
+ 
++#ifndef __EMSCRIPTEN__
+             buttonRole[i] = "forcefeedback";
+             screen[i++] = rmForceFeedbackConfigHookInit();
++#endif
+             break;
+         }
+     }
+ #endif
+ 
++#ifndef __EMSCRIPTEN__
+     buttonRole[i] = "quit";
+     screen[i++] = rmQuitHookInit();
++#endif
+ 
+     rmStopScrHandle = rmStopRaceMenu(buttonRole[0], screen[0],
+                buttonRole[1], screen[1],

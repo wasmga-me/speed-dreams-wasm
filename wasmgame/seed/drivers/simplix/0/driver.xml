@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE params SYSTEM "params.dtd">
+
+
+<params name="simplix">
+  <section name="driver">
+    <attstr name="name" val="Mattia Conti"/>
+    <attstr name="short name" val="M. Conti"/>
+    <attstr name="code name" val="CON"/>
+    <attstr name="desc" val="Bot generated"/>
+    <attstr name="team" val="Free French Racers team Orcana"/>
+    <attstr name="author" val="Automatically generated"/>
+    <attstr name="car name" val="sc-lynx-220"/>
+    <attstr name="livery name" val="red-lord"/>
+    <attstr name="race number" val="1"/>
+    <attstr name="red" val="1.0"/>
+    <attstr name="green" val="1.0"/>
+    <attstr name="blue" val="1.0"/>
+    <attstr name="nation" val="IT"/>
+  </section>
+
+</params>

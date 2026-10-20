@@ -1,0 +1,35 @@
+diff --git a/src/ssg/ssg.cxx b/src/ssg/ssg.cxx
+index c7526c6c..e298c182 100644
+--- a/src/ssg/ssg.cxx
++++ b/src/ssg/ssg.cxx
+@@ -29,7 +29,7 @@
+ #  include <agl.h>
+ #elif defined(UL_MAC_OSX)
+ #  include <OpenGL/CGLCurrent.h>
+-#elif defined(UL_WIN32)
++#elif defined(UL_WIN32) || defined(__EMSCRIPTEN__)
+    /* Nothing */
+ #else
+ #  include <GL/glx.h>
+@@ -37,7 +37,7 @@
+ 
+ static bool glIsValidContext ( void )
+ {
+-#if defined(CONSOLE)
++#if defined(CONSOLE) || defined(__EMSCRIPTEN__)
+   return true ;
+ #elif defined(UL_WIN32)
+   return ( wglGetCurrentContext () != NULL ) ;
+diff --git a/src/ssg/ssgLoadFLT.cxx b/src/ssg/ssgLoadFLT.cxx
+index 6f0e73e0..f2b8d8eb 100644
+--- a/src/ssg/ssgLoadFLT.cxx
++++ b/src/ssg/ssgLoadFLT.cxx
+@@ -142,7 +142,7 @@
+ 
+ typedef unsigned char ubyte;
+ 
+-#if defined(UL_WIN32) || defined(UL_MAC_OSX)
++#if defined(UL_WIN32) || defined(UL_MAC_OSX) || defined(__EMSCRIPTEN__)
+ typedef unsigned short ushort;
+ typedef unsigned int uint;
+ #endif
