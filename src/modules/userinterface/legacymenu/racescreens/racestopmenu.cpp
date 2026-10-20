@@ -412,15 +412,19 @@ RmStopRaceMenu()
             buttonRole[i] = "controls";
             screen[i++] = rmControlsHookInit();
 
+#ifndef __EMSCRIPTEN__
             buttonRole[i] = "forcefeedback";
             screen[i++] = rmForceFeedbackConfigHookInit();
+#endif
             break;
         }
     }
 #endif
 
+#ifndef __EMSCRIPTEN__
     buttonRole[i] = "quit";
     screen[i++] = rmQuitHookInit();
+#endif
 
     rmStopScrHandle = rmStopRaceMenu(buttonRole[0], screen[0],
                buttonRole[1], screen[1],

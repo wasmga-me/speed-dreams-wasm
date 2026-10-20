@@ -116,14 +116,18 @@ MainMenuInit(bool SupportsHumanDrivers)
 		GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "configure", NULL, onPlayerConfigMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "options", NULL, onOptionsMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "credits", NULL, onCreditsMenuActivate);
+#ifndef __EMSCRIPTEN__
     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "downloads", NULL, onDownloadsMenuActivate);
     GfuiMenuCreateButtonControl(MenuHandle, menuDescHdle, "quit", NULL, onExitMenuActivate);
+#endif
 
     GfuiMenuDefaultKeysAdd(MenuHandle);
 
     void *commonTextHdle = GfuiMenuLoad("commontext.xml");
     const char* quitGameText = GfuiGetTranslatedText(commonTextHdle, "translatable/quitgame");
+#ifndef __EMSCRIPTEN__
     GfuiAddKey(MenuHandle, GFUIK_ESCAPE, quitGameText, NULL, onExitMenuActivate, NULL);
+#endif
     GfParmReleaseHandle(commonTextHdle);
 
     int version = GfuiMenuCreateLabelControl(MenuHandle, menuDescHdle, "version");

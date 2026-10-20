@@ -176,6 +176,18 @@ MACRO(SD_ADD_LIBRARY TARGET_NAME TARGET_TYPE)
       SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES PREFIX "")
     ENDIF(UNIX OR MINGW)
 
+    # Emscripten has no shared libraries: modules and robots are linked into
+    # the game, so their entry points take the module name as a prefix and
+    # dlopen / dlsym look them up in a table (see tgf/wasmdl.h).
+    IF(EMSCRIPTEN)
+      TARGET_COMPILE_DEFINITIONS(${TARGET_NAME} PRIVATE
+        openGfModule=${TARGET_NAME}_openGfModule
+        closeGfModule=${TARGET_NAME}_closeGfModule
+        moduleWelcome=${TARGET_NAME}_moduleWelcome
+        moduleInitialize=${TARGET_NAME}_moduleInitialize
+        moduleTerminate=${TARGET_NAME}_moduleTerminate)
+    ENDIF(EMSCRIPTEN)
+
   ENDIF()
 
 ENDMACRO(SD_ADD_LIBRARY TARGET_NAME TARGET_TYPE)

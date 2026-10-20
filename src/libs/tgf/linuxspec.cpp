@@ -53,6 +53,9 @@
 #endif
 
 #include "tgf.h"
+#ifdef __EMSCRIPTEN__
+#include "wasmdl.h"
+#endif
 
 #include "os.h"
 

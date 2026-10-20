@@ -64,7 +64,15 @@ void *grTrackHandle = 0;
 int grWinx, grWiny, grWinw, grWinh;
 
 tgrCarInfo *grCarInfo;
+#ifdef __EMSCRIPTEN__
+ssgContext& grGetContext()
+{
+	static ssgContext* pContext = new ssgContext;
+	return *pContext;
+}
+#else
 ssgContext grContext;
+#endif
 cGrScreen *grScreens[GR_NB_MAX_SCREEN];
 tdble grLodFactorValue = 1.0;
 

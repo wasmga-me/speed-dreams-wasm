@@ -52,7 +52,14 @@ extern double grCurTime;
 extern void *grHandle;
 extern void *grTrackHandle;
 
+#ifdef __EMSCRIPTEN__
+// Made on first use: the module is linked into the game there, and a static
+// ssgContext would make GL calls before the game has a GL context.
+extern ssgContext& grGetContext();
+#define grContext grGetContext()
+#else
 extern ssgContext grContext;
+#endif
 extern int grNbCars;
 
 extern int  initTrack(tTrack *track);

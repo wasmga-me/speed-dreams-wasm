@@ -1608,7 +1608,7 @@ int GfDrivers::gencname(const char *surname, std::string &out) const
             return -1;
         }
 
-        cname += (const char *)buf;
+        cname.append((const char *)buf, n);
     }
 
     out = cname;

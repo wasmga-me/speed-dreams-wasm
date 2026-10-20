@@ -16,6 +16,9 @@
  ***************************************************************************/
 
 #include <SDL.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #include "tgfclient.h"
 #include "tgf.h"
@@ -143,6 +146,15 @@ void GfuiEventLoop::injectJoystickButtonEvent(int joy, int button, int value)
 		_pPrivate->cbJoystickButton(joy, button, value);
 }
 
+#ifdef __EMSCRIPTEN__
+// The browser draws a frame only when control returns to it, so it calls the
+// loop below once per frame instead.
+static void wasmLoopIteration(void* pEventLoop)
+{
+	(*static_cast<GfuiEventLoop*>(pEventLoop))();
+}
+#endif
+
 // The event loop itself.
 void GfuiEventLoop::operator()()
 {
@@ -151,6 +163,20 @@ void GfuiEventLoop::operator()()
 	static SDL_Keymod modifier = KMOD_NONE;
 	static SDL_Keycode keysym = SDLK_UNKNOWN;
 
+#ifdef __EMSCRIPTEN__
+	static bool bInBrowserLoop = false;
+	if (!bInBrowserLoop)
+	{
+		bInBrowserLoop = true;
+		emscripten_set_main_loop_arg(wasmLoopIteration, this, 0, 1);
+		return;
+	}
+	if (quitRequested())
+	{
+		emscripten_cancel_main_loop();
+		return;
+	}
+#endif
 
 	// Check for events.
 	while (!quitRequested())
@@ -259,6 +285,10 @@ void GfuiEventLoop::operator()()
 			// Redisplay if anything to.
 			redisplay();
 
+#ifdef __EMSCRIPTEN__
+			(void)now;
+			break;
+#else
 			double elapsed = GfTimeClock() - now;
 
 			if (_pPrivate->max_refresh)
@@ -266,9 +296,13 @@ void GfuiEventLoop::operator()()
 				if (elapsed < rate)
 					GfSleep(rate - elapsed);
 			}
+#endif
 		}
 	}
 
+#ifdef __EMSCRIPTEN__
+	if (quitRequested())
+#endif
 	GfLogTrace("Quitting GFUI event loop.\n");
 }
 

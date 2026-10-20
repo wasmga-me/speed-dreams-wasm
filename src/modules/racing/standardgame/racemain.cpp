@@ -47,6 +47,43 @@
 
 #include "racemain.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <race.h>
+#include <tracks.h>
+#include <cars.h>
+#include <drivers.h>
+
+// The web page downloads most cars and tracks while the game runs: a race
+// waits until the ones it needs are in. Asks about each of them, so that
+// the page can fetch them first.
+static bool reWasmMissing(const std::string &dir)
+{
+    return EM_ASM_INT({ return Module.wgDataReady ? Module.wgDataReady(UTF8ToString($0)) : 1; },
+                      dir.c_str()) == 0;
+}
+
+static bool reWasmDataMissing()
+{
+    bool missing = false;
+    const GfRace *race = StandardGame::self().race();
+    const GfTrack *track = race->getTrack();
+
+    if (track && reWasmMissing("tracks/" + track->getCategoryId() + "/" + track->getId()))
+        missing = true;
+    for (const GfDriver *driver : race->getCompetitors())
+        if (driver->getCar() && reWasmMissing("cars/models/" + driver->getCar()->getId()))
+            missing = true;
+    return missing;
+}
+
+static void reWasmRetry(void *)
+{
+    if (ReInfo->_reState == RE_STATE_EVENT_INIT)
+        ReStateManage(0);
+}
+#endif
+
 // Initialise state
 bool NoCleanupNeeded = true;
 
@@ -164,6 +201,19 @@ ReRaceEventInit(void)
     GfLogInfo("Starting new event (%s session)\n", ReInfo->_reRaceName);
 
     ReUI().onRaceEventInitializing();
+
+#ifdef __EMSCRIPTEN__
+    static bool waiting = false;
+    if (reWasmDataMissing())
+    {
+        if (!waiting)
+            ReUI().addLoadingMessage("Downloading the track and cars...");
+        waiting = true;
+        emscripten_async_call(reWasmRetry, nullptr, 250);
+        return RM_ASYNC;
+    }
+    waiting = false;
+#endif
 
     ReInfo->s->_features = RmGetFeaturesList(ReInfo->params);
 

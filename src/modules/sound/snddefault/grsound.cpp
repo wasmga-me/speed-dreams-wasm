@@ -21,7 +21,7 @@
 #include <sound.h>
 
 #include "OpenalSoundInterface.h"
-#if HAVE_LIBPLIBUL
+#if HAVE_LIBPLIBUL && !defined(__EMSCRIPTEN__)
 #include "PlibSoundInterface.h"
 #endif
 #include "CarSoundData.h"
@@ -72,7 +72,7 @@ void grInitSound(tSituation* s, int ncars)
 		}
 		break;
 	case PLIB_MODE:
-#if HAVE_LIBPLIBUL
+#if HAVE_LIBPLIBUL && !defined(__EMSCRIPTEN__)
 		sound_interface = new PlibSoundInterface(44100, 32);
 		break;
 #endif
@@ -184,7 +184,7 @@ grShutdownSound()
 
     delete sound_interface;
 
-#if HAVE_LIBPLIBUL
+#if HAVE_LIBPLIBUL && !defined(__EMSCRIPTEN__)
     if (__slPendingError) {
 		GfLogError("Plib: The following error was ignored: %s\n", __slPendingError);
 		__slPendingError = 0; // ARG!!! ugly ugly bad thing... but should not occur anymore now

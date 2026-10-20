@@ -2562,12 +2562,12 @@ void TDriver::InitBrake()
 }
 //==========================================================================*
 
-tdble F(tWing* wing)
+static tdble F(tWing* wing)
 {
     return	1 -	exp( pow(-(wing->a / wing->b),wing->c));
 }
 
-tdble CliftFromAoA(tWing* wing)
+static tdble CliftFromAoA(tWing* wing)
 {
     tdble angle = (tdble) (wing->angle	* 180/PI);
     //fprintf(stderr,"wing->angle:	%g rad = angle:	%g deg\n",wing->angle,angle);

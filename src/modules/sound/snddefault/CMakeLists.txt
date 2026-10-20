@@ -13,7 +13,7 @@ SET(_HEADERS snddefault.h
                        OpenalSoundInterface.h
                        grsound.h)
 FIND_PACKAGE(PLIB)
-IF(PLIB_FOUND AND OPTION_SSGGRAPH)
+IF(PLIB_FOUND AND OPTION_SSGGRAPH AND NOT EMSCRIPTEN)
    SET(_SOURCES ${_SOURCES} PlibSound.cpp PlibSoundInterface.cpp)
    SET(_HEADERS ${_HEADERS} PlibSound.h PlibSoundInterface.h)
    ADD_PLIB_INCLUDEDIR()

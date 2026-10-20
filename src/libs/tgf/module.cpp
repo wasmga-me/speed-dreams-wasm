@@ -39,6 +39,9 @@
 # define dlopen(soFileName) dlopen(soFileName, RTLD_LAZY|RTLD_GLOBAL)
 # define soLibHandle(handle) handle
 #endif
+#ifdef __EMSCRIPTEN__
+# include "wasmdl.h"
+#endif
 
 // Name and type of the 2 extern "C" module interface functions.
 typedef int (*tModOpenFunc)(const char*, void*); // Returns 0 on success, !0 otherwise.

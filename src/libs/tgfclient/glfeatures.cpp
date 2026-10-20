@@ -19,6 +19,10 @@
 #include <limits>
 
 #include <SDL.h>
+#ifdef __EMSCRIPTEN__
+// gl4es's header first, so the calls below get its names.
+#include <GL/gl.h>
+#endif
 #include <SDL_opengl.h>
 
 #include "glfeatures.h"

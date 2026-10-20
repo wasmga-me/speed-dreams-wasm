@@ -21,6 +21,11 @@
     @ingroup	screen
 */
 
+#ifdef __EMSCRIPTEN__
+#include <gl4esinit.h>
+#include <emscripten.h>
+extern "C" void* emscripten_GetProcAddress(const char* name);
+#endif
 #include <portability.h>
 
 #include <cstdio>
@@ -324,6 +329,18 @@ static void gfScrReshapeViewport(int width, int height)
     glLoadIdentity();
 }
 
+#ifdef __EMSCRIPTEN__
+// The page sizes the canvas: it calls this with the size to draw at.
+extern "C" EMSCRIPTEN_KEEPALIVE void wg_resize(int width, int height)
+{
+    if (!GfuiWindow || width <= 0 || height <= 0)
+        return;
+    SDL_SetWindowSize(GfuiWindow, width, height);
+    gfScrReshapeViewport(width, height);
+    GfuiApp().eventLoop().postRedisplay();
+}
+#endif
+
 static void gfuiInitialWindowedPosition(int displayId, SDL_Window* window )
 {
     int top = 0, left = 0, bottom = 0, right = 0, x = 0, y = 0;
@@ -382,6 +399,16 @@ SDL_Surface* gfScrCreateWindow(int nWinWidth, int nWinHeight, int nTotalDepth,in
         GfLogError("SDL_GL_CreateContext failed: %s\n", SDL_GetError());
         return nullptr;
     }
+#ifdef __EMSCRIPTEN__
+    // gl4es (OpenGL on WebGL) starts once there is a context to ask about.
+    static bool bGl4esStarted = false;
+    if (!bGl4esStarted)
+    {
+        set_getprocaddress(emscripten_GetProcAddress);
+        initialize_gl4es();
+        bGl4esStarted = true;
+    }
+#endif
 
     // If specified, try best possible settings.
     PScreenSurface = SDL_CreateRGBSurface(0, nWinWidth, nWinHeight, nTotalDepth,
@@ -429,6 +456,11 @@ bool GfScrInitSDL2(int nWinWidth, int nWinHeight, int nFullScreen)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#elif defined(__EMSCRIPTEN__)
+    // WebGL (OpenGL ES 2.0), which gl4es turns the game's OpenGL calls into.
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
     // Version d'OpenGL
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -506,6 +538,9 @@ bool GfScrInitSDL2(int nWinWidth, int nWinHeight, int nFullScreen)
     else
         bFullScreen = nFullScreen ? true : false;
 
+#ifdef __EMSCRIPTEN__
+    bFullScreen = false; /* the page owns full screen */
+#endif
     if(bFullScreen)
         bfVideoMode |= SDL_WINDOW_FULLSCREEN;
 
@@ -876,6 +911,9 @@ void GfScrGetSize(int *scrW, int *scrH, int *viewW, int *viewH)
 
 bool GfScrToggleFullScreen()
 {
+#ifdef __EMSCRIPTEN__
+    return false; /* the page owns full screen */
+#endif
     Uint32 flags = SDL_GetWindowFlags(GfuiWindow);
 
     if ((flags & SDL_WINDOW_FULLSCREEN) || (flags & SDL_WINDOW_FULLSCREEN_DESKTOP)) {
@@ -1256,6 +1294,11 @@ bool GfScrInitSDL2()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#elif defined(__EMSCRIPTEN__)
+    // WebGL (OpenGL ES 2.0), which gl4es turns the game's OpenGL calls into.
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
     // Version d'OpenGL
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -1315,6 +1358,9 @@ bool GfScrInitSDL2()
 
 void GfScrSetFullscreen(bool bFullScreen /* = true */)
 {
+#ifdef __EMSCRIPTEN__
+    return; /* the page owns full screen */
+#endif
     if(bFullScreen == false)
     {
         SDL_SetWindowFullscreen(GfuiWindow, 0);
@@ -1327,6 +1373,9 @@ void GfScrSetFullscreen(bool bFullScreen /* = true */)
 
 void GfScrToggleFullScreen(void* unused)
 {
+#ifdef __EMSCRIPTEN__
+    return; /* the page owns full screen */
+#endif
     Uint32 flags = SDL_GetWindowFlags(GfuiWindow);
 
     if ((flags & SDL_WINDOW_FULLSCREEN) || (flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
@@ -1409,6 +1458,9 @@ bool GfscrAllowMultiFullScreens()
 
 void GfScrToggleMultiFullScreens(void* unused)
 {
+#ifdef __EMSCRIPTEN__
+    return; /* the page owns full screen */
+#endif
     static int restoreX = 0;
     static int restoreY = 0;
     static int restoreW = 800;

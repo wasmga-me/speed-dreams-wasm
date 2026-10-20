@@ -28,6 +28,9 @@
 #ifndef _WIN32
 #include <dlfcn.h>
 #endif
+#ifdef __EMSCRIPTEN__
+#include "wasmdl.h"
+#endif
 
 #include "tgf.h"
 

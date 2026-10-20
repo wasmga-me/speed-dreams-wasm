@@ -90,7 +90,9 @@ OptionsMenuInit(void *prevMenu)
     GfuiMenuCreateStaticControls(MenuHandle, param);
 
 // SDW hack to get access to Monitor menu, doesn't have a defined position yet
-#ifdef MonitorMenu
+#if defined(__EMSCRIPTEN__)
+    // The page sizes the canvas and owns full screen.
+#elif defined(MonitorMenu)
     GfuiMenuCreateButtonControl(MenuHandle, param, "display", NULL, onMonitorMenuActivate);
 #else
     GfuiMenuCreateButtonControl(MenuHandle, param, "display", NULL, onDisplayMenuActivate);
